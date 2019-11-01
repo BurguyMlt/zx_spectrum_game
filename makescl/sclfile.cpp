@@ -1,3 +1,5 @@
+// Make TRD/SCL file (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 #include "sclfile.h"
 #include <limits> // std::numeric_limits
 #include <string.h> // strlen, memset, memcpy

@@ -1,3 +1,5 @@
+// Make TRD/SCL file (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 #include "fstools.h"
 #include <stdio.h> // FILE
 #include <sys/stat.h> // fstat
