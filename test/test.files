@@ -1,0 +1,11 @@
+./test.files
+./drawtext.inc
+./test.creator
+./logo.png
+./clearscreen.inc
+./test.includes
+./font.png
+./boot_monoloader.asm
+./drawimage.inc
+./Makefile
+./boot.asm
