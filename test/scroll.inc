@@ -1,6 +1,6 @@
 scroll:
         ; Заливка черным цветом экрана
-        LD     D, 0
+        LD     D, 047h
         CALL   clearScreen
 
         ; Перерисовать всё
@@ -11,8 +11,6 @@ scroll:
         LDIR
 
 Loop:
-        ;JP     Intro
-
         LD     A, (mainMenuX)
         INC    A
         LD     (mainMenuX), A
@@ -36,8 +34,12 @@ Begin_1:
 
         ; Чтение номера тейла из карты уровня
         EXX
+        INC    HL
         LD     A, (DE)
         INC    E
+        CP     (HL)
+        JP     Z, DontDraw
+        LD     (HL), A
         EXX
 
         ; Вычисление адреса тейла
@@ -92,6 +94,7 @@ Begin_1:
         POP    HL
         INC    L ; Вправо
         DJNZ   Begin_1
+
 DontDraw_2:
         ; Следующая строка карты
         EXX
