@@ -1,13 +1,83 @@
 ;-------------------------------------------------------------------------------
 
+;drawText_A dw 0
+;drawText_AC db 0
+;
+;drawText_NL:
+;        LD     HL, (drawText_A)
+;        PUSH   BC
+;        LD     B, 10
+;drawText_NL2:
+;        INC    H ; Цикл
+;        LD     A, H
+;        AND    7
+;        CALL   Z, drawText_L
+;        DJNZ   drawText_NL2
+;        POP    BC
+;        LD     (drawText_A), HL
+;        LD     A, (drawText_AC)
+;        LD     C, A
+;        JP     drawTextSub
+
+;-------------------------------------------------------------------------------
+
+calcCoords:
+        ; ...76210 543XXXXX
+
+        ; C = L & 7; L >>= 3;
+        LD     A, L
+        AND    7
+        LD     C, A
+        SRL    L
+        SRL    L
+        SRL    L
+
+        ; L |= ((H << 2) & 0xE0)
+        LD     A, H
+        ADD    A
+        ADD    A
+        AND    0E0h
+        OR     L
+        LD     L, A
+
+        ; B = (H >> 3) & 0x18
+        LD     A, H
+        RRCA
+        RRCA
+        RRCA
+        AND    018h
+        LD     B, A
+
+        ; H = 0x40 | (H & 7) | B
+        LD     A, H
+        AND    007h
+        OR     040h
+        OR     A, B
+        LD     H, A
+        RET
+
+;-------------------------------------------------------------------------------
+
 drawText:
         LD     C, 0
 drawTextSub:
-        ; Чтение символа (a = *de++)
         LD     A, (DE)
+        INC    DE
         OR     A
         RET    Z
-        INC    DE
+        CALL   drawCharSub
+        JP     drawTextSub
+
+;-------------------------------------------------------------------------------
+
+drawTextEx:
+        CALL   calcCoords
+        JP     drawTextSub
+
+;-------------------------------------------------------------------------------
+
+drawCharSub:
+        ; Чтение символа (a = *de++)
         PUSH   DE
 
         ; Вычисление адреса символа (de = image_font + a * 9)
@@ -105,13 +175,13 @@ drawText_C1:
         LD     C, A
 drawText_C2:
         AND    0
-        OR     (HL)
+        XOR    (HL)
         LD     (HL), A
         LD     A, C ; Половинка
 drawText_C3:
         AND    0
         INC    L ; влево
-        OR     (HL)
+        XOR    (HL)
         LD     (HL), A
         DEC    L ; вправо
         INC    H ; Цикл
@@ -126,6 +196,7 @@ drawText_1:
         POP    BC
         POP    HL
         LD     A, (DE)
+        LD     B, A
         ADD    C
         CP     8
         JP     C, drawText_2
@@ -135,7 +206,10 @@ drawText_2:
         LD     C, A
 
         POP    DE
-        JP     drawTextSub
+        RET
+
+;-------------------------------------------------------------------------------
+
 drawText_L:
         PUSH   DE
         LD     DE, 20h-800h
@@ -172,15 +246,16 @@ drawTextRus:
         RET
 
 ;-------------------------------------------------------------------------------
+; DE - текст / С - результат
 
 measureText:
         LD     C, 0
 measureText_1:
         ; Чтение символа (a = *de++)
         LD     A, (DE)
+        INC    DE
         OR     A
         RET    Z
-        INC    DE
 
         ; Вычисление адреса символа (de = image_font + a * 9)
         PUSH   DE

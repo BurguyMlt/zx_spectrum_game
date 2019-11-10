@@ -20,14 +20,24 @@ void readTail(Tail& tail, Png& png, unsigned dx, unsigned dy)
     unsigned c1 = 0xFF, c2 = 0xFF;
     uint32_t tail_rgb[8 * 8];
 
+    bool is_enemy_mark = true;
     for (y = 0; y < 8; y++)
     {
         for (x = 0; x < 8; x++)
         {
             uint32_t c = png.getPixel(x + dx, y + dy);
+            if (c != 0x0080FF) is_enemy_mark = false;
             tail_rgb[x + y * 8] = c;
         }
     }
+
+    if (is_enemy_mark)
+    {
+        memset(tail.data, 0, sizeof(tail.data));
+        tail.type = ttEnemy;
+        return;
+    }
+
 
     for (y = 0; y < 8; y++)
     {

@@ -1,6 +1,6 @@
         DEVICE ZXSPECTRUM128
 
-        ORG #C000
+        ORG #8000
 
 MAIN_MENU_LOGO_X = 1
 MAIN_MENU_LOGO_Y = 1
@@ -20,11 +20,15 @@ MAIN_MENU_ITEMS_B2Y = 192 - 8 - (10 * 0)
 
 Begin:
         ; Установка черной рамки
-        XOR    A
+        LD     A, 0
         OUT    (-2), A
 
-        ; Заливка черным цветом экрана
-        CALL   clearScreen
+        ; Сразу переходим на Интро
+        ;JP     intro
+
+        ; Очистка экрана.
+        LD     D, 47h
+        CALL   clearScreen ; Сохраняет EXX, IX, IY
 
         ; Вывод изображения
         LD     DE, 0x5800 + MAIN_MENU_LOGO_X + (MAIN_MENU_LOGO_Y << 5)
@@ -51,6 +55,13 @@ Begin:
         LD     DE, mainMenuItemText3 ; Строка текста
         CALL   drawText
 
+        ; Цвет букв копирайта
+        LD     HL, 05800h + (((MAIN_MENU_ITEMS_B0Y) >> 3) << 5)
+        LD     DE, 05801h + (((MAIN_MENU_ITEMS_B0Y) >> 3) << 5)
+        LD     BC, 32 * ((((MAIN_MENU_ITEMS_B2Y) + 7 + 7) >> 3) - ((MAIN_MENU_ITEMS_B0Y) >> 3)) - 1
+        LD     (HL), 45h
+        LDIR
+
         ; Строка копирайтов 1
         LD     HL, 04000h + (((MAIN_MENU_ITEMS_B0Y) & 7) << 8) + ((((MAIN_MENU_ITEMS_B0Y) >> 3) & 7) << 5) + ((((MAIN_MENU_ITEMS_B0Y) >> 6) & 3) << 11) ; Адрес вывода
         LD     DE, mainMenuBottomText0 ; Строка текста
@@ -66,20 +77,6 @@ Begin:
         LD     HL, 04000h + (((MAIN_MENU_ITEMS_B2Y) & 7) << 8) + ((((MAIN_MENU_ITEMS_B2Y) >> 3) & 7) << 5) + ((((MAIN_MENU_ITEMS_B2Y) >> 6) & 3) << 11) ; Адрес вывода
         call   drawTextCenter
 
-        ; Цвет букв копирайта
-        LD     HL, 05800h + (((MAIN_MENU_ITEMS_B0Y) >> 3) << 5)
-        LD     DE, 05801h + (((MAIN_MENU_ITEMS_B0Y) >> 3) << 5)
-        LD     BC, 32 * ((((MAIN_MENU_ITEMS_B2Y) + 7 + 7) >> 3) - ((MAIN_MENU_ITEMS_B0Y) >> 3)) - 1
-        LD     (HL), 45h
-        LDIR
-
-        ; Цвет букв меню
-        LD     HL, 05800h + (((MAIN_MENU_ITEMS_Y0) >> 3) << 5)
-        LD     DE, 05801h + (((MAIN_MENU_ITEMS_Y0) >> 3) << 5)
-        LD     BC, 32 * ((((MAIN_MENU_ITEMS_Y3) + 7 + 7) >> 3) - ((MAIN_MENU_ITEMS_Y0) >> 3)) - 1
-        LD     (HL), 47h
-        LDIR
-
         ; Цвет курсора
         LD     HL, 05800h + (MAIN_MENU_ITEMS_X - 1) + (((MAIN_MENU_ITEMS_Y0) >> 3) << 5)
         LD     DE, 20h
@@ -94,12 +91,23 @@ boot_1:
         LD     DE, mainMenuItemCursor ; Строка текста
         CALL   drawText
 
-        JP     $
-
-;-------------------------------------------------------------------------------
+        CALL   waitKey
+        JP     intro
 
 mainMenuX db 0
 mainMenuX1 db 0
+
+;-------------------------------------------------------------------------------
+; Ожидание нажатия клавиши
+
+waitKey:
+        ; Если не нажата ни одна клавиша, то продолжаем.
+        LD     BC, 000FEh
+        IN     A, (C)
+        CPL
+        AND    1Fh
+        JP     Z, waitKey
+        RET
 
 ;-------------------------------------------------------------------------------
 
@@ -113,12 +121,12 @@ mainMenuBottomText0: db "Игра | 2019 Алексей {Alemorf} Морозов
 mainMenuBottomText1: db "Мюзикл | 1998 Антон {Саруман} Круглов,", 0
 mainMenuBottomText2: db "Елена {Мириам} Ханпира", 0
 
-;-------------------------------------------------------------------------------
-
         include "clearscreen.inc"
         include "drawimage.inc"
         include "drawtext.inc"
         include "build/logo.inc"
         include "build/font.inc"
+        include "intro.inc"
+        include "scroll.inc"
 
         SAVEBIN "build/boot.bin", Begin, $ - Begin

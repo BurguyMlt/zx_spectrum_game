@@ -1,8 +1,8 @@
 	DEVICE ZXSPECTRUM128
 
         ORG 5D3Bh ; Адрес загрузки программы на бейсике
-	
-PayloadDestAddress = #C000  ; Куда копировать полезную нагрузку
+
+PayloadDestAddress = #8000  ; Куда копировать полезную нагрузку
 
 ;-------------------------------------------------------------------------------
 
@@ -23,17 +23,25 @@ BasicLine:
 
 ;-------------------------------------------------------------------------------
 
+PayloadLength=(End - Payload)
+
 Code:   ; Блокируем прерывания
         DI
 
         ; Копирование полезной нагрузки
-        LD HL, Payload
-        LD DE, PayloadDestAddress
-        LD BC, End - Payload
-	LDIR
+        LD   BC, Payload + PayloadLength - 1
+        LD   DE, PayloadDestAddress + PayloadLength - 1
+Code_1:
+        LD   A, (BC)
+        DEC  BC
+        LD   (DE), A
+        DEC  DE
+        LD   HL, 10000h - (Payload - 1)
+        ADD  HL, BC
+        JP   C, Code_1
 
         ; Запуск
-        JP PayloadDestAddress
+        JP   PayloadDestAddress
 
 ;-------------------------------------------------------------------------------
 
