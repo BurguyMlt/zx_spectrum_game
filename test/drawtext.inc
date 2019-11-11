@@ -1,3 +1,5 @@
+; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 ;-------------------------------------------------------------------------------
 
 ;drawText_A dw 0

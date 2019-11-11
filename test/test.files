@@ -1,11 +1,12 @@
 ./convert/png.cpp
 ./convert/tail.h
 ./convert/tail.cpp
+./convert/font2zx.cpp
 ./convert/map2zx.cpp
+./convert/png2zx.cpp
 ./convert/png.h
 ./takh.png
 ./test.files
-./test.creator.user
 ./drawtext.inc
 ./test.creator
 ./intro.inc

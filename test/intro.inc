@@ -1,3 +1,5 @@
+; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 intro:
         LD     DE, introText0  ; Текст
         LD     HL, 1           ; Координаты текста (H=y,L=x)

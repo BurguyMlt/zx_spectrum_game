@@ -1,3 +1,5 @@
+; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 scroll:
         ; Заливка черным цветом экрана
         LD     D, 047h

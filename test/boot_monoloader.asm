@@ -1,4 +1,6 @@
-	DEVICE ZXSPECTRUM128
+; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
+        DEVICE ZXSPECTRUM128
 
         ORG 5D3Bh ; Адрес загрузки программы на бейсике
 

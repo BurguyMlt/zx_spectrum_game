@@ -1,3 +1,5 @@
+// Convert PNG map to ZX map (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 #include "png.h"
 #include <algorithm>
 #include <vector>

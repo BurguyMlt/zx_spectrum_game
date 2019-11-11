@@ -3,25 +3,32 @@ b = build/
 all: files $(b)lsttrial.trd
 
 files:
-	find . -type f -not -path "./build/*" -a -not -path "./bin/*" >test.files
+	@mkdir -p $(b)
+	find . -type f -not -path "./$(b)*" -a -not -path "./bin/*" >test.files
 
 $(b)map2zx: convert/map2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
 	g++ --std=c++11 convert/map2zx.cpp convert/png.cpp convert/tail.cpp -o$(b)map2zx -lpng
 
+$(b)png2zx: convert/png2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
+	g++ --std=c++11 convert/png2zx.cpp convert/png.cpp convert/tail.cpp -o$(b)png2zx -lpng
+
+$(b)font2zx: convert/font2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
+	g++ --std=c++11 convert/font2zx.cpp convert/png.cpp convert/tail.cpp -o$(b)font2zx -lpng
+
 $(b)city1graph.inc: city1.png $(b)map2zx
 	$(b)map2zx $@ $<
 
-$(b)logo.inc: logo.png ./bin/png2zx
-	./bin/png2zx $@ $<
+$(b)logo.inc: logo.png $(b)png2zx
+	$(b)png2zx $@ $<
 
-$(b)takh.inc: takh.png ./bin/png2zx
-	./bin/png2zx $@ $< 45
+$(b)takh.inc: takh.png $(b)png2zx
+	$(b)png2zx $@ $< 45
 
-$(b)rast.inc: rast.png ./bin/png2zx
-	./bin/png2zx $@ $< 45
+$(b)rast.inc: rast.png $(b)png2zx
+	$(b)png2zx $@ $< 45
 
-$(b)font.inc: font.png ./bin/font2zx
-	./bin/font2zx $@ $<
+$(b)font.inc: font.png $(b)font2zx
+	$(b)font2zx $@ $<
 
 $(b)lsttrial.trd: $(b)boot.B
 	./bin/maketrd $@ $^

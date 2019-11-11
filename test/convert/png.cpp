@@ -1,3 +1,5 @@
+// Convert some to ZX some (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 #include "png.h"
 #include <unistd.h>
 #include <stdlib.h>

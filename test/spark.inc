@@ -1,3 +1,5 @@
+; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+
 ; Структура описывающая искру
 
 SPARK_TBL_X     = 0
@@ -10,8 +12,8 @@ SPARK_TBL_MASK  = 11
 SPARK_TBL_SIZE  = 12 ; Размер одного элемента
 SPARK_TBL_COUNT = 128 ; Кол-во элментов
 SPARK_TBL       = 0FF00h - SPARK_TBL_SIZE * SPARK_TBL_COUNT
-SPARK_INIT_X  = SPARK_TBL - 1
-SPARK_INIT_Y  = SPARK_TBL - 2
+SPARK_INIT_X    = SPARK_TBL - 1
+SPARK_INIT_Y    = SPARK_TBL - 2
 
 ;-------------------------------------------------------------------------------
 ; Рассчитать псевдослучайное число
