@@ -48,6 +48,7 @@ public:
     std::vector<TailById> tailsById;
     std::vector<Enemy> enemies;
     std::vector<Entry> entries;
+    std::vector<Tail> enemyTails;
 
     unsigned bindTail(const Tail& t, unsigned x, unsigned y, unsigned incConter = 1);
     unsigned addTail(const Tail& t, unsigned x, unsigned y, unsigned incConter = 1, bool dontAddToHash = false);
@@ -107,12 +108,13 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
 
     unsigned w = png.getWidth() / 8, h = png.getHeight() / 8;
 
+    const unsigned topBorder = levelMode ? 1 : 4;
     const unsigned leftBorder = levelMode ? 8 : 0;
+
     l.mapWidth = w - leftBorder;
-    l.mapHeight = h;
+    l.mapHeight = h - topBorder;
 //    if (l.mapHeight > 20) l.mapHeight = 20;
 
-    const unsigned topBorder = levelMode ? 1 : 0;
     if (levelMode)
     {
         for (unsigned x = 0; x < l.mapWidth; x++)
@@ -122,6 +124,20 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
             unsigned cur = l.bindTail(t, x * 8, 0, 1);
         }
         l.mapHeight--;
+    }
+    else
+    {
+        unsigned c = 256 / topBorder;
+        if (c > l.mapWidth) c = l.mapWidth;
+        for (unsigned x = 0; x < c; x++)
+        {
+            for (unsigned y = 0; y < topBorder; y++)
+            {
+                Tail t;
+                readTail(t, png, x * 8, y * 8);
+                l.enemyTails.push_back(t);
+            }
+        }
     }
 
     l.map.resize(l.mapWidth * l.mapHeight);
@@ -198,6 +214,21 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
         for (unsigned i = 0; i < 256; i++)
         {
             unsigned t = i < l.tailsById.size() ? l.tailsById[i].tail.data[j % 9] : 0;
+            fprintf(fo, "%s0%02Xh", n==0 ? "    db " : ", ", t);
+            n = (n + 1) % 16;
+            if (n == 0) fprintf(fo, "\n");
+        }
+    }
+    if (n != 0) fprintf(fo, "\n");
+    fprintf(fo, "\n");
+
+    fprintf(fo, "levelEnemyTails: // count %u\n", (unsigned)l.enemyTails.size());
+    n = 0;
+    for (unsigned j = 0; j < 9; j++)
+    {
+        for (unsigned i = 0; i < 256; i++)
+        {
+            unsigned t = i < l.enemyTails.size() ? l.enemyTails[i].data[j % 9] : 0;
             fprintf(fo, "%s0%02Xh", n==0 ? "    db " : ", ", t);
             n = (n + 1) % 16;
             if (n == 0) fprintf(fo, "\n");

@@ -79,7 +79,6 @@ drawTextEx:
 ;-------------------------------------------------------------------------------
 
 drawCharSub:
-        ; Чтение символа (a = *de++)
         PUSH   DE
 
         ; Вычисление адреса символа (de = image_font + a * 9)
@@ -275,22 +274,12 @@ measureText_1:
 drawTextCenter:
         PUSH   DE
         PUSH   HL
-        CALL   measureText
-        LD     A, C
-        SRL    A
-        LD     C, A
-        LD     A, 128
+        CALL   measureText        
+        LD     A, 256
         SUB    C
-        LD     C, A
-        SRL    A
-        SRL    A
         SRL    A
         POP    HL
         POP    DE
-        ADD    L
         LD     L, A
-        LD     A, C
-        AND    7
-        LD     C, A
-        CALL   drawTextSub
+        CALL   drawTextEx
 

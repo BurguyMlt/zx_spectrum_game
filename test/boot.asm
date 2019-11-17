@@ -2,7 +2,7 @@
 
         DEVICE ZXSPECTRUM128
 
-        ORG #8000
+        ORG #5F00
 
 MAIN_MENU_LOGO_X = 1
 MAIN_MENU_LOGO_Y = 1
@@ -21,12 +21,38 @@ MAIN_MENU_ITEMS_B2X = 9
 MAIN_MENU_ITEMS_B2Y = 192 - 8 - (10 * 0)
 
 Begin:
+        LD    HL, Begin
+        LD    SP, HL
+
+        CALL   showVideoPage
+
+        LD    A, 24       ;код команды JR
+        LD    (65535), A
+        LD    A, 195      ;код команды JP
+        LD    (65524), A
+        LD    HL, IrqHandler
+        LD    (65525), HL ;в HL - адрес обработчика прерываний
+        LD    HL, #FE00   ;построение таблицы для векторов прерываний
+        LD    DE, #FE01
+        LD    BC, 256     ;размер таблицы минус 1
+        LD    (HL), #FF   ;адрес перехода #FFFF (65535)
+        LD    A,H         ;запоминаем старший байт адреса таблицы
+        LDIR              ;заполняем таблицу
+        DI                ;запрещаем прерывания на время
+                          ; установки второго режима
+        LD    I,A         ;задаем в регистре I старший байт адреса
+                          ; таблицы для векторов прерываний
+        IM    2           ;назначаем второй режим прерываний
+        EI                ;разрешаем прерывания
+
         ; Установка черной рамки
         LD     A, 0
         OUT    (-2), A
 
         ; Сразу переходим на Интро
-        ;JP     intro
+        JP     city
+
+        CALL   menuLoad
 
         ; Очистка экрана.
         LD     D, 47h
@@ -88,28 +114,76 @@ boot_1:
         ADD    HL, DE
         DJNZ   boot_1
 
+kk:
         ; Курсор
-        LD     HL, 04000h + (MAIN_MENU_ITEMS_X - 1) + (((MAIN_MENU_ITEMS_Y0) & 7) << 8) + ((((MAIN_MENU_ITEMS_Y0) >> 3) & 7) << 5) + ((((MAIN_MENU_ITEMS_Y0) >> 6) & 3) << 11) ; Адрес вывода
+        LD     HL, (MAIN_MENU_ITEMS_Y0 << 8) | (MAIN_MENU_ITEMS_X * 8 - 8)
+        LD     A, (mainMenuX)
+        ADD    H
+        LD     H, A
         LD     DE, mainMenuItemCursor ; Строка текста
-        CALL   drawText
+        CALL   drawTextEx
 
-        CALL   waitKey
-        JP     intro
+ee:
+        LD     hl, frame
+        ld     a, (hl)
+        or     a
+        JP     z, ee
+        DEC    (hl)
 
+        LD     A, (key)
+        AND    KEY_UP
+        JP     Z, k1
+        LD     a, (mainMenuX)
+        inc    a
+        ld     (mainMenuX), a
+k1:
+
+        LD     A, (key)
+        AND    KEY_DOWN
+        JP     Z, k2
+        LD     a, (mainMenuX)
+        dec    a
+        LD     (mainMenuX), a
+k2:
+        JP     kk
+//        JP     intro
+
+;-------------------------------------------------------------------------------
+
+IrqHandler:
+        PUSH  AF
+        LD    A, (frame)
+        INC   A
+        LD    (frame), A
+        POP   AF
+        EI
+        RETI
+
+frame db 0
 mainMenuX db 0
 mainMenuX1 db 0
 
 ;-------------------------------------------------------------------------------
 ; Ожидание нажатия клавиши
 
-waitKey:
-        ; Если не нажата ни одна клавиша, то продолжаем.
-        LD     BC, 000FEh
-        IN     A, (C)
-        CPL
-        AND    1Fh
-        JP     Z, waitKey
-        RET
+KEY_UP = 1
+KEY_DOWN = 2
+KEY_LEFT = 4
+KEY_RIGHT = 8
+
+key db 0
+
+
+        ; right - 10 - 4
+        ; down - 10 - 10
+        ; up - 10 - 08
+        ; left - 08 - 10
+
+;-------------------------------------------------------------------------------
+
+tickHandler dw 0
+redrawHandler dw 0
+p7FFD db 0
 
 ;-------------------------------------------------------------------------------
 
@@ -128,7 +202,10 @@ mainMenuBottomText2: db "Елена {Мириам} Ханпира", 0
         include "drawtext.inc"
         include "build/logo.inc"
         include "build/font.inc"
+        include "build/menu.asm"
+        include "build/keyboard.asm"
         include "intro.inc"
+        include "city/city.asm"
         include "scroll.inc"
 
         SAVEBIN "build/boot.bin", Begin, $ - Begin

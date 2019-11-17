@@ -11,7 +11,7 @@ SPARK_TBL_ADDR  = 9
 SPARK_TBL_MASK  = 11
 SPARK_TBL_SIZE  = 12 ; Размер одного элемента
 SPARK_TBL_COUNT = 128 ; Кол-во элментов
-SPARK_TBL       = 0FF00h - SPARK_TBL_SIZE * SPARK_TBL_COUNT
+SPARK_TBL       = 0FE00h - SPARK_TBL_SIZE * SPARK_TBL_COUNT
 SPARK_INIT_X    = SPARK_TBL - 1
 SPARK_INIT_Y    = SPARK_TBL - 2
 
@@ -64,7 +64,6 @@ sparkDo_1:
 ; Вход/выход: IX - адрес объекта искры
 
 pixelMaskTbl db 80h, 40h, 20h, 10h, 8, 4, 2, 1
-
 
 sparkOne:
         ; Если искра не создана, то создаём
@@ -124,9 +123,13 @@ sparkCreated:
         CALL  calcCoords
 
         ; Вычисление маски (a = 80h >> c)
-        LD    IYH, pixelMaskTbl >> 8
-        LD    IYL, C
-        LD    A, (IY + (pixelMaskTbl & 0FFh))
+        LD     A, pixelMaskTbl & 0xFF
+        ADD    C
+        LD     E, A
+        ADC    pixelMaskTbl >> 8
+        SUB    E
+        LD     D, A
+        LD     A, (DE)
 
         ; Сохряняем вычисленные значения для стирания искры
         LD    (IX + SPARK_TBL_ADDR), HL

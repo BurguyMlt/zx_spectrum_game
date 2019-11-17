@@ -6,22 +6,58 @@ scroll:
         CALL   clearScreen
 
         ; Перерисовать всё
-        LD     HL, 05B00h
-        LD     DE, 05B01h
+        LD     HL, 01B00h + 04000h
+        LD     DE, 01B01h + 04000h
+        LD     BC, 32 * 20 - 1
+        LD     (HL), 0FFh
+        LDIR
+
+        ; Перерисовать всё
+        LD     HL, 01B00h + 0C000h
+        LD     DE, 01B01h + 0C000h
         LD     BC, 32 * 20 - 1
         LD     (HL), 0FFh
         LDIR
 
 Loop:
+        call   readKey
+
+        ld     hl, keyTrigger
+        ;ld     hl, keyPressed
         LD     A, (mainMenuX)
-        INC    A
+        ld     b, (hl)
+        ld     (hl), 0
+        bit    2, b
+        jp     z, Loop_0
+        dec    A
+        jp     Loop_red
+Loop_0:
+        bit    3, b
+        jp     z, Loop
+        inc    A
+
+Loop_red:
         LD     (mainMenuX), A
 
         LD     DE, levelMap
+        LD     A, (mainMenuX)
         LD     E, A
-        LD     HL, 5800h - 1 + 300h
+
+        LD     HL, currentPage
+        LD     A, (HL)
+        OR     A
+        JP     NZ, Begin_6
+        LD     (HL), 8
+        LD     HL, 0C000h + 1800h - 1 + 300h
         EXX
-        LD     HL, 4000h
+        LD     HL, 0C000h
+        JP     Begin_7
+Begin_6:
+        LD     (HL), 0
+        LD     HL, 04000h + 1800h - 1 + 300h
+        EXX
+        LD     HL, 04000h
+Begin_7:
 
         ; Цикл строк
         LD     B, 20
@@ -119,6 +155,9 @@ DontDraw_2:
 Begin_5:
         DJNZ   Begin_2
 
+        call   wait ; учет
+        CALL   showVideoPage
+
         JP     Loop
 
 ;-------------------------------------------------------------------------------
@@ -130,6 +169,18 @@ DontDraw:
         INC    L ; Вправо
         DJNZ   Begin_1
         JP     DontDraw_2
+
+;-------------------------------------------------------------------------------
+
+currentPage db 0
+
+showVideoPage:
+        LD   A, (currentPage)
+        OR   07h
+        LD   (p7FFD), A
+        LD   BC, #7FFD
+        OUT  (C), A
+        RET
 
 ;-------------------------------------------------------------------------------
 

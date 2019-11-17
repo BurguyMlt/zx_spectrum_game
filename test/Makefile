@@ -33,7 +33,16 @@ $(b)font.inc: font.png $(b)font2zx
 $(b)lsttrial.trd: $(b)boot.B
 	./bin/maketrd $@ $^
 
-$(b)boot.bin: boot.asm $(b)logo.inc $(b)font.inc clearscreen.inc drawimage.inc drawtext.inc $(b)rast.inc $(b)city1graph.inc $(b)takh.inc spark.inc intro.inc scroll.inc
+$(b)menu.asm: menu.c ./bin/cmm
+	./bin/cmm $@ $<
+
+city/city.asm: city/city.c ./bin/cmm
+	./bin/cmm $@ $<
+
+$(b)keyboard.asm: keyboard.c ./bin/cmm
+	./bin/cmm $@ $<
+
+$(b)boot.bin: boot.asm $(b)logo.inc $(b)font.inc clearscreen.inc drawimage.inc drawtext.inc $(b)rast.inc $(b)city1graph.inc $(b)takh.inc spark.inc intro.inc scroll.inc $(b)menu.asm $(b)keyboard.asm city/city.asm
 	./bin/sjasmplus $< || rm $@
 
 $(b)boot.B: boot_monoloader.asm $(b)boot.bin

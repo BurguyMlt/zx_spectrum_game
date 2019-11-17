@@ -26,7 +26,7 @@ introUniversal:
 
         ; Очистка экрана.
         LD     D, 45h
-        CALL   clearScreen ; Сохраняет EXX, IX, IY
+        CALL   clearScreen
 
         ; Рисуем изображение
         POP    DE

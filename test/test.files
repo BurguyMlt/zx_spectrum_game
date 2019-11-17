@@ -7,10 +7,14 @@
 ./convert/png.h
 ./takh.png
 ./test.files
+./test.creator.user
+./sprites.png
 ./drawtext.inc
 ./test.creator
 ./intro.inc
 ./scroll.inc
+./city/city.c
+./city/city.asm
 ./logo.png
 ./clearscreen.inc
 ./spark.inc
@@ -19,6 +23,8 @@
 ./boot_monoloader.asm
 ./drawimage.inc
 ./Makefile
+./menu.c
+./keyboard.c
 ./city1.png
 ./rast.png
 ./boot.asm
