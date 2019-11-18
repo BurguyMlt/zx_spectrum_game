@@ -185,3 +185,5 @@ showVideoPage:
 ;-------------------------------------------------------------------------------
 
         include "build/city1graph.inc"
+
+levelTailsHigh = levelTails >> 8

@@ -43,8 +43,10 @@ city:
     ld   a, 0
     ld   (cityPlayerX), a
     ; 41 // Очистка экрана
-    ; 42 showVisibleVideoPage();
-    call showVisibleVideoPage
+    ; 42 out(bc = 0x7FFD, a = 7);
+    ld   bc, 32765
+    ld   a, 7
+    out  (c), a
     ; 43 clearScreenEx(hl = screenEndAddr2, d = 0x47);
     ld   hl, 56064
     ld   d, 71
@@ -107,238 +109,239 @@ l2003:
     ret
     ; 78 uint8_t startFrame;
 startFrame db 0
-    ; 80 void cityRedraw()
+    ; 79 uint8_t visibleVideoPageX;
+visibleVideoPageX db 0
+    ; 81 void cityRedraw()
 cityRedraw:
-    ; 81 {
-    ; 82 // Оценка времени
-    ; 83 startFrame = a = frame;
-    ld   a, (frame)
-    ld   (startFrame), a
-    ; 85 // Адрес карты / источник
-    ; 86 de` = &levelMap; // Можно оптимизировать d` = [&levelMap >> 8], но не поддержвиает компилятор пока
+    ; 82 {
+    ; 83 // Адрес карты / источник
+    ; 84 de` = &levelMap; // Можно оптимизировать d` = [&levelMap >> 8], но не поддержвиает компилятор пока
     ld   de, levelMap
-    ; 87 e` = a = cityPlayerX;
+    ; 85 e` = a = cityPlayerX;
     ld   a, (cityPlayerX)
     ld   e, a
-    ; 88 b` = e`;
+    ; 86 b` = e`;
     ld   b, e
-    ; 90 // Адрес видеостраницы / назначение
-    ; 91 hl` = &visibleVideoPage;
-    ld   hl, visibleVideoPage
-    ; 92 if (*hl` & PORT_7FFD_SECOND_VIDEO_PAGE)
-    bit  3, (hl)
-    ; 93 {
-    jp   z, l2005
-    ; 94 *hl = 0;
-    ld   (hl), 0
-    ; 95 hl` = [cacheAddr1 - 1];
-    ld   hl, 23295
-    ; 96 ex(bc, de, hl);
-    exx
-    ; 97 hl = screenAddr1;
-    ld   hl, 16384
-    ; 98 bc = screenAttrAddr1;
-    ld   bc, 22528
-    ; 99 }
-    ; 100 else
-    jp   l2006
+    ; 88 // Ждем, если активная страница еще не стала видимой
+    ; 89 while ((a = visibleVideoPage) & 1);
 l2005:
-    ; 101 {
-    ; 102 *hl` = PORT_7FFD_SECOND_VIDEO_PAGE;
-    ld   (hl), 8
-    ; 103 hl` = [cacheAddr2 - 1];
-    ld   hl, 56063
-    ; 104 ex(bc, de, hl);
-    exx
-    ; 105 hl = screenAddr2;
-    ld   hl, 49152
-    ; 106 bc = screenAttrAddr2;
-    ld   bc, 55296
-    ; 107 }
+    ld   a, (visibleVideoPage)
+    bit  0, a
+    jp   z, l2006
+    jp   l2005
 l2006:
-    ; 109 // Цикл строк
-    ; 110 ixh = viewHeight;
-    ld   ixh, 20
-    ; 111 do
-l2007:
-    ; 112 {
-    ; 113 push(hl);
-    push hl
-    ; 115 // Цикл стобцов
-    ; 116 ixl = viewWidth;
-    ld   ixl, 32
-    ; 117 do
+    ; 91 // Адрес видеостраницы / назначение
+    ; 92 if (a & 8)
+    bit  3, a
+    ; 93 {
+    jp   z, l2008
+    ; 94 hl` = [cacheAddr1 - 1];
+    ld   hl, 23295
+    ; 95 ex(bc, de, hl);
+    exx
+    ; 96 de = screenAddr1;
+    ld   de, 16384
+    ; 97 bc = screenAttrAddr1;
+    ld   bc, 22528
+    ; 98 }
+    ; 99 else
+    jp   l2009
 l2008:
-    ; 118 {
-    ; 119 push(hl);
-    push hl
-    ; 121 // Чтение номера тейла из карты уровня
-    ; 122 ex(bc, de, hl);
+    ; 100 {
+    ; 101 hl` = [cacheAddr2 - 1];
+    ld   hl, 56063
+    ; 102 ex(bc, de, hl);
     exx
-    ; 123 hl`++;
-    inc  hl
-    ; 124 a = *de`;
-    ld   a, (de)
-    ; 125 e`++;
-    inc  e
-    ; 126 if (a == *hl`) // Можно потом оптимизировать на один переход
-    cp   (hl)
-    ; 127 {
-    jp   nz, l2009
-    ; 128 ex(bc, de, hl);
-    exx
-    ; 129 bc++;
-    inc  bc
-    ; 130 }
-    ; 131 else
-    jp   l2010
+    ; 103 de = screenAddr2;
+    ld   de, 49152
+    ; 104 bc = screenAttrAddr2;
+    ld   bc, 55296
+    ; 105 }
 l2009:
-    ; 132 {
-    ; 133 *hl` = a;
-    ld   (hl), a
-    ; 134 ex(bc, de, hl);
+    ; 107 // Оценка времени
+    ; 108 startFrame = a = frame;
+    ld   a, (frame)
+    ld   (startFrame), a
+    ; 110 // Цикл строк
+    ; 111 ixh = viewHeight;
+    ld   ixh, 20
+    ; 112 do
+l2010:
+    ; 113 {
+    ; 114 // Сохранение адреса вывода
+    ; 115 iyl = e;
+    ld   iyl, e
+    ; 116 iyh = d;
+    ld   iyh, d
+    ; 118 // Цикл стобцов
+    ; 119 ixl = viewWidth;
+    ld   ixl, 32
+    ; 120 do
+l2011:
+    ; 121 {
+    ; 122 optimize0:  // Чтение номера тейла из карты уровня
+optimize0:
+    ; 123 ex(bc, de, hl);
     exx
-    ; 136 // Вычисление адреса тейла
-    ; 137 de = &levelTails; // Можно оптимизировать d = [&levelTails >> 8], но не поддержвиает компилятор пока
-    ld   de, levelTails
-    ; 138 e = a;
-    ld   e, a
-    ; 140 // Вывод на экран
-    ; 141 a = *de; d++; *hl = a; h++;
+    ; 124 hl`++;
+    inc  hl
+    ; 125 a = *de`;
     ld   a, (de)
-    inc  d
+    ; 126 e`++;
+    inc  e
+    ; 127 if (a == *hl`) goto optimize1;
+    cp   (hl)
+    jp   z, optimize1
+    ; 128 *hl` = a;
     ld   (hl), a
+    ; 129 ex(bc, de, hl);
+    exx
+    ; 131 // Вычисление адреса тейла
+    ; 132 h = &levelTailsHigh;
+    ld   h, levelTailsHigh
+    ; 133 l = a;
+    ld   l, a
+    ; 135 // Вывод на экран
+    ; 136 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 142 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 137 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 143 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 138 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 144 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 139 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 145 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 140 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 146 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 141 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 147 a = *de; d++; *hl = a; h++;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
+    ; 142 a = *hl; h++; *de = a; d++;
+    ld   a, (hl)
     inc  h
-    ; 148 a = *de; d++; *hl = a;
-    ld   a, (de)
+    ld   (de), a
     inc  d
-    ld   (hl), a
-    ; 149 a = *de;      *bc = a; bc++;
-    ld   a, (de)
+    ; 143 a = *hl; h++; *de = a;
+    ld   a, (hl)
+    inc  h
+    ld   (de), a
+    ; 144 a = *hl;      *bc = a; bc++;
+    ld   a, (hl)
     ld   (bc), a
     inc  bc
-    ; 150 }
-l2010:
-    ; 152 pop(hl); // h был увеличен на 8
-    pop  hl
-    ; 153 l++;
-    inc  l
-    ; 154 ixl--;
+    ; 146 d = iyh;
+    ld   d, iyh
+    ; 147 e++;
+    inc  e
+    ; 148 ixl--;
     dec  ixl
-    ; 155 } while(flag_nz);
-    jp   nz, l2008
-    ; 157 pop(hl);
-    pop  hl
-    ; 159 // Следующая строка карты
-    ; 160 ex(bc, de, hl);
+    ; 149 } while(flag_nz);
+    jp   nz, l2011
+    ; 150 optimize2:
+optimize2:
+    ; 152 // Следующая строка карты
+    ; 153 ex(bc, de, hl);
     exx
-    ; 161 e` = b`;
+    ; 154 e` = b`;
     ld   e, b
-    ; 162 d`++;
+    ; 155 d`++;
     inc  d
-    ; 163 ex(bc, de, hl);
+    ; 156 ex(bc, de, hl);
     exx
-    ; 165 // Адрес следующей чб строки на экране
-    ; 166 hl += (de = 0x20);
-    ld   de, 32
-    add  hl, de
-    ; 167 if (h & 1) hl += (de = [0x800 - 0x100]);
-    bit  0, h
-    jp   z, l2011
-    ld   de, 1792
-    add  hl, de
-    ; 169 ixh--;
-l2011:
+    ; 158 // Адрес следующей чб строки на экране
+    ; 159 e = ((a = iyl) += 0x20);
+    ld   a, iyl
+    add  32
+    ld   e, a
+    ; 160 if (flag_c) d = ((a = d) += 0x08);
+    jp   nc, l2012
+    ld   a, d
+    add  8
+    ld   d, a
+    ; 162 ixh--;
+l2012:
     dec  ixh
-    ; 170 } while(flag_nz);
-    jp   nz, l2007
-    ; 172 halt();
-    halt
-    ; 173 showVisibleVideoPage();
-    call showVisibleVideoPage
-    ; 175 (a = frame) -= *(hl = &startFrame);
+    ; 163 } while(flag_nz);
+    jp   nz, l2010
+    ; 165 // Переключить видеостраницы во время следующего прерывания
+    ; 166 visibleVideoPage = ((a = visibleVideoPage) ^= 8 |= 1);
+    ld   a, (visibleVideoPage)
+    xor  8
+    or   1
+    ld   (visibleVideoPage), a
+    ; 168 // Оценка времени
+    ; 169 printDelay((a = frame) -= *(hl = &startFrame));
     ld   a, (frame)
     ld   hl, startFrame
     sub  (hl)
-    ; 176 printDelay(a);
     call printDelay
-    ; 177 }
+    ; 171 return;
     ret
-    ; 179 uint8_t visibleVideoPage = 0;
+    ; 172 optimize1:
+optimize1:
+    ; 173 ex(bc, de, hl);
+    exx
+    ; 174 bc++;
+    inc  bc
+    ; 175 e++;
+    inc  e
+    ; 176 ixl--;
+    dec  ixl
+    ; 177 if(flag_nz) goto optimize0;
+    jp   nz, optimize0
+    ; 178 goto optimize2;
+    jp   optimize2
+    ; 179 }
+    ret
+    ; 181 uint8_t visibleVideoPage = 0;
 visibleVideoPage db 0
-    ; 181 void showVisibleVideoPage()
-showVisibleVideoPage:
-    ; 182 {
-    ; 183 a = visibleVideoPage;
-    ld   a, (visibleVideoPage)
-    ; 184 a |= 0x7;
-    or   7
-    ; 185 p7FFD = a;
-    ld   (p7FFD), a
-    ; 186 out(bc = 0x7FFD, a);
-    ld   bc, 32765
-    out  (c), a
-    ; 187 }
-    ret
-    ; 189 void printDelay(a)
+    ; 183 void printDelay(a)
 printDelay:
-    ; 190 {
-    ; 191 push(a)
-    ; 192 {
+    ; 184 {
+    ; 185 push(a)
+    ; 186 {
     push af
-    ; 193 a = visibleVideoPage;
+    ; 187 // Активная видеостраница
+    ; 188 a = visibleVideoPage;
     ld   a, (visibleVideoPage)
-    ; 194 hl = [screenAddr1 + 0x10E0];
+    ; 189 hl = [screenAddr1 + 0x10E0];
     ld   hl, 20704
-    ; 195 if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
+    ; 190 if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
     bit  3, a
-    ; 196 hl = [screenAddr2 + 0x10E0];
-    jp   z, l2012
+    ; 191 hl = [screenAddr2 + 0x10E0];
+    jp   z, l2013
     ld   hl, 53472
-    ; 198 push (hl)
-l2012:
-    ; 199 {
+    ; 193 // Очиска
+    ; 194 push (hl)
+l2013:
+    ; 195 {
     push hl
-    ; 200 fillRect(hl, bc = 0x0101);
+    ; 196 fillRect(hl, bc = 0x0101);
     ld   bc, 257
     call fillRect
-    ; 201 }
+    ; 197 }
     pop  hl
-    ; 202 }
+    ; 198 }
     pop  af
-    ; 203 a += 48;
+    ; 199 a += '0';
     add  48
-    ; 204 drawCharSub(hl, a);
+    ; 200 drawCharSub(hl, a);
     call drawCharSub
-    ; 205 }
+    ; 201 }
     ret

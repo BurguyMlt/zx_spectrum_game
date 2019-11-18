@@ -152,9 +152,23 @@ k2:
 
 IrqHandler:
         PUSH  AF
+        PUSH  BC
+
+        LD    A, (visibleVideoPage)
+        AND   8
+        OR    7
+        LD    BC, 7FFDh
+        OUT   (C), A
+        LD    A, (visibleVideoPage)
+        AND   ~1
+        LD    (visibleVideoPage), A
+
+
         LD    A, (frame)
         INC   A
         LD    (frame), A
+
+        POP   BC
         POP   AF
         EI
         RETI

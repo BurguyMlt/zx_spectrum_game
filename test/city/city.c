@@ -39,7 +39,7 @@ void city()
     cityPlayerX = a = 0;
 
     // Очистка экрана
-    showVisibleVideoPage();
+    out(bc = 0x7FFD, a = 7);
     clearScreenEx(hl = screenEndAddr2, d = 0x47);
     clearScreen(d = 0x47);
 
@@ -76,85 +76,78 @@ void city()
 }
 
 uint8_t startFrame;
+uint8_t visibleVideoPageX;
 
 void cityRedraw()
 {
-    // Оценка времени
-    startFrame = a = frame;
-
     // Адрес карты / источник
     de` = &levelMap; // Можно оптимизировать d` = [&levelMap >> 8], но не поддержвиает компилятор пока
     e` = a = cityPlayerX;
     b` = e`;
 
+    // Ждем, если активная страница еще не стала видимой
+    while ((a = visibleVideoPage) & 1);
+
     // Адрес видеостраницы / назначение
-    hl` = &visibleVideoPage;
-    if (*hl` & PORT_7FFD_SECOND_VIDEO_PAGE)
+    if (a & 8)
     {
-        *hl = 0;
         hl` = [cacheAddr1 - 1];
         ex(bc, de, hl);
-        hl = screenAddr1;
+        de = screenAddr1;
         bc = screenAttrAddr1;
     }
     else
     {
-        *hl` = PORT_7FFD_SECOND_VIDEO_PAGE;
         hl` = [cacheAddr2 - 1];
         ex(bc, de, hl);
-        hl = screenAddr2;
+        de = screenAddr2;
         bc = screenAttrAddr2;
     }
+
+    // Оценка времени
+    startFrame = a = frame;
 
     // Цикл строк
     ixh = viewHeight;
     do
     {
-        push(hl);
+        // Сохранение адреса вывода
+        iyl = e;
+        iyh = d;
 
         // Цикл стобцов
         ixl = viewWidth;
         do
         {
-            push(hl);
-
-            // Чтение номера тейла из карты уровня
+optimize0:  // Чтение номера тейла из карты уровня
             ex(bc, de, hl);
             hl`++;
             a = *de`;
             e`++;
-            if (a == *hl`) // Можно потом оптимизировать на один переход
-            {
-                ex(bc, de, hl);
-                bc++;
-            }
-            else
-            {
-                *hl` = a;
-                ex(bc, de, hl);
+            if (a == *hl`) goto optimize1;
+            *hl` = a;
+            ex(bc, de, hl);
 
-                // Вычисление адреса тейла
-                de = &levelTails; // Можно оптимизировать d = [&levelTails >> 8], но не поддержвиает компилятор пока
-                e = a;
+            // Вычисление адреса тейла
+            h = &levelTailsHigh;
+            l = a;
 
-                // Вывод на экран
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a; h++;
-                a = *de; d++; *hl = a;
-                a = *de;      *bc = a; bc++;
-            }
+            // Вывод на экран
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a; d++;
+            a = *hl; h++; *de = a;
+            a = *hl;      *bc = a; bc++;
 
-            pop(hl); // h был увеличен на 8
-            l++;
+            d = iyh;
+            e++;
             ixl--;
         } while(flag_nz);
-
-        pop(hl);
+optimize2:
 
         // Следующая строка карты
         ex(bc, de, hl);
@@ -163,43 +156,46 @@ void cityRedraw()
         ex(bc, de, hl);
 
         // Адрес следующей чб строки на экране
-        hl += (de = 0x20);
-        if (h & 1) hl += (de = [0x800 - 0x100]);
+        e = ((a = iyl) += 0x20);
+        if (flag_c) d = ((a = d) += 0x08);
 
         ixh--;
     } while(flag_nz);
 
-    halt();
-    showVisibleVideoPage();
+    // Переключить видеостраницы во время следующего прерывания
+    visibleVideoPage = ((a = visibleVideoPage) ^= 8 |= 1);
 
-    (a = frame) -= *(hl = &startFrame);
-    printDelay(a);
+    // Оценка времени
+    printDelay((a = frame) -= *(hl = &startFrame));
+
+    return;
+optimize1:
+    ex(bc, de, hl);
+    bc++;
+    e++;
+    ixl--;
+    if(flag_nz) goto optimize0;
+    goto optimize2;
 }
 
 uint8_t visibleVideoPage = 0;
-
-void showVisibleVideoPage()
-{
-    a = visibleVideoPage;
-    a |= 0x7;
-    p7FFD = a;
-    out(bc = 0x7FFD, a);
-}
 
 void printDelay(a)
 {
     push(a)
     {
+        // Активная видеостраница
         a = visibleVideoPage;
         hl = [screenAddr1 + 0x10E0];
         if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
             hl = [screenAddr2 + 0x10E0];
 
+        // Очиска
         push (hl)
         {
             fillRect(hl, bc = 0x0101);
         }
     }
-    a += 48;
+    a += '0';
     drawCharSub(hl, a);
 }
