@@ -28,46 +28,6 @@ void menuDrawCursor()
     return;
 }
 
-// b - высота, c - ширина,
-
-void fillRect(hl, bc)
-{
-    do
-    {
-        push(bc)
-        {
-            a ^= a;
-            d = 8;
-            e = l;
-            do
-            {
-                b = c;
-                do
-                {
-                    *hl = a;
-                    l++;
-                } while(--b);
-                l = e;
-                h++;
-                d--;
-            } while(flag_nz);
-
-            // Адрес следующей строки
-            hl += (de = [0x20 - 0x800]);
-            a = h;
-            a &= 7;
-            if (flag_nz) fillRectAddLine();
-        }
-    } while(--b);
-    return;
-}
-
-void fillRectAddLine()
-{
-    hl += (de = [0x800 - 0x100]);
-    return;
-}
-
 void wait()
 {
     hl = &frame;
@@ -76,12 +36,9 @@ void wait()
     *hl = 0;
 }
 
-void menuLoad()
+void main()
 {
-    tickHandler = hl = &menuTick;
-    redrawHandler = hl = 0;
-
-    clearScreen(d = 0x45);
+    clearScreen(a = 0x45);
     drawImage(de = [0x5800 + menuLogoX + (menuLogoY << 5)], hl = &image_logo);
     drawTextEx(hl = [(menuItemsY + menuItemH * 0) * 256 + menuItemsX], de = "Начать новую игру");
     drawTextEx(hl = [(menuItemsY + menuItemH * 1) * 256 + menuItemsX], de = "Настроить управление");
@@ -106,8 +63,6 @@ void menuLoad()
 
 void menuTick()
 {
-    readKey();
-
     // Получить нажатую клавишу
     hl = &keyTrigger;
     b = *hl;
@@ -117,7 +72,7 @@ void menuTick()
     a = menuX;
     if (b & KEY_FIRE)
     {
-        if (a == [0 * menuItemH]) return scroll();
+        if (a == [0 * menuItemH]) return exec(hl = "city");
         if (a == [1 * menuItemH]) return intro();
         //if (a == [2 * menuItemH]) return loadGame();
         //return saveGame();

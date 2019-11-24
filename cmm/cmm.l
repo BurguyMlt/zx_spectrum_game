@@ -1,0 +1,243 @@
+%x COMMENT
+%x CHAR
+%x STRING
+
+%%
+
+// Типы
+"void" { return Parser::VOID; }
+"int8_t" { return Parser::INT8; }
+"int16_t" { return Parser::INT16; }
+"int32_t" { return Parser::INT32; }
+"int64_t" { return Parser::INT64; }
+"uint8_t" { return Parser::UINT8; }
+"uint16_t" { return Parser::UINT16; }
+"uint32_t" { return Parser::UINT32; }
+"uint64_t" { return Parser::UINT64; }
+
+// Условия перехода
+"flag_z"  {  return Parser::FLAG_Z; }
+"flag_nz" {  return Parser::FLAG_NZ; }
+"flag_c"  {  return Parser::FLAG_C; }
+"flag_nc" {  return Parser::FLAG_NC; }
+"flag_po" {  return Parser::FLAG_PO; }
+"flag_pe" {  return Parser::FLAG_PE; }
+"flag_p"  {  return Parser::FLAG_P; }
+"flag_m"  {  return Parser::FLAG_M; }
+
+// Команды процессора
+"nop"   { return Parser::NOP; }
+"daa"   { return Parser::DAA; }
+"ldi"   { return Parser::LDI; }
+"cpi"   { return Parser::CPI; }
+"ini"   { return Parser::INI; }
+"outi"  { return Parser::OUTI; }
+"ldd"   { return Parser::LDD; }
+"cpd"   { return Parser::CPD; }
+"ind"   { return Parser::IND; }
+"outd"  { return Parser::OUTD; }
+"ldir"  { return Parser::LDIR; }
+"cpir"  { return Parser::CPIR; }
+"inir"  { return Parser::INIR; }
+"otir"  { return Parser::OTIR; }
+"lddr"  { return Parser::LDDR; }
+"cpdr"  { return Parser::CPDR; }
+"indr"  { return Parser::INDR; }
+"otdr"  { return Parser::OTDR; }
+"in"    { return Parser::IN; }
+"out"   { return Parser::OUT; }
+"halt"  { return Parser::HALT; }
+
+// Команды
+"if"     { return Parser::IF; }
+"while"  { return Parser::WHILE; }
+"do"     { return Parser::DO; }
+"ex"     { return Parser::EX; }
+"push"   { return Parser::PUSH; }
+"pop"    { return Parser::POP; }
+"return" { return Parser::RETURN; }
+"const"  { return Parser::CONST; }
+"else"   { return Parser::ELSE; }
+"goto"   { return Parser::GOTO; }
+
+// Регистры
+"a"   { return Parser::REG_A; }
+"a`"  { return Parser::REG_A; }
+"b"   { return Parser::REG_B; }
+"b`"  { return Parser::REG_B; }
+"c"   { return Parser::REG_C; }
+"c`"  { return Parser::REG_C; }
+"d"   { return Parser::REG_D; }
+"d`"  { return Parser::REG_D; }
+"e"   { return Parser::REG_E; }
+"e`"  { return Parser::REG_E; }
+"h"   { return Parser::REG_H; }
+"h`"  { return Parser::REG_H; }
+"l"   { return Parser::REG_L; }
+"l`"  { return Parser::REG_L; }
+"ixl" { return Parser::REG_IXL; }
+"ixh" { return Parser::REG_IXH; }
+"iyl" { return Parser::REG_IYL; }
+"iyh" { return Parser::REG_IYH; }
+"bc`" { return Parser::REG_BC; }
+"bc"  { return Parser::REG_BC; }
+"de`" { return Parser::REG_DE; }
+"de"  { return Parser::REG_DE; }
+"hl`" { return Parser::REG_HL; }
+"hl"  { return Parser::REG_HL; }
+"ix"  { return Parser::REG_IX; }
+"iy"  { return Parser::REG_IY; }
+"sp"  { return Parser::REG_SP; }
+
+// Числа и идентификаторы
+[A-Za-z_][A-Za-z0-9_]* {
+    std::string s = matched();
+    if (preprocessor)
+    {
+        if (s == "counter") return Parser::M_COUNTER;
+        *d_val = s;
+        return Parser::ID;
+    }
+    auto c = consts->find(s);
+    if (c != consts->end())
+    {
+        *d_val = c->second;
+        return Parser::NUMBER;
+    }
+    *d_val = s;
+    return Parser::ID;
+}
+
+0x[0-9A-Fa-f]+ |
+0b[01]+ |
+[0-9]+ {
+    std::string str = matched();
+    const char* end = "";
+    *d_val = std::strtoll(str.c_str(), (char**)&end, 0);
+    if (*end != 0) throw "Incorrect number";
+    return Parser::NUMBER;
+}
+
+// ******************** Operators ********************
+"++" { return Parser::OP_INC; }
+"--" { return Parser::OP_DEC; }
+"+=" { return Parser::OP_SADD; }
+"+@=" { return Parser::OP_SADC; }
+"?" { return '?'; }
+"-=" { return Parser::OP_SSUB; }
+"-@=" { return Parser::OP_SSBC; }
+"|=" { return Parser::OP_SOR; }
+"&=" { return Parser::OP_SAND; }
+"^=" { return Parser::OP_SXOR; }
+"==" { return Parser::OP_EQ; }
+"!=" { return Parser::OP_NE; }
+"<=" { return Parser::OP_LE; }
+">=" { return Parser::OP_GE; }
+"<"  { return '<'; }
+">"  { return '>'; }
+"<<" { return Parser::OP_SHL; }
+">>" { return Parser::OP_SHR; }
+"||" { return Parser::OP_LOR; }
+"&&" { return Parser::OP_LAND; }
+"!"  { return '!'; }
+";" { return ';'; }
+"(" { return '('; }
+")" { return ')'; }
+"{" { return '{'; }
+"}" { return '}'; }
+"[" { return '['; }
+"]" { return ']'; }
+"=" { return '='; }
+"*" { return '*'; }
+"+" { return '+'; }
+"-" { return '-'; }
+"/" { return '/'; }
+"~" { return '~'; }
+"," { return ','; }
+"&" { return '&'; }
+"|" { return '|'; }
+"^" { return '^'; }
+"%" { return '%'; }
+"#" { return '#'; }
+":" { return ':'; }
+
+"<<=" { return Parser::OP_SSHL; }
+">>=" { return Parser::OP_SSHR; }
+"<<r=" { return Parser::OP_SROL; }
+">>r=" { return Parser::OP_SROR; }
+"<<c=" { return Parser::OP_SCSHL; }
+">>c=" { return Parser::OP_SCSHR; }
+
+// ******************** Comment ********************
+\/\/.*$ {
+    // Ignore single-line comment.
+}
+
+\/\* {
+    more();
+    begin(StartCondition__::COMMENT);
+}
+<COMMENT> {
+    \*\/ {
+        // Ignore multi-line comment.
+        begin(StartCondition__::INITIAL);
+    }
+    
+    .|\n {
+        more();
+    }
+}
+
+
+// ******************** Char ********************
+\' {
+    more();
+    begin(StartCondition__::CHAR);
+}
+<CHAR> {
+    \' {
+        begin(StartCondition__::INITIAL);
+        std::string s = matched();
+        if (s.size() != 3) throw "Некорректная константа";
+        *d_val = (long long int)(uint8_t)s[1];
+        return Parser::NUMBER;
+    }
+    
+    \\.|. {
+        more();
+    }
+    
+    \n {
+        throw "Константа не закрыта по перевода строки";
+    }
+}
+
+
+// ******************** String ********************
+\" {
+    more();
+    begin(StartCondition__::STRING);
+}
+<STRING> {
+    \" {
+        begin(StartCondition__::INITIAL);
+        *d_val = matched();
+        return Parser::STRING;
+    }
+    
+    \\.|. {
+        more();
+    }
+    
+    \n {
+        throw "Строка не закрыта по перевода строки";
+    }
+}
+
+<<EOF>> { return 0; }
+[ \t]+ {}
+\n {
+    onNextLine(lineNr(), getLine(lineNr()));
+    if (preprocessor) return Parser::M_EOL;
+}
+. { throw "Некорректный символ"; }

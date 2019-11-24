@@ -15,7 +15,7 @@ intro:
         LD     HL, image_takh  ; Рейстлин
         CALL   introUniversal
 
-        JP     scroll
+        JP     main
 
 ;-------------------------------------------------------------------------------
 
@@ -24,8 +24,8 @@ introUniversal:
         PUSH   HL
         PUSH   DE
 
-        ; Очистка экрана.
-        LD     D, 45h
+        ; Очистка экранов
+        LD     A, 45h
         CALL   clearScreen
 
         ; Рисуем изображение
@@ -179,9 +179,3 @@ introText1:
         db "и убьет Такхизис, то он сам", 0
         db "станет богом.", 0
         db 0
-
-;-------------------------------------------------------------------------------
-
-        include "spark.inc"
-        include "build/takh.inc"
-        include "build/rast.inc"

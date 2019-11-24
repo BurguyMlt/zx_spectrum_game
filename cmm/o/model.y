@@ -1,0 +1,392 @@
+%scanner                ыcanner.h
+%scanner-token-function d_scanner.lex()
+
+%print-tokens
+
+%baseclass-preinclude ParserPreinclude.h
+
+%polymorphic
+    EXP: std::shared_ptr<Expression>;
+    EXPLIST: std::shared_ptr<ExprList>;
+    PARAMETERS: std::shared_ptr<Parameters>;
+    IDENT: std::shared_ptr<Identifier>;
+    IDENTIFY : std::shared_ptr<Identify>;
+    NAME: std::shared_ptr<Name>;
+    SIGNATURE: std::shared_ptr<Signature>;
+    STMT: std::shared_ptr<Statement>;
+    BLOCK: std::shared_ptr<Block>;
+    IF: std::shared_ptr<If>;
+    SWITCH: std::shared_ptr<Switch>;
+    MATCH: std::shared_ptr<Match>;
+    TOK: Token;
+
+%type <EXP> expr lexical_error boolean number char string
+%type <EXPLIST> anylist list
+%type <PARAMETERS> parameters paramlist
+%type <IDENT> identifier
+%type <IDENTIFY> identify
+%type <NAME> name
+%type <SIGNATURE> signature
+%type <STMT> startrule stmt
+%type <BLOCK> stmts indented
+%type <IF> elsestmts
+%type <SWITCH> casestmts
+%type <MATCH> withstmts
+
+// lowest precedence first, highest precedence last
+%token <TOK> IDENTIFIER BOOLEAN NUMBER CHAR STRING
+%token <TOK> EOL INDENT DEDENT
+%token <TOK> ERR_INDENT
+%token <TOK> ERR_CHAR ERR_STRING UNKNOWN_CHAR
+%token <TOK> CLASS CONCEPT DEF
+%token <TOK> RETURN BREAK CONTINUE PASS
+%token <TOK> FOREVER WHILE FOR IN
+%token <TOK> IF ELSE ELIF SWITCH CASE MATCH WITH AS DEFAULT
+%right <TOK> OP_ASSIGN
+%nonassoc <TOK> COLON
+%left <TOK> RANGE
+%left <TOK> COND_OR
+%left <TOK> COND_AND
+%left <TOK> OP_COMPARE
+%left <TOK> OR
+%left <TOK> XOR
+%left <TOK> AND
+%left <TOK> OP_SHIFT
+%left <TOK> OP_TERM
+%left <TOK> OP_FACTOR
+%right <TOK> POW
+%right <TOK> OP_UNARY
+%left <TOK> LEFT_PAR RIGHT_PAR LEFT_BRACKET RIGHT_BRACKET COMMA DOT
+
+
+%%
+
+startrule:
+    stmts {
+        $1->reverse();
+        $$ = $1;
+        mAst = AST($1);
+    }
+;
+
+stmts:
+    anyeols {
+        $$ = std::make_shared<Block>();
+    }
+|   anyeols stmt stmts {
+        $$ = $3;
+        // Don't add nullptr (syntax error)
+        if ($2)
+            $$->append($2);
+    }
+|   error EOF {
+        mAst.setErrorSymbol(symbol__(d_token_lastError));
+
+        SR__* begin = s_state[d_state_lastError];
+        SR__* end = begin + begin->d_lastIdx;
+
+        for (SR__* iter = begin + 1 ; iter != end ; ++iter)
+            mAst.addErrorExpectedSymbol(symbol__(iter->d_token));
+
+        ABORT();
+    }
+;
+
+stmt:
+    expr EOL {
+        $$ = std::make_shared<ExprStmt>($1);
+    }
+|   identify EOL {
+        $$ = std::make_shared<ExprStmt>($1);
+    }
+|   identify OP_ASSIGN expr EOL {
+        $$ = std::make_shared<ExprStmt>(std::make_shared<Binary>($1, $2, $3));
+    }
+|   RETURN expr EOL {
+        $$ = std::make_shared<Return>($2);
+    }
+|   BREAK EOL {
+        $$ = std::make_shared<Break>();
+    }
+|   CONTINUE EOL {
+        $$ = std::make_shared<Continue>();
+    }
+|   PASS EOL {
+        $$ = std::make_shared<Pass>();
+    }
+|   CLASS name indented {
+        $$ = std::make_shared<Class>($2, $3);
+    }
+|   CONCEPT name indented {
+        $$ = std::make_shared<Concept>($2, $3);
+    }
+|   DEF signature indented {
+        $$ = std::make_shared<Function>($2, $3);
+    }
+|   FOREVER indented {
+        $$ = std::make_shared<Forever>($2);
+    }
+|   WHILE expr indented {
+        $$ = std::make_shared<While>($2, $3);
+    }
+|   FOR identify IN expr indented {
+        $$ = std::make_shared<For>($2, $4, $5);
+    }
+|   IF expr indented elsestmts {
+        $4->append($2, $3);
+        $4->reverse();
+        $$ = $4;
+    }
+|   SWITCH expr EOL casestmts {
+        $4->setExpr($2);
+        $4->reverse();
+        $$ = $4;
+    }
+|   MATCH expr EOL withstmts {
+        $4->setExpr($2);
+        $4->reverse();
+        $$ = $4;
+    }
+;
+
+
+elsestmts:
+    {
+        $$ = std::make_shared<If>();
+    }
+|   ELSE indented {
+        $$ = std::make_shared<If>($2);
+    }
+|   ELIF expr indented elsestmts {
+        $$ = $4;
+        $$->append($2, $3);
+    }
+;
+
+casestmts:
+    {
+        $$ = std::make_shared<Switch>();
+    }
+|   DEFAULT indented {
+        $$ = std::make_shared<Switch>($2);
+    }
+|   CASE expr indented casestmts {
+        $$ = $4;
+        $$->append($2, $3);
+    }
+;
+
+withstmts:
+    {
+        $$ = std::make_shared<Match>();
+    }
+|   WITH expr AS identifier indented withstmts {
+        $$ = $6;
+        $$->append($2, $4, $5);
+    }
+;
+
+
+indented:
+    eols INDENT stmts dedent {
+        $3->reverse();
+        $$ = $3;
+    }
+;
+
+dedent:
+    DEDENT EOL
+;
+
+anyeols:
+|   EOL anyeols
+;
+
+eols:
+    EOL
+|   EOL eols
+;
+
+
+anylist:
+    {
+        $$ = std::make_shared<ExprList>();
+    }
+|   list {
+        $$ = $1;
+    }
+;
+
+list:
+    list COMMA expr {
+        $$ = $1;
+        $$->append($3);
+    }
+|   expr {
+        $$ = std::make_shared<ExprList>($1);
+    }
+;
+
+
+parameters:
+    {
+        $$ = std::make_shared<Parameters>();
+    }
+|   paramlist {
+        $$ = $1;
+    }
+;
+
+paramlist:
+    paramlist COMMA identify {
+        $$ = $1;
+        $$->append($3);
+    }
+|   identify {
+        $$ = std::make_shared<Parameters>($1);
+    }
+;
+
+
+name:
+    identifier {
+        $$ = std::make_shared<Name>($1);
+    }
+|   identifier LEFT_BRACKET parameters RIGHT_BRACKET {
+        $$ = std::make_shared<Name>($1, $3);
+    }
+;
+
+
+identify:
+    identifier COLON expr {
+        $$ = std::make_shared<Identify>($1, $3);
+    }
+;
+
+signature:
+    identifier LEFT_PAR parameters RIGHT_PAR COLON expr {
+        $$ = std::make_shared<Signature>($1, $3, $6);
+    }
+;
+
+expr:
+    lexical_error {
+        $$ = $1;
+    }
+|   identifier {
+        $$ = $1;
+    }
+|   boolean {
+        $$ = $1;
+    }
+|   number {
+        $$ = $1;
+    }
+|   char {
+        $$ = $1;
+    }
+|   string {
+        $$ = $1;
+    }
+
+|   LEFT_PAR expr RIGHT_PAR {
+        $$ = $2;
+    }
+
+|   expr DOT identifier {
+        $$ = std::make_shared<Member>($1, $3);
+    }
+|   expr LEFT_BRACKET anylist RIGHT_BRACKET {
+        $$ = std::make_shared<Index>($1, $3);
+    }
+|   expr LEFT_PAR anylist RIGHT_PAR {
+        $$ = std::make_shared<Call>($1, $3);
+    }
+
+|   expr OP_ASSIGN expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr RANGE expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr COND_OR expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr COND_AND expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr OP_COMPARE expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr OR expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr XOR expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr AND expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr OP_SHIFT expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr OP_TERM expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr OP_FACTOR expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   expr POW expr {
+        $$ = std::make_shared<Binary>($1, $2, $3);
+    }
+|   OP_UNARY expr {
+        $$ = std::make_shared<Unary>($1, $2);
+    }
+|   OP_TERM expr %prec OP_UNARY {
+        $$ = std::make_shared<Unary>($1, $2);
+    }
+;
+
+
+lexical_error:
+    ERR_CHAR {
+        std::cerr << "Error inside char :" << $1 << std::endl;
+        $$ = std::make_shared<LexicalError>($1);
+    }
+|   ERR_STRING {
+        std::cerr << "Error inside string :" << $1 << std::endl;
+        $$ = std::make_shared<LexicalError>($1);
+    }
+|   UNKNOWN_CHAR {
+        std::cerr << "Unknown char :" << $1 << std::endl;
+        $$ = std::make_shared<LexicalError>($1);
+    }
+;
+
+
+identifier:
+    IDENTIFIER {
+        $$ = std::make_shared<Identifier>($1);
+    }
+;
+boolean:
+    BOOLEAN {
+        $$ = std::make_shared<DataBoolean>($1);
+    }
+;
+number:
+    NUMBER {
+        $$ = std::make_shared<DataNumber>($1);
+    }
+;
+char:
+    CHAR {
+        $$ = std::make_shared<DataChar>($1);
+    }
+;
+string:
+    STRING {
+        $$ = std::make_shared<DataString>($1);
+    }
+;

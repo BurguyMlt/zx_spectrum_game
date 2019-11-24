@@ -9,6 +9,14 @@
 #include "tail.h"
 #include <iostream>
 
+static std::string truncFileExt(const char* str)
+{
+    char* ext = strrchr((char*)str, '.');
+    if (!ext) return str;
+    if (strchr(ext, '/')) return str;
+    return std::string(str, ext - str);
+}
+
 class TailId
 {
 public:
@@ -98,6 +106,8 @@ void clearTail(Png& png, int gx, int gy)
 
 bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMode, unsigned cityRoadY)
 {
+    std::string name = truncFileExt(basename(inputFileName));
+
     Level l;
 
     Tail zt;
@@ -193,6 +203,19 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
             }
         }
     }
+    else
+    {
+        for (unsigned x = 0; x < l.mapWidth; x++)
+        {
+            for (unsigned y = 0; y < topBorder; y++)
+            {
+                if (l.tailId == 255) break;
+                Tail t;
+                readTail(t, png, x * 8, y * 8);
+                l.addTail(t, x * 8, (y + topBorder) * 8, 1);
+            }
+        }
+    }
 
 //    for (unsigned y = 0; y < l.mapHeight; y++)
 //    {
@@ -206,8 +229,8 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
     FILE* fo = fopen(outputFileName, "w");
     if(!fo) return false;
 
-    fprintf(fo, "   align 256\n");
-    fprintf(fo, "levelTails: // count %u\n", (unsigned)l.tailsById.size());
+    fprintf(fo, "   ds (10000h - $) & 0FFh\n\n");
+    fprintf(fo, "%sTails: ; count %u\n", name.c_str(), (unsigned)l.tailsById.size());
     unsigned n = 0;
     for (unsigned j = 0; j < 9; j++)
     {
@@ -222,7 +245,8 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
     if (n != 0) fprintf(fo, "\n");
     fprintf(fo, "\n");
 
-    fprintf(fo, "levelEnemyTails: // count %u\n", (unsigned)l.enemyTails.size());
+    /*
+    fprintf(fo, "%sEnemyTails: // count %u\n", name.c_str(), (unsigned)l.enemyTails.size());
     n = 0;
     for (unsigned j = 0; j < 9; j++)
     {
@@ -236,13 +260,14 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
     }
     if (n != 0) fprintf(fo, "\n");
     fprintf(fo, "\n");
+    */
 
-    fprintf(fo, "levelEnemy=%u\n", dungeonEnemy);
-    fprintf(fo, "levelWidth=%u\n", l.mapWidth);
-    fprintf(fo, "levelHeight=%u\n", l.mapHeight);
+    fprintf(fo, "%sEnemy=%u\n", name.c_str(), dungeonEnemy);
+    fprintf(fo, "%sWidth=%u\n", name.c_str(), l.mapWidth);
+    fprintf(fo, "%sHeight=%u\n", name.c_str(), l.mapHeight);
     fprintf(fo, "\n");
 
-    fprintf(fo, "levelMap: ; size %u x %u", l.mapWidth, l.mapHeight);
+    fprintf(fo, "%sMap: ; size %u x %u", name.c_str(), l.mapWidth, l.mapHeight);
     for (unsigned i = 0; i < l.map.size(); i++)
     {
         fprintf(fo, "%s%u", i % 64 ? ", " : "\n    db ", l.map[i]);
@@ -250,6 +275,7 @@ bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMod
     fprintf(fo, "\n");
     fprintf(fo, "\n");
 
+    fprintf(fo, "; maps tails\n");
     for (unsigned i = 0; i < l.map.size(); i++)
     {
         if ((i % l.mapWidth) == 0) fprintf(fo, "; ");

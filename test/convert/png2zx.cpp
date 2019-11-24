@@ -75,6 +75,7 @@ static bool png2zx(const char* outputFileName, const char* inputFileName, uint8_
     }
 
     fclose(fo);
+    return true;
 }
 
 int main(int argc, char **argv)

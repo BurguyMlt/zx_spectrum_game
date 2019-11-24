@@ -1,0 +1,34 @@
+01   0000                     DEVICE ZXSPECTRUM128
+02   0000             
+03   0000             DOS=15619
+04   0000             BASE=25199
+05   0000             
+06   0000             NUMBER=0Eh
+07   0000             CLEAR=0FDh
+08   0000             RANDOMIZE=0F9h
+09   0000             USR=0C0h
+10   0000             REM=0EAh
+11   0000             LOAD=0EFh
+12   0000             CODE=0AFh
+13   0000             EOL=0Dh
+14   0000             
+15   0000 00 0A       Basic:   db 0, 10
+16   0002 23 00               db Line1e - Line1, 0
+17   0004             Line1: 
+18   0004                     db CLEAR, '0', NUMBER, 0, 0, BASE & 0FFh, BASE >> 8, 0 
+18   0004 FD300E00006F6200
+19   000C                     db ':', RANDOMIZE, USR, '0', 0Eh, 0, 0, DOS & 0FFh, DOS >> 8, 0
+19   000C 3AF9C0300E0000033D00
+20   0016 3A EA               db ':', REM
+21   0018                     db ':', LOAD, '"', 'b', 'a', 's', 'e', '"', CODE, '0' + (BASE / 10000) % 10
+21   0018 3AEF226261736522AF32
+22   0022 35 31 39 39         db '0' + (BASE / 1000) % 10, '0'+ (BASE / 100) % 10, '0' + (BASE / 10) % 10, '0' + BASE % 10
+23   0026 0D                  db EOL
+24   0027             Line1e: 
+25   0027 00 14               db 0, 20
+26   0029 0A 00               db Line2e - Line2, 0
+27   002B             Line2:   db RANDOMIZE, USR, '0', NUMBER, 0, 0, BASE & 0FFh, BASE >> 8, 0
+27   002B F9C0300E00006F6200
+28   0034 0D                  db EOL
+29   0035             Line2e: 
+30   0035             
