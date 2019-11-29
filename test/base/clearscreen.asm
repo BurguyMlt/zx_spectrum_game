@@ -33,7 +33,7 @@ clearScreen:
     ; 25 a = systemPage;
     ld   a, (systemPage)
     ; 26 a &= [~8];
-    and  -9
+    and  ~(8)
     ; 27 systemPage = a;
     ld   (systemPage), a
     ; 28 out(bc = 0x7FFD, a);

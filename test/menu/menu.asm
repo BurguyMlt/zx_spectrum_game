@@ -1,18 +1,18 @@
     ; 2 // (c) Морозов Алексей
     ; 3 // Главное меню.
-    ; 5 const KEY_UP = 1;
-    ; 6 const KEY_DOWN = 2;
-    ; 7 const KEY_LEFT = 4;
-    ; 8 const KEY_RIGHT = 8;
-    ; 9 const KEY_FIRE = 16;
-    ; 11 const menuLogoX      = 1;
-    ; 12 const menuLogoY      = 1;
-    ; 13 const menuItemH      = 10;
-    ; 14 const menuItemsY     = 100;
-    ; 15 const menuItemsX     = 80;
-    ; 16 const menuItemsSX    = 72;
-    ; 17 const menuItemsCount = 3;
-    ; 18 const menuItemsM     = menuItemsCount * menuItemH;
+    ; 5 const int KEY_UP = 1;
+    ; 6 const int KEY_DOWN = 2;
+    ; 7 const int KEY_LEFT = 4;
+    ; 8 const int KEY_RIGHT = 8;
+    ; 9 const int KEY_FIRE = 16;
+    ; 11 const int menuLogoX      = 1;
+    ; 12 const int menuLogoY      = 1;
+    ; 13 const int menuItemH      = 10;
+    ; 14 const int menuItemsY     = 100;
+    ; 15 const int menuItemsX     = 80;
+    ; 16 const int menuItemsSX    = 72;
+    ; 17 const int menuItemsCount = 3;
+    ; 18 const int menuItemsM     = menuItemsCount * menuItemH;
     ; 20 uint8_t menuX = 0;
 menuX db 0
     ; 21 uint8_t menuX1 = 0;

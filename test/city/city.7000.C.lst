@@ -18,48 +18,48 @@
 0018   7000             drawCharSub      = boot + 5 + 3 * 7
 0019   7000             exec             = boot + 5 + 3 * 8
 0020   7000             
-0021   7000 C3 83 70        jp main
+0021   7000 C3 63 70        jp main
 0022   7003             
-0001   7003                 ; 3 const KEY_UP = 1;
-0002   7003                 ; 4 const KEY_DOWN = 2;
-0003   7003                 ; 5 const KEY_LEFT = 4;
-0004   7003                 ; 6 const KEY_RIGHT = 8;
-0005   7003                 ; 7 const KEY_FIRE = 16;
-0006   7003                 ; 9 const PORT_7FFD_SECOND_VIDEO_PAGE = 8;
-0007   7003                 ; 11 const screenAddr1 = 0x4000;
-0008   7003                 ; 12 const screenAddr2 = 0xC000;
-0009   7003                 ; 13 const screenWidth = 256;
-0010   7003                 ; 14 const screenHeight = 192;
-0011   7003                 ; 15 const screenBwSize = screenWidth / 8 * screenHeight;
-0012   7003                 ; 16 const screenAttrSize = screenWidth / 8 * screenHeight / 8;
-0013   7003                 ; 17 const screenAttrAddr1 = screenAddr1 + screenBwSize;
-0014   7003                 ; 18 const screenAttrAddr2 = screenAddr2 + screenBwSize;
-0015   7003                 ; 19 const screenEndAddr1 = screenAttrAddr1 + screenAttrSize;
-0016   7003                 ; 20 const screenEndAddr2 = screenAttrAddr2 + screenAttrSize;
-0017   7003                 ; 21 const cacheAddr1 = screenEndAddr1;
-0018   7003                 ; 22 const cacheAddr2 = screenEndAddr2;
-0019   7003                 ; 23 const unusedTailCode = 0xFF;
-0020   7003                 ; 24 const viewWidth = 32;
-0021   7003                 ; 25 const viewHeight = 20;
-0022   7003                 ; 26 const cityRoadY = 13;
-0023   7003                 ; 27 const mapWidth = 256;
-0024   7003                 ; 29 const npc_timer      = 0;
-0025   7003                 ; 30 const npc_direction  = 1;
-0026   7003                 ; 31 const npc_step       = 2;
-0027   7003                 ; 32 const npc_position   = 3;
-0028   7003                 ; 33 const npc_sprite     = 4;
-0029   7003                 ; 34 const npc_spriteType = 5;
-0030   7003                 ; 35 const npc_sizeof     = 6;
-0031   7003                 ; 37 const npc_maxCount = 16;
-0032   7003                 ; 38 const npc_defaultSpeed = 7;
+0001   7003                 ; 3 const int KEY_UP = 1;
+0002   7003                 ; 4 const int KEY_DOWN = 2;
+0003   7003                 ; 5 const int KEY_LEFT = 4;
+0004   7003                 ; 6 const int KEY_RIGHT = 8;
+0005   7003                 ; 7 const int KEY_FIRE = 16;
+0006   7003                 ; 9 const int PORT_7FFD_SECOND_VIDEO_PAGE = 8;
+0007   7003                 ; 11 const int screenAddr1 = 0x4000;
+0008   7003                 ; 12 const int screenAddr2 = 0xC000;
+0009   7003                 ; 13 const int screenWidth = 256;
+0010   7003                 ; 14 const int screenHeight = 192;
+0011   7003                 ; 15 const int screenBwSize = screenWidth / 8 * screenHeight;
+0012   7003                 ; 16 const int screenAttrSize = screenWidth / 8 * screenHeight / 8;
+0013   7003                 ; 17 const int screenAttrAddr1 = screenAddr1 + screenBwSize;
+0014   7003                 ; 18 const int screenAttrAddr2 = screenAddr2 + screenBwSize;
+0015   7003                 ; 19 const int screenEndAddr1 = screenAttrAddr1 + screenAttrSize;
+0016   7003                 ; 20 const int screenEndAddr2 = screenAttrAddr2 + screenAttrSize;
+0017   7003                 ; 21 const int cacheAddr1 = screenEndAddr1;
+0018   7003                 ; 22 const int cacheAddr2 = screenEndAddr2;
+0019   7003                 ; 23 const int unusedTailCode = 0xFF;
+0020   7003                 ; 24 const int viewWidth = 32;
+0021   7003                 ; 25 const int viewHeight = 20;
+0022   7003                 ; 26 const int cityRoadY = 13;
+0023   7003                 ; 27 const int mapWidth = 256;
+0024   7003                 ; 29 const int npc_timer           = 0;
+0025   7003                 ; 30 const int npc_flags           = 1;
+0026   7003                 ; 31 const int npc_flags_direction = 0x01;
+0027   7003                 ; 32 const int npc_flags_type      = 0x02;
+0028   7003                 ; 33 const int npc_step            = 2;
+0029   7003                 ; 34 const int npc_position        = 3;
+0030   7003                 ; 35 const int npc_sizeof          = 4;
+0031   7003                 ; 37 const int npc_maxCount = 16;
+0032   7003                 ; 38 const int npc_defaultSpeed = 7;
 0033   7003                 ; 40 uint8_t cityPlayerX = 0;
 0034   7003 00          cityPlayerX db 0
 0035   7004                 ; 41 uint8_t cityScrollX = 0;
 0036   7004 00          cityScrollX db 0
-0037   7005                 ; 42 uint8_t cityPlayerD = 0;
-0038   7005 00          cityPlayerD db 0
-0039   7006                 ; 43 uint16_t cityPlayerSprite = [&city1Enemy + 0x100];
-0040   7006 44 01       cityPlayerSprite dw (city1Enemy) + (256)
+0037   7005                 ; 42 uint8_t cityPlayerDirection = 0;
+0038   7005 00          cityPlayerDirection db 0
+0039   7006                 ; 43 uint16_t cityPlayerSprite = &city1s_0;
+0040   7006 00 AF       cityPlayerSprite dw city1s_0
 0041   7008                 ; 44 uint8_t processedFrames = 0;
 0042   7008 00          processedFrames db 0
 0043   7009                 ; 45 uint8_t startFrame;
@@ -67,1206 +67,1097 @@
 0045   700A                 ; 46 uint8_t npcCount = npc_maxCount;
 0046   700A 10          npcCount db 16
 0047   700B                 ; 47 uint8_t npc[npc_sizeof * npc_maxCount];
-0048   700B 00          npc ds 96
-0049   706B                 ; 49 void swapMaps()
-0050   706B             swapMaps: 
-0051   706B                 ; 50 {
-0052   706B                 ; 51 // Загрузка города
-0053   706B                 ; 52 hl = &city1Tails;
-0054   706B 21 00 75        ld   hl, city1Tails
-0055   706E                 ; 53 de = &city1bTails;
-0056   706E 11 00 92        ld   de, city1bTails
-0057   7071                 ; 54 bc = [9 * 256 + 256 * 20];
-0058   7071 01 00 1D        ld   bc, 7424
-0059   7074                 ; 55 do
-0060   7074             l2000: 
-0061   7074                 ; 56 {
-0062   7074                 ; 57 a = *de;
-0063   7074 1A              ld   a, (de)
-0064   7075                 ; 58 ex(a, a);
-0065   7075 08              ex   af, af
-0066   7076                 ; 59 a = *hl;
-0067   7076 7E              ld   a, (hl)
-0068   7077                 ; 60 *de = a;
-0069   7077 12              ld   (de), a
-0070   7078                 ; 61 ex(a, a);
-0071   7078 08              ex   af, af
-0072   7079                 ; 62 *hl = a;
-0073   7079 77              ld   (hl), a
-0074   707A                 ; 63 hl++;
-0075   707A 23              inc  hl
-0076   707B                 ; 64 de++;
-0077   707B 13              inc  de
-0078   707C                 ; 65 bc--;
-0079   707C 0B              dec  bc
-0080   707D                 ; 66 } while(flag_nz (a = b) |= c);
-0081   707D 78              ld   a, b
-0082   707E B1              or   c
-0083   707F C2 74 70        jp   nz, l2000
-0084   7082                 ; 67 }
-0085   7082 C9              ret
-0086   7083                 ; 69 void main()
-0087   7083             main: 
-0088   7083                 ; 70 {
-0089   7083                 ; 71 cityPlayerX = a = [mapWidth / 2];
-0090   7083 3E 80           ld   a, 128
-0091   7085 32 03 70        ld   (cityPlayerX), a
-0092   7088                 ; 72 cityScrollX = (a -= [viewWidth / 2]);
-0093   7088 D6 10           sub  16
-0094   708A 32 04 70        ld   (cityScrollX), a
-0095   708D                 ; 74 // Инициализация NPC
-0096   708D                 ; 75 initNpc();
-0097   708D CD C7 70        call initNpc
-0098   7090                 ; 77 //swapMaps();
-0099   7090                 ; 79 // Инициализация кеша
-0100   7090                 ; 80 cityInvalidate(hl = cacheAddr1);
-0101   7090 21 00 5B        ld   hl, 23296
-0102   7093 CD BC 70        call cityInvalidate
-0103   7096                 ; 81 cityInvalidate(hl = cacheAddr2);
-0104   7096 21 00 DB        ld   hl, 56064
-0105   7099 CD BC 70        call cityInvalidate
-0106   709C                 ; 83 // Перерисовать
-0107   709C                 ; 84 cityRedraw();
-0108   709C CD 82 72        call cityRedraw
-0109   709F                 ; 86 while()
-0110   709F             l2001: 
-0111   709F                 ; 87 {
-0112   709F                 ; 88 while ((a = frame) != *(hl = &processedFrames))
-0113   709F             l2003: 
-0114   709F 3A 72 62        ld   a, (frame)
-0115   70A2 21 08 70        ld   hl, processedFrames
-0116   70A5 BE              cp   (hl)
-0117   70A6 CA B5 70        jp   z, l2004
-0118   70A9                 ; 89 {
-0119   70A9                 ; 90 *hl = a;
-0120   70A9 77              ld   (hl), a
-0121   70AA                 ; 91 a &= 3;
-0122   70AA E6 03           and  3
-0123   70AC                 ; 92 if (flag_z) processPlayer();
-0124   70AC CC E5 71        call z, processPlayer
-0125   70AF                 ; 93 processNpc();
-0126   70AF CD FA 70        call processNpc
-0127   70B2                 ; 94 }
-0128   70B2 C3 9F 70        jp   l2003
-0129   70B5             l2004: 
-0130   70B5                 ; 96 cityRedraw();
-0131   70B5 CD 82 72        call cityRedraw
-0132   70B8                 ; 97 }
-0133   70B8 C3 9F 70        jp   l2001
-0134   70BB                 ; 98 }
-0135   70BB C9              ret
-0136   70BC                 ; 100 void cityInvalidate(hl)
-0137   70BC             cityInvalidate: 
-0138   70BC                 ; 101 {
-0139   70BC                 ; 102 d = h; e = l; de++;
-0140   70BC 54              ld   d, h
-0141   70BD 5D              ld   e, l
-0142   70BE 13              inc  de
-0143   70BF                 ; 103 *hl = unusedTailCode;
-0144   70BF 36 FF           ld   (hl), 255
-0145   70C1                 ; 104 bc = [viewWidth * viewHeight - 1];
-0146   70C1 01 7F 02        ld   bc, 639
-0147   70C4                 ; 105 ldir();
-0148   70C4 ED B0           ldir
-0149   70C6                 ; 106 }
-0150   70C6 C9              ret
-0151   70C7                 ; 108 void initNpc()
-0152   70C7             initNpc: 
-0153   70C7                 ; 109 {
-0154   70C7                 ; 110 ix = &npc;
-0155   70C7 DD 21 0B 70     ld   ix, npc
-0156   70CB                 ; 111 de = npc_sizeof;
-0157   70CB 11 06 00        ld   de, 6
-0158   70CE                 ; 112 b = a = npcCount; // Счетчик цикла
-0159   70CE 3A 0A 70        ld   a, (npcCount)
-0160   70D1 47              ld   b, a
-0161   70D2                 ; 113 do
-0162   70D2             l2006: 
-0163   70D2                 ; 114 {
-0164   70D2                 ; 115 a = b;
-0165   70D2 78              ld   a, b
-0166   70D3                 ; 116 while (a >= npc_defaultSpeed) a -= npc_defaultSpeed;
-0167   70D3             l2007: 
-0168   70D3 FE 07           cp   7
-0169   70D5 DA DD 70        jp   c, l2008
-0170   70D8 D6 07           sub  7
-0171   70DA C3 D3 70        jp   l2007
-0172   70DD             l2008: 
-0173   70DD                 ; 117 a += 1;
-0174   70DD C6 01           add  1
-0175   70DF                 ; 118 ix[npc_timer] = a; // Фаза таймера
-0176   70DF DD 77 00        ld   (ix + 0), a
-0177   70E2                 ; 120 ix[npc_step] = 0;
-0178   70E2 DD 36 02 00     ld   (ix + 2), 0
-0179   70E6                 ; 121 ix[npc_sprite] = [&city1Enemy + 14 * 4];
-0180   70E6 DD 36 04 7C     ld   (ix + 4), (city1Enemy) + (56)
-0181   70EA                 ; 122 rand();
-0182   70EA CD 8C 74        call rand
-0183   70ED                 ; 123 ix[npc_position] = a;
-0184   70ED DD 77 03        ld   (ix + 3), a
-0185   70F0                 ; 124 ix[npc_direction] = (a &= 1);
-0186   70F0 E6 01           and  1
-0187   70F2 DD 77 01        ld   (ix + 1), a
-0188   70F5                 ; 125 ix += de;
-0189   70F5 DD 19           add  ix, de
-0190   70F7                 ; 126 } while(--b);
-0191   70F7 10 D9           djnz l2006
-0192   70F9                 ; 127 }
-0193   70F9 C9              ret
-0194   70FA                 ; 129 void processNpc()
-0195   70FA             processNpc: 
-0196   70FA                 ; 130 {
-0197   70FA                 ; 131 de = npc_sizeof;
-0198   70FA 11 06 00        ld   de, 6
-0199   70FD                 ; 132 hl = &npc;
-0200   70FD 21 0B 70        ld   hl, npc
-0201   7100                 ; 133 b = a = npcCount;
-0202   7100 3A 0A 70        ld   a, (npcCount)
-0203   7103 47              ld   b, a
-0204   7104                 ; 134 do
-0205   7104             l2010: 
-0206   7104                 ; 135 {
-0207   7104                 ; 136 if (flag_z --*hl) // Скорость
-0208   7104 35              dec  (hl)
-0209   7105                 ; 137 {
-0210   7105 C2 BE 71        jp   nz, l2011
-0211   7108                 ; 138 rand();
-0212   7108 CD 8C 74        call rand
-0213   710B                 ; 139 if (flag_z a--) // Внезапная остановка
-0214   710B 3D              dec  a
-0215   710C                 ; 140 {
-0216   710C C2 1F 71        jp   nz, l2012
-0217   710F                 ; 141 //! Не полушаге не останавливать
-0218   710F                 ; 142 push(hl);
-0219   710F E5              push hl
-0220   7110                 ; 143 pop(ix);
-0221   7110 DD E1           pop  ix
-0222   7112                 ; 144 a = ix[npc_spriteType];
-0223   7112 DD 7E 05        ld   a, (ix + 5)
-0224   7115                 ; 145 if (a == 1)
-0225   7115 FE 01           cp   1
-0226   7117                 ; 146 {
-0227   7117 C2 1F 71        jp   nz, l2013
-0228   711A                 ; 147 *hl = 255;
-0229   711A 36 FF           ld   (hl), 255
-0230   711C                 ; 148 goto continue1;
-0231   711C C3 BE 71        jp   continue1
-0232   711F                 ; 149 }
-0233   711F                 ; 150 }
-0234   711F             l2013: 
-0235   711F                 ; 152 // У всех разная скорость
-0236   711F                 ; 153 *hl = (((a = b) &= 7) += npc_defaultSpeed);
-0237   711F             l2012: 
-0238   711F 78              ld   a, b
-0239   7120 E6 07           and  7
-0240   7122 C6 07           add  7
-0241   7124 77              ld   (hl), a
-0242   7125                 ; 155 if (flag_z a--) // Внезапный поворот
-0243   7125 3D              dec  a
-0244   7126                 ; 156 {
-0245   7126 C2 2F 71        jp   nz, l2014
-0246   7129                 ; 157 hl++;
-0247   7129 23              inc  hl
-0248   712A                 ; 158 a = *hl;
-0249   712A 7E              ld   a, (hl)
-0250   712B                 ; 159 a ^= 1;
-0251   712B EE 01           xor  1
-0252   712D                 ; 160 *hl = a;
-0253   712D 77              ld   (hl), a
-0254   712E                 ; 161 hl--;
-0255   712E 2B              dec  hl
-0256   712F                 ; 162 }
-0257   712F                 ; 164 hl++;
-0258   712F             l2014: 
-0259   712F 23              inc  hl
-0260   7130                 ; 165 if (*hl & 1) // Направление
-0261   7130 CB 46           bit  0, (hl)
-0262   7132                 ; 166 {
-0263   7132 CA 79 71        jp   z, l2015
-0264   7135                 ; 167 hl++;
-0265   7135 23              inc  hl
-0266   7136                 ; 168 c = *hl;
-0267   7136 4E              ld   c, (hl)
-0268   7137                 ; 169 if (c & 4) // Шаг
-0269   7137 CB 51           bit  2, c
-0270   7139                 ; 170 {
-0271   7139 CA 4B 71        jp   z, l2016
-0272   713C                 ; 171 *hl = 0; // Шаг
-0273   713C 36 00           ld   (hl), 0
-0274   713E                 ; 172 hl++; a = *hl; // Позиция
-0275   713E 23              inc  hl
-0276   713F 7E              ld   a, (hl)
-0277   7140                 ; 173 /* if (a == 254)
-0278   7140                 ; 179 *hl = (++a); // Позиция
-0279   7140 3C              inc  a
-0280   7141 77              ld   (hl), a
-0281   7142                 ; 180 hl++; *hl = [&city1Enemy + 17 * 4]; // Спрайт
-0282   7142 23              inc  hl
-0283   7143 36 88           ld   (hl), (city1Enemy) + (68)
-0284   7145                 ; 181 hl++; *hl = 1; // Тип спрайта
-0285   7145 23              inc  hl
-0286   7146 36 01           ld   (hl), 1
-0287   7148                 ; 182 }
-0288   7148                 ; 183 else if (c & 2) // Шаг
-0289   7148 C3 76 71        jp   l2017
-0290   714B             l2016: 
-0291   714B CB 49           bit  1, c
-0292   714D                 ; 184 {
-0293   714D CA 5C 71        jp   z, l2018
-0294   7150                 ; 185 *hl = 4; // Шаг
-0295   7150 36 04           ld   (hl), 4
-0296   7152                 ; 186 hl++; hl++; *hl = [&city1Enemy + 22 * 4]; // Спрайт
-0297   7152 23              inc  hl
-0298   7153 23              inc  hl
-0299   7154 36 9C           ld   (hl), (city1Enemy) + (88)
-0300   7156                 ; 187 hl++; *hl = 0; // Тип спрайта
-0301   7156 23              inc  hl
-0302   7157 36 00           ld   (hl), 0
-0303   7159                 ; 188 }
-0304   7159                 ; 189 else if (c & 1) // Шаг
-0305   7159 C3 76 71        jp   l2019
-0306   715C             l2018: 
-0307   715C CB 41           bit  0, c
-0308   715E                 ; 190 {
-0309   715E CA 6D 71        jp   z, l2020
-0310   7161                 ; 191 *hl = 2; // Шаг
-0311   7161 36 02           ld   (hl), 2
-0312   7163                 ; 192 hl++; hl++; *hl = [&city1Enemy + 20 * 4]; // Спрайт
-0313   7163 23              inc  hl
-0314   7164 23              inc  hl
-0315   7165 36 94           ld   (hl), (city1Enemy) + (80)
-0316   7167                 ; 193 hl++; *hl = 0; // Тип спрайта
-0317   7167 23              inc  hl
-0318   7168 36 00           ld   (hl), 0
-0319   716A                 ; 194 }
-0320   716A                 ; 195 else
-0321   716A C3 76 71        jp   l2021
-0322   716D             l2020: 
-0323   716D                 ; 196 {
-0324   716D                 ; 197 *hl = 1; // Шаг
-0325   716D 36 01           ld   (hl), 1
-0326   716F                 ; 198 hl++; hl++; *hl = [&city1Enemy + 18 * 4]; // Спрайт
-0327   716F 23              inc  hl
-0328   7170 23              inc  hl
-0329   7171 36 8C           ld   (hl), (city1Enemy) + (72)
-0330   7173                 ; 199 hl++; *hl = 0; // Тип спрайта
-0331   7173 23              inc  hl
-0332   7174 36 00           ld   (hl), 0
-0333   7176                 ; 200 }
-0334   7176             l2021: 
-0335   7176             l2019: 
-0336   7176             l2017: 
-0337   7176                 ; 201 }
-0338   7176                 ; 202 else
-0339   7176 C3 BA 71        jp   l2022
-0340   7179             l2015: 
-0341   7179                 ; 203 {
-0342   7179                 ; 204 hl++;
-0343   7179 23              inc  hl
-0344   717A                 ; 205 c = *hl;
-0345   717A 4E              ld   c, (hl)
-0346   717B                 ; 206 if (c & 4) // Шаг
-0347   717B CB 51           bit  2, c
-0348   717D                 ; 207 {
-0349   717D CA 8C 71        jp   z, l2023
-0350   7180                 ; 208 *hl = 0; // Шаг
-0351   7180 36 00           ld   (hl), 0
-0352   7182                 ; 209 hl++; hl++; *hl = [&city1Enemy + 11 * 4]; // Спрайт
-0353   7182 23              inc  hl
-0354   7183 23              inc  hl
-0355   7184 36 70           ld   (hl), (city1Enemy) + (44)
-0356   7186                 ; 210 hl++; *hl = 0; // Тип спрайта
-0357   7186 23              inc  hl
-0358   7187 36 00           ld   (hl), 0
-0359   7189                 ; 211 }
-0360   7189                 ; 212 else
-0361   7189 C3 BA 71        jp   l2024
-0362   718C             l2023: 
-0363   718C                 ; 213 if (c & 2)
-0364   718C CB 49           bit  1, c
-0365   718E                 ; 214 {
-0366   718E CA 9D 71        jp   z, l2025
-0367   7191                 ; 215 *hl = 4; // Шаг
-0368   7191 36 04           ld   (hl), 4
-0369   7193                 ; 216 hl++; hl++; *hl = [&city1Enemy + 13 * 4]; // Спрайт
-0370   7193 23              inc  hl
-0371   7194 23              inc  hl
-0372   7195 36 78           ld   (hl), (city1Enemy) + (52)
-0373   7197                 ; 217 hl++; *hl = 0; // Тип спрайта
-0374   7197 23              inc  hl
-0375   7198 36 00           ld   (hl), 0
-0376   719A                 ; 218 }
-0377   719A                 ; 219 else if(c & 1)
-0378   719A C3 BA 71        jp   l2026
-0379   719D             l2025: 
-0380   719D CB 41           bit  0, c
-0381   719F                 ; 220 {
-0382   719F CA B1 71        jp   z, l2027
-0383   71A2                 ; 221 *hl = 2; // Шаг
-0384   71A2 36 02           ld   (hl), 2
-0385   71A4                 ; 222 hl++; a = *hl; // Позиция
-0386   71A4 23              inc  hl
-0387   71A5 7E              ld   a, (hl)
-0388   71A6                 ; 223 a--;
-0389   71A6 3D              dec  a
-0390   71A7                 ; 224 *hl = a; // Позиция
-0391   71A7 77              ld   (hl), a
-0392   71A8                 ; 225 hl++; *hl = [&city1Enemy + 15 * 4]; // Спрайт
-0393   71A8 23              inc  hl
-0394   71A9 36 80           ld   (hl), (city1Enemy) + (60)
-0395   71AB                 ; 226 hl++; *hl = 0; // Тип спрайта
-0396   71AB 23              inc  hl
-0397   71AC 36 00           ld   (hl), 0
-0398   71AE                 ; 227 }
-0399   71AE                 ; 228 else
-0400   71AE C3 BA 71        jp   l2028
-0401   71B1             l2027: 
-0402   71B1                 ; 229 {
-0403   71B1                 ; 230 *hl = 1; // Шаг
-0404   71B1 36 01           ld   (hl), 1
-0405   71B3                 ; 231 hl++; hl++; *hl = [&city1Enemy + 10 * 4]; // Спрайт
-0406   71B3 23              inc  hl
-0407   71B4 23              inc  hl
-0408   71B5 36 6C           ld   (hl), (city1Enemy) + (40)
-0409   71B7                 ; 232 hl++; *hl = 1; // Тип спрайта
-0410   71B7 23              inc  hl
-0411   71B8 36 01           ld   (hl), 1
-0412   71BA                 ; 233 }
-0413   71BA             l2028: 
-0414   71BA             l2026: 
-0415   71BA             l2024: 
-0416   71BA                 ; 234 }
-0417   71BA             l2022: 
-0418   71BA                 ; 235 hl++;
-0419   71BA 23              inc  hl
-0420   71BB                 ; 236 }
-0421   71BB                 ; 237 else
-0422   71BB C3 BF 71        jp   l2029
-0423   71BE             l2011: 
-0424   71BE                 ; 238 {
-0425   71BE                 ; 239 continue1:
-0426   71BE             continue1: 
-0427   71BE                 ; 240 hl += de; // Следующий NPC
-0428   71BE 19              add  hl, de
-0429   71BF                 ; 241 }
-0430   71BF             l2029: 
-0431   71BF                 ; 242 } while(flag_nz --b);
-0432   71BF 05              dec  b
-0433   71C0 C2 04 71        jp   nz, l2010
-0434   71C3                 ; 243 }
-0435   71C3 C9              ret
-0436   71C4                 ; 245 void clearRoad()
-0437   71C4             clearRoad: 
-0438   71C4                 ; 246 {
-0439   71C4                 ; 247 hl = &city1Map;
-0440   71C4 21 00 7E        ld   hl, city1Map
-0441   71C7                 ; 248 l = a = cityScrollX;
-0442   71C7 3A 04 70        ld   a, (cityScrollX)
-0443   71CA 6F              ld   l, a
-0444   71CB                 ; 249 h = ((a = h) += cityRoadY);
-0445   71CB 7C              ld   a, h
-0446   71CC C6 0D           add  13
-0447   71CE 67              ld   h, a
-0448   71CF                 ; 250 a = 0;
-0449   71CF 3E 00           ld   a, 0
-0450   71D1                 ; 251 c = 4;
-0451   71D1 0E 04           ld   c, 4
-0452   71D3                 ; 252 do
-0453   71D3             l2030: 
-0454   71D3                 ; 253 {
-0455   71D3                 ; 254 d = l;
-0456   71D3 55              ld   d, l
-0457   71D4                 ; 255 b = viewWidth;
-0458   71D4 06 20           ld   b, 32
-0459   71D6                 ; 256 do
-0460   71D6             l2031: 
-0461   71D6                 ; 257 {
-0462   71D6                 ; 258 if (a != *hl)
-0463   71D6 BE              cp   (hl)
-0464   71D7                 ; 259 *hl = a;
-0465   71D7 CA DB 71        jp   z, l2032
-0466   71DA 77              ld   (hl), a
-0467   71DB                 ; 260 l++;
-0468   71DB             l2032: 
-0469   71DB 2C              inc  l
-0470   71DC                 ; 261 } while(--b);
-0471   71DC 10 F8           djnz l2031
-0472   71DE                 ; 262 l = d;
-0473   71DE 6A              ld   l, d
-0474   71DF                 ; 263 h++;
-0475   71DF 24              inc  h
-0476   71E0                 ; 264 --c;
-0477   71E0 0D              dec  c
-0478   71E1                 ; 265 } while(flag_nz);
-0479   71E1 C2 D3 71        jp   nz, l2030
-0480   71E4                 ; 266 }
-0481   71E4 C9              ret
-0482   71E5                 ; 268 void processPlayer()
-0483   71E5             processPlayer: 
-0484   71E5                 ; 269 {
-0485   71E5                 ; 270 // Чтение клавиши
-0486   71E5                 ; 271 b = a = keyPressed;
-0487   71E5 3A 76 62        ld   a, (keyPressed)
-0488   71E8 47              ld   b, a
-0489   71E9                 ; 272 a = cityPlayerX;
-0490   71E9 3A 03 70        ld   a, (cityPlayerX)
-0491   71EC                 ; 273 if (b & KEY_LEFT)
-0492   71EC CB 50           bit  2, b
-0493   71EE                 ; 274 {
-0494   71EE CA 1E 72        jp   z, l2033
-0495   71F1                 ; 275 a -= 1;
-0496   71F1 D6 01           sub  1
-0497   71F3                 ; 276 if (flag_c) goto playerStop;
-0498   71F3 DA 50 72        jp   c, playerStop
-0499   71F6                 ; 278 cityPlayerX = a;
-0500   71F6 32 03 70        ld   (cityPlayerX), a
-0501   71F9                 ; 279 if (a >= [viewWidth / 2]) if (a < [mapWidth - viewWidth / 2 + 1]) { cityScrollX = (a -= [viewWidth / 2]); }
-0502   71F9 FE 10           cp   16
-0503   71FB DA 08 72        jp   c, l2034
-0504   71FE FE F1           cp   241
-0505   7200 D2 08 72        jp   nc, l2035
-0506   7203 D6 10           sub  16
-0507   7205 32 04 70        ld   (cityScrollX), a
-0508   7208                 ; 280 cityPlayerD = a = 0;
-0509   7208             l2035: 
-0510   7208             l2034: 
-0511   7208 3E 00           ld   a, 0
-0512   720A 32 05 70        ld   (cityPlayerD), a
-0513   720D                 ; 282 a = cityPlayerSprite;
-0514   720D 3A 06 70        ld   a, (cityPlayerSprite)
-0515   7210                 ; 283 hl = [&city1Enemy + 0x100];
-0516   7210 21 44 01        ld   hl, (city1Enemy) + (256)
-0517   7213                 ; 284 if (a == l) hl = [&city1Enemy + 4 + 0x200];
-0518   7213 BD              cp   l
-0519   7214 C2 1A 72        jp   nz, l2036
-0520   7217 21 48 02        ld   hl, (city1Enemy) + (516)
-0521   721A                 ; 285 cityPlayerSprite = hl;
-0522   721A             l2036: 
-0523   721A 22 06 70        ld   (cityPlayerSprite), hl
-0524   721D                 ; 286 return;
-0525   721D C9              ret
-0526   721E                 ; 287 }
-0527   721E                 ; 289 if (b & KEY_RIGHT)
-0528   721E             l2033: 
-0529   721E CB 58           bit  3, b
-0530   7220                 ; 290 {
-0531   7220 CA 50 72        jp   z, l2037
-0532   7223                 ; 291 a += 1;
-0533   7223 C6 01           add  1
-0534   7225                 ; 292 if (flag_c) goto playerStop;
-0535   7225 DA 50 72        jp   c, playerStop
-0536   7228                 ; 294 cityPlayerX = a;
-0537   7228 32 03 70        ld   (cityPlayerX), a
-0538   722B                 ; 295 if (a >= [viewWidth / 2]) if (a < [mapWidth - viewWidth / 2 + 1]) { cityScrollX = (a -= [viewWidth / 2]); }
-0539   722B FE 10           cp   16
-0540   722D DA 3A 72        jp   c, l2038
-0541   7230 FE F1           cp   241
-0542   7232 D2 3A 72        jp   nc, l2039
-0543   7235 D6 10           sub  16
-0544   7237 32 04 70        ld   (cityScrollX), a
-0545   723A                 ; 296 cityPlayerD = a = 1;
-0546   723A             l2039: 
-0547   723A             l2038: 
-0548   723A 3E 01           ld   a, 1
-0549   723C 32 05 70        ld   (cityPlayerD), a
-0550   723F                 ; 298 a = cityPlayerSprite;
-0551   723F 3A 06 70        ld   a, (cityPlayerSprite)
-0552   7242                 ; 299 hl = [&city1Enemy + 20 + 0x100];
-0553   7242 21 58 01        ld   hl, (city1Enemy) + (276)
-0554   7245                 ; 300 if (a == l) hl = [&city1Enemy + 24];
-0555   7245 BD              cp   l
-0556   7246 C2 4C 72        jp   nz, l2040
-0557   7249 21 5C 00        ld   hl, (city1Enemy) + (24)
-0558   724C                 ; 301 cityPlayerSprite = hl;
-0559   724C             l2040: 
-0560   724C 22 06 70        ld   (cityPlayerSprite), hl
-0561   724F                 ; 302 return;
-0562   724F C9              ret
-0563   7250                 ; 303 }
-0564   7250                 ; 305 playerStop:
-0565   7250             l2037: 
-0566   7250             playerStop: 
-0567   7250                 ; 306 a = cityPlayerD;
-0568   7250 3A 05 70        ld   a, (cityPlayerD)
-0569   7253                 ; 307 hl = [&city1Enemy + 0x100];
-0570   7253 21 44 01        ld   hl, (city1Enemy) + (256)
-0571   7256                 ; 308 if (a & 1) hl = [&city1Enemy + 20 + 0x100];
-0572   7256 CB 47           bit  0, a
-0573   7258 CA 5E 72        jp   z, l2041
-0574   725B 21 58 01        ld   hl, (city1Enemy) + (276)
-0575   725E                 ; 309 cityPlayerSprite = hl;
-0576   725E             l2041: 
-0577   725E 22 06 70        ld   (cityPlayerSprite), hl
-0578   7261                 ; 310 }
-0579   7261 C9              ret
-0580   7262                 ; 312 void drawCharacter(e, ix)
-0581   7262             drawCharacter: 
-0582   7262                 ; 313 {
-0583   7262                 ; 314 // Рисуем
-0584   7262                 ; 315 d = [(&city1Map >> 8) + cityRoadY];
-0585   7262 16 8B           ld   d, (+((city1Map) >> (8))) + (13)
-0586   7264                 ; 316 e = a;
-0587   7264 5F              ld   e, a
-0588   7265                 ; 317 a = ixl;
-0589   7265 DD 7D           ld   a, ixl
-0590   7267                 ; 318 *de = a; a++; d++;
-0591   7267 12              ld   (de), a
-0592   7268 3C              inc  a
-0593   7269 14              inc  d
-0594   726A                 ; 319 *de = a; a++; d++;
-0595   726A 12              ld   (de), a
-0596   726B 3C              inc  a
-0597   726C 14              inc  d
-0598   726D                 ; 320 *de = a; a++; d++;
-0599   726D 12              ld   (de), a
-0600   726E 3C              inc  a
-0601   726F 14              inc  d
-0602   7270                 ; 321 *de = a;
-0603   7270 12              ld   (de), a
-0604   7271                 ; 322 if (b & 1) return;
-0605   7271 CB 40           bit  0, b
-0606   7273 C0              ret  nz
-0607   7274                 ; 323 a += 4; e++;
-0608   7274 C6 04           add  4
-0609   7276 1C              inc  e
-0610   7277                 ; 324 *de = a; a--; d--;
-0611   7277 12              ld   (de), a
-0612   7278 3D              dec  a
-0613   7279 15              dec  d
-0614   727A                 ; 325 *de = a; a--; d--;
-0615   727A 12              ld   (de), a
-0616   727B 3D              dec  a
-0617   727C 15              dec  d
-0618   727D                 ; 326 *de = a; a--; d--;
-0619   727D 12              ld   (de), a
-0620   727E 3D              dec  a
-0621   727F 15              dec  d
-0622   7280                 ; 327 *de = a;
-0623   7280 12              ld   (de), a
-0624   7281                 ; 328 }
-0625   7281 C9              ret
-0626   7282                 ; 330 void cityRedraw()
-0627   7282             cityRedraw: 
-0628   7282                 ; 331 {
-0629   7282                 ; 332 // Оценка времени
-0630   7282                 ; 333 startFrame = a = frame;
-0631   7282 3A 72 62        ld   a, (frame)
-0632   7285 32 09 70        ld   (startFrame), a
-0633   7288                 ; 335 // Очистка дороги от нарисованных жителей и игрока
-0634   7288                 ; 336 clearRoad();
-0635   7288 CD C4 71        call clearRoad
-0636   728B                 ; 338 // Рисование жителей
-0637   728B                 ; 339 /*
-0638   728B                 ; 368 // Ждем, если активная страница еще не стала видимой
-0639   728B                 ; 369 while ((a = videoPage) & 1);
-0640   728B             l2042: 
-0641   728B 3A 73 62        ld   a, (videoPage)
-0642   728E CB 47           bit  0, a
-0643   7290 CA 96 72        jp   z, l2043
-0644   7293 C3 8B 72        jp   l2042
-0645   7296             l2043: 
-0646   7296                 ; 371 // const npc_timer      = 0;
-0647   7296                 ; 372 // const npc_direction  = 1;
-0648   7296                 ; 373 // const npc_step       = 2;
-0649   7296                 ; 374 // const npc_position   = 3;
-0650   7296                 ; 375 // const npc_sprite     = 4;
-0651   7296                 ; 376 // const npc_spriteType = 5;
-0652   7296                 ; 377 // const npc_sizeof     = 6;
-0653   7296                 ; 379 a = videoPage;
-0654   7296 3A 73 62        ld   a, (videoPage)
-0655   7299                 ; 380 if (a & 8) ixh = [screenAddr1 >> 8];
-0656   7299 CB 5F           bit  3, a
-0657   729B CA A4 72        jp   z, l2045
-0658   729E DD 26 40        ld   ixh, 64
-0659   72A1                 ; 381 else ixh = [screenAddr2 >> 8];
-0660   72A1 C3 A7 72        jp   l2046
-0661   72A4             l2045: 
-0662   72A4 DD 26 C0        ld   ixh, 192
-0663   72A7             l2046: 
-0664   72A7                 ; 383 // Спрайты
-0665   72A7                 ; 384 hl = [&npc + npc_position];
-0666   72A7 21 0E 70        ld   hl, (npc) + (3)
-0667   72AA                 ; 385 b = a = npcCount;
-0668   72AA 3A 0A 70        ld   a, (npcCount)
-0669   72AD 47              ld   b, a
-0670   72AE                 ; 386 c = a = cityScrollX;
-0671   72AE 3A 04 70        ld   a, (cityScrollX)
-0672   72B1 4F              ld   c, a
-0673   72B2                 ; 387 de = npc_sizeof;
-0674   72B2 11 06 00        ld   de, 6
-0675   72B5                 ; 388 do
-0676   72B5             l2047: 
-0677   72B5                 ; 389 {
-0678   72B5                 ; 390 // Если спрайт за экраном, то не рисуем его
-0679   72B5                 ; 391 if (((a = *hl) -= c) < viewWidth)
-0680   72B5 7E              ld   a, (hl)
-0681   72B6 91              sub  c
-0682   72B7 FE 20           cp   32
-0683   72B9                 ; 392 {
-0684   72B9 D2 D8 72        jp   nc, l2048
-0685   72BC                 ; 393 ixl = a; // position
-0686   72BC DD 6F           ld   ixl, a
-0687   72BE                 ; 394 hl++; a = *hl; // npc_sprite
-0688   72BE 23              inc  hl
-0689   72BF 7E              ld   a, (hl)
-0690   72C0                 ; 395 ex(a, a);
-0691   72C0 08              ex   af, af
-0692   72C1                 ; 396 hl++; a = *hl; hl--; hl--; // npc_spriteType
-0693   72C1 23              inc  hl
-0694   72C2 7E              ld   a, (hl)
-0695   72C3 2B              dec  hl
-0696   72C4 2B              dec  hl
-0697   72C5                 ; 397 ex(a, a);
-0698   72C5 08              ex   af, af
-0699   72C6                 ; 398 ex(bc, de, hl);
-0700   72C6 D9              exx
-0701   72C7                 ; 399 h = [&city1Tails >> 8];
-0702   72C7 26 75           ld   h, (city1Tails) >> (8)
-0703   72C9                 ; 400 l = a;
-0704   72C9 6F              ld   l, a
-0705   72CA                 ; 401 b = cityRoadY;
-0706   72CA 06 0D           ld   b, 13
-0707   72CC                 ; 402 c = ixl;
-0708   72CC DD 4D           ld   c, ixl
-0709   72CE                 ; 403 drawSprite();
-0710   72CE CD A2 73        call drawSprite
-0711   72D1                 ; 404 ex(a, a);
-0712   72D1 08              ex   af, af
-0713   72D2                 ; 405 if(flag_nc a >>= 1) drawSpriteRight();
-0714   72D2 CB 3F           srl  a
-0715   72D4 D4 05 74        call nc, drawSpriteRight
-0716   72D7                 ; 406 ex(bc, de, hl);
-0717   72D7 D9              exx
-0718   72D8                 ; 407 }
-0719   72D8                 ; 408 hl += de;
-0720   72D8             l2048: 
-0721   72D8 19              add  hl, de
-0722   72D9                 ; 409 } while(--b);
-0723   72D9 10 DA           djnz l2047
-0724   72DB                 ; 411 // Рисование игрока
-0725   72DB                 ; 412 b = cityRoadY;
-0726   72DB 06 0D           ld   b, 13
-0727   72DD                 ; 413 c = ((a = cityPlayerX) -= c);
-0728   72DD 3A 03 70        ld   a, (cityPlayerX)
-0729   72E0 91              sub  c
-0730   72E1 4F              ld   c, a
-0731   72E2                 ; 414 hl = cityPlayerSprite;
-0732   72E2 2A 06 70        ld   hl, (cityPlayerSprite)
-0733   72E5                 ; 415 a = h;
-0734   72E5 7C              ld   a, h
-0735   72E6                 ; 416 if (a & 2) c--;
-0736   72E6 CB 4F           bit  1, a
-0737   72E8 CA EC 72        jp   z, l2049
-0738   72EB 0D              dec  c
-0739   72EC                 ; 417 h = [&city1Tails >> 8];
-0740   72EC             l2049: 
-0741   72EC 26 75           ld   h, (city1Tails) >> (8)
-0742   72EE                 ; 418 ex(a, a);
-0743   72EE 08              ex   af, af
-0744   72EF                 ; 419 drawSprite(bc, de, hl);
-0745   72EF CD A2 73        call drawSprite
-0746   72F2                 ; 420 ex(a, a);
-0747   72F2 08              ex   af, af
-0748   72F3                 ; 421 if (flag_nc a >>= 1) drawSpriteRight(bc, de, hl);
-0749   72F3 CB 3F           srl  a
-0750   72F5 D4 05 74        call nc, drawSpriteRight
-0751   72F8                 ; 423 // Адрес карты / источник
-0752   72F8                 ; 424 d` = [&city1Map >> 8];
-0753   72F8 16 7E           ld   d, (city1Map) >> (8)
-0754   72FA                 ; 425 e` = a = cityScrollX;
-0755   72FA 3A 04 70        ld   a, (cityScrollX)
-0756   72FD 5F              ld   e, a
-0757   72FE                 ; 426 b` = e`;
-0758   72FE 43              ld   b, e
-0759   72FF                 ; 428 // Адрес видеостраницы / назначение
-0760   72FF                 ; 429 a = videoPage;
-0761   72FF 3A 73 62        ld   a, (videoPage)
-0762   7302                 ; 430 if (a & 8)
-0763   7302 CB 5F           bit  3, a
-0764   7304                 ; 431 {
-0765   7304 CA 14 73        jp   z, l2050
-0766   7307                 ; 432 hl` = [cacheAddr1 - 1];
-0767   7307 21 FF 5A        ld   hl, 23295
-0768   730A                 ; 433 ex(bc, de, hl);
-0769   730A D9              exx
-0770   730B                 ; 434 de = screenAddr1;
-0771   730B 11 00 40        ld   de, 16384
-0772   730E                 ; 435 bc = screenAttrAddr1;
-0773   730E 01 00 58        ld   bc, 22528
-0774   7311                 ; 436 }
-0775   7311                 ; 437 else
-0776   7311 C3 1E 73        jp   l2051
-0777   7314             l2050: 
-0778   7314                 ; 438 {
-0779   7314                 ; 439 hl` = [cacheAddr2 - 1];
-0780   7314 21 FF DA        ld   hl, 56063
-0781   7317                 ; 440 ex(bc, de, hl);
-0782   7317 D9              exx
-0783   7318                 ; 441 de = screenAddr2;
-0784   7318 11 00 C0        ld   de, 49152
-0785   731B                 ; 442 bc = screenAttrAddr2;
-0786   731B 01 00 D8        ld   bc, 55296
-0787   731E                 ; 443 }
-0788   731E             l2051: 
-0789   731E                 ; 445 // Цикл строк
-0790   731E                 ; 446 ixh = viewHeight;
-0791   731E DD 26 14        ld   ixh, 20
-0792   7321                 ; 447 do
-0793   7321             l2052: 
-0794   7321                 ; 448 {
-0795   7321                 ; 449 // Сохранение адреса вывода
-0796   7321                 ; 450 iyl = e;
-0797   7321 FD 6B           ld   iyl, e
-0798   7323                 ; 451 iyh = d;
-0799   7323 FD 62           ld   iyh, d
-0800   7325                 ; 453 // Цикл стобцов
-0801   7325                 ; 454 ixl = viewWidth;
-0802   7325 DD 2E 20        ld   ixl, 32
-0803   7328                 ; 455 do
-0804   7328             l2053: 
-0805   7328                 ; 456 {
-0806   7328                 ; 457 optimize0:  // Чтение номера тейла из карты уровня
-0807   7328             optimize0: 
-0808   7328                 ; 458 ex(bc, de, hl);
-0809   7328 D9              exx
-0810   7329                 ; 459 hl`++;
-0811   7329 23              inc  hl
-0812   732A                 ; 460 c` = *hl;
-0813   732A 4E              ld   c, (hl)
-0814   732B                 ; 461 a = *de`;
-0815   732B 1A              ld   a, (de)
-0816   732C                 ; 462 if (a == c`) goto optimize1;
-0817   732C B9              cp   c
-0818   732D CA 91 73        jp   z, optimize1
-0819   7330                 ; 463 if (flag_z c`++) goto optimize3;
-0820   7330 0C              inc  c
-0821   7331 CA 8E 73        jp   z, optimize3
-0822   7334                 ; 464 e`++;
-0823   7334 1C              inc  e
-0824   7335                 ; 465 *hl` = a;
-0825   7335 77              ld   (hl), a
-0826   7336                 ; 466 ex(bc, de, hl);
-0827   7336 D9              exx
-0828   7337                 ; 468 // Вычисление адреса тейла
-0829   7337                 ; 469 h = [&city1Tails >> 8];
-0830   7337 26 75           ld   h, (city1Tails) >> (8)
-0831   7339                 ; 470 l = a;
-0832   7339 6F              ld   l, a
-0833   733A                 ; 472 // Вывод на экран
-0834   733A                 ; 473 a = *hl; h++; *de = a; d++;
-0835   733A 7E              ld   a, (hl)
-0836   733B 24              inc  h
-0837   733C 12              ld   (de), a
-0838   733D 14              inc  d
-0839   733E                 ; 474 a = *hl; h++; *de = a; d++;
-0840   733E 7E              ld   a, (hl)
-0841   733F 24              inc  h
-0842   7340 12              ld   (de), a
-0843   7341 14              inc  d
-0844   7342                 ; 475 a = *hl; h++; *de = a; d++;
-0845   7342 7E              ld   a, (hl)
-0846   7343 24              inc  h
-0847   7344 12              ld   (de), a
-0848   7345 14              inc  d
-0849   7346                 ; 476 a = *hl; h++; *de = a; d++;
-0850   7346 7E              ld   a, (hl)
-0851   7347 24              inc  h
-0852   7348 12              ld   (de), a
-0853   7349 14              inc  d
-0854   734A                 ; 477 a = *hl; h++; *de = a; d++;
-0855   734A 7E              ld   a, (hl)
-0856   734B 24              inc  h
-0857   734C 12              ld   (de), a
-0858   734D 14              inc  d
-0859   734E                 ; 478 a = *hl; h++; *de = a; d++;
-0860   734E 7E              ld   a, (hl)
-0861   734F 24              inc  h
-0862   7350 12              ld   (de), a
-0863   7351 14              inc  d
-0864   7352                 ; 479 a = *hl; h++; *de = a; d++;
-0865   7352 7E              ld   a, (hl)
-0866   7353 24              inc  h
-0867   7354 12              ld   (de), a
-0868   7355 14              inc  d
-0869   7356                 ; 480 a = *hl; h++; *de = a;
-0870   7356 7E              ld   a, (hl)
-0871   7357 24              inc  h
-0872   7358 12              ld   (de), a
-0873   7359                 ; 481 a = *hl;      *bc = a; bc++;
-0874   7359 7E              ld   a, (hl)
-0875   735A 02              ld   (bc), a
-0876   735B 03              inc  bc
-0877   735C                 ; 483 d = iyh;
-0878   735C FD 54           ld   d, iyh
-0879   735E                 ; 484 e++;
-0880   735E 1C              inc  e
-0881   735F                 ; 485 ixl--;
-0882   735F DD 2D           dec  ixl
-0883   7361                 ; 486 } while(flag_nz);
-0884   7361 C2 28 73        jp   nz, l2053
-0885   7364                 ; 487 optimize2:
-0886   7364             optimize2: 
-0887   7364                 ; 489 // Следующая строка карты
-0888   7364                 ; 490 ex(bc, de, hl);
-0889   7364 D9              exx
-0890   7365                 ; 491 e` = b`;
-0891   7365 58              ld   e, b
-0892   7366                 ; 492 d`++;
-0893   7366 14              inc  d
-0894   7367                 ; 493 ex(bc, de, hl);
-0895   7367 D9              exx
-0896   7368                 ; 495 // Адрес следующей чб строки на экране
-0897   7368                 ; 496 e = ((a = iyl) += 0x20);
-0898   7368 FD 7D           ld   a, iyl
-0899   736A C6 20           add  32
-0900   736C 5F              ld   e, a
-0901   736D                 ; 497 if (flag_c) d = ((a = d) += 0x08);
-0902   736D D2 74 73        jp   nc, l2054
-0903   7370 7A              ld   a, d
-0904   7371 C6 08           add  8
-0905   7373 57              ld   d, a
-0906   7374                 ; 499 ixh--;
-0907   7374             l2054: 
-0908   7374 DD 25           dec  ixh
-0909   7376                 ; 500 } while(flag_nz);
-0910   7376 C2 21 73        jp   nz, l2052
-0911   7379                 ; 502 // Переключить видеостраницы во время следующего прерывания
-0912   7379                 ; 503 videoPage = ((a = videoPage) ^= 8 |= 1);
-0913   7379 3A 73 62        ld   a, (videoPage)
-0914   737C EE 08           xor  8
-0915   737E F6 01           or   1
-0916   7380 32 73 62        ld   (videoPage), a
-0917   7383                 ; 505 // Оценка времени
-0918   7383                 ; 506 printDelay((a = frame) -= *(hl = &startFrame));
-0919   7383 3A 72 62        ld   a, (frame)
-0920   7386 21 09 70        ld   hl, startFrame
-0921   7389 96              sub  (hl)
-0922   738A CD 49 74        call printDelay
-0923   738D                 ; 508 return;
-0924   738D C9              ret
-0925   738E                 ; 509 optimize3:
-0926   738E             optimize3: 
-0927   738E                 ; 510 *hl` = a = 254;
-0928   738E 3E FE           ld   a, 254
-0929   7390 77              ld   (hl), a
-0930   7391                 ; 511 optimize1:
-0931   7391             optimize1: 
-0932   7391                 ; 512 e`++;
-0933   7391 1C              inc  e
-0934   7392                 ; 513 ex(bc, de, hl);
-0935   7392 D9              exx
-0936   7393                 ; 514 bc++;
-0937   7393 03              inc  bc
-0938   7394                 ; 515 e++;
-0939   7394 1C              inc  e
-0940   7395                 ; 516 ixl--;
-0941   7395 DD 2D           dec  ixl
-0942   7397                 ; 517 if(flag_nz) goto optimize0;
-0943   7397 C2 28 73        jp   nz, optimize0
-0944   739A                 ; 518 goto optimize2;
-0945   739A C3 64 73        jp   optimize2
-0946   739D                 ; 519 }
-0947   739D C9              ret
-0948   739E                 ; 521 // Вывод спрайта
-0949   739E                 ; 522 // c - координата X
-0950   739E                 ; 523 // b - координата Y
-0951   739E                 ; 524 // hl - спрайт
-0952   739E                 ; 525 // d - тип
-0953   739E                 ; 527 uint16_t drawSprite_a;
-0954   739E 00 00       drawSprite_a dw 0
-0955   73A0                 ; 528 uint16_t drawSprite_b;
-0956   73A0 00 00       drawSprite_b dw 0
-0957   73A2                 ; 530 void drawSprite(bc, de, hl)
-0958   73A2             drawSprite: 
-0959   73A2                 ; 531 {
-0960   73A2                 ; 532 // Вычисление координаты
-0961   73A2                 ; 533 //       43210    43210
-0962   73A2                 ; 534 // de .1.43... 210.....
-0963   73A2                 ; 535 // bc .1.11.43 210.....
-0964   73A2                 ; 536 d = (((a = b) &= 0x18) |= ixh);
-0965   73A2 78              ld   a, b
-0966   73A3 E6 18           and  24
-0967   73A5 DD B4           or   ixh
-0968   73A7 57              ld   d, a
-0969   73A8                 ; 537 a = b;
-0970   73A8 78              ld   a, b
-0971   73A9                 ; 538 a >>r= 1 >>r= 1 >>r= 1;
-0972   73A9 0F              rrca
-0973   73AA 0F              rrca
-0974   73AB 0F              rrca
-0975   73AC                 ; 539 b = a;
-0976   73AC 47              ld   b, a
-0977   73AD                 ; 540 c = e = ((a &= 0xE0) |= c);
-0978   73AD E6 E0           and  224
-0979   73AF B1              or   c
-0980   73B0 5F              ld   e, a
-0981   73B1 4B              ld   c, e
-0982   73B2                 ; 541 b = ((((a = b) &= 0x03) |= 0x18) |= ixh);
-0983   73B2 78              ld   a, b
-0984   73B3 E6 03           and  3
-0985   73B5 F6 18           or   24
-0986   73B7 DD B4           or   ixh
-0987   73B9 47              ld   b, a
-0988   73BA                 ; 543 drawSprite_a = bc;
-0989   73BA ED 43 9E 73     ld   (drawSprite_a), bc
-0990   73BE                 ; 544 drawSprite_b = de;
-0991   73BE ED 53 A0 73     ld   (drawSprite_b), de
-0992   73C2                 ; 546 drawSprite_1:
-0993   73C2             drawSprite_1: 
-0994   73C2                 ; 547 drawSprite1(bc, de, hl);
-0995   73C2 CD 16 74        call drawSprite1
-0996   73C5                 ; 548 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-0997   73C5 79              ld   a, c
-0998   73C6 C6 20           add  32
-0999   73C8 4F              ld   c, a
-1000   73C9 88              adc  b
-1001   73CA 91              sub  c
-1002   73CB 47              ld   b, a
-1003   73CC                 ; 549 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-1004   73CC 7B              ld   a, e
-1005   73CD C6 20           add  32
-1006   73CF 5F              ld   e, a
-1007   73D0 D2 D7 73        jp   nc, l2055
-1008   73D3 7A              ld   a, d
-1009   73D4 C6 08           add  8
-1010   73D6 57              ld   d, a
-1011   73D7                 ; 550 drawSprite1(bc, de, hl);
-1012   73D7             l2055: 
-1013   73D7 CD 16 74        call drawSprite1
-1014   73DA                 ; 551 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-1015   73DA 79              ld   a, c
-1016   73DB C6 20           add  32
-1017   73DD 4F              ld   c, a
-1018   73DE 88              adc  b
-1019   73DF 91              sub  c
-1020   73E0 47              ld   b, a
-1021   73E1                 ; 552 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-1022   73E1 7B              ld   a, e
-1023   73E2 C6 20           add  32
-1024   73E4 5F              ld   e, a
-1025   73E5 D2 EC 73        jp   nc, l2056
-1026   73E8 7A              ld   a, d
-1027   73E9 C6 08           add  8
-1028   73EB 57              ld   d, a
-1029   73EC                 ; 553 drawSprite1(bc, de, hl);
-1030   73EC             l2056: 
-1031   73EC CD 16 74        call drawSprite1
-1032   73EF                 ; 554 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-1033   73EF 79              ld   a, c
-1034   73F0 C6 20           add  32
-1035   73F2 4F              ld   c, a
-1036   73F3 88              adc  b
-1037   73F4 91              sub  c
-1038   73F5 47              ld   b, a
-1039   73F6                 ; 555 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-1040   73F6 7B              ld   a, e
-1041   73F7 C6 20           add  32
-1042   73F9 5F              ld   e, a
-1043   73FA D2 01 74        jp   nc, l2057
-1044   73FD 7A              ld   a, d
-1045   73FE C6 08           add  8
-1046   7400 57              ld   d, a
-1047   7401                 ; 556 drawSprite1(bc, de, hl);
-1048   7401             l2057: 
-1049   7401 CD 16 74        call drawSprite1
-1050   7404                 ; 557 }
-1051   7404 C9              ret
-1052   7405                 ; 559 void drawSpriteRight(bc, de, hl)
-1053   7405             drawSpriteRight: 
-1054   7405                 ; 560 {
-1055   7405                 ; 561 bc = drawSprite_a;
-1056   7405 ED 4B 9E 73     ld   bc, (drawSprite_a)
-1057   7409                 ; 562 de = drawSprite_b;
-1058   7409 ED 5B A0 73     ld   de, (drawSprite_b)
-1059   740D                 ; 563 c++; e++;
-1060   740D 0C              inc  c
-1061   740E 1C              inc  e
-1062   740F                 ; 564 if (flag_nz (a = e) &= 0x1F) goto drawSprite_1;
-1063   740F 7B              ld   a, e
-1064   7410 E6 1F           and  31
-1065   7412 C2 C2 73        jp   nz, drawSprite_1
-1066   7415                 ; 565 }
-1067   7415 C9              ret
-1068   7416                 ; 567 void drawSprite1(de, bc, hl)
-1069   7416             drawSprite1: 
-1070   7416                 ; 568 {
-1071   7416                 ; 569 // Вывод на экран
-1072   7416                 ; 570 ixl = d; // 8
-1073   7416 DD 6A           ld   ixl, d
-1074   7418                 ; 571 push(hl);
-1075   7418 E5              push hl
-1076   7419                 ; 572 a = *hl; h++; *de = a; d++; // 22*7
-1077   7419 7E              ld   a, (hl)
-1078   741A 24              inc  h
-1079   741B 12              ld   (de), a
-1080   741C 14              inc  d
-1081   741D                 ; 573 a = *hl; h++; *de = a; d++;
-1082   741D 7E              ld   a, (hl)
-1083   741E 24              inc  h
-1084   741F 12              ld   (de), a
-1085   7420 14              inc  d
-1086   7421                 ; 574 a = *hl; h++; *de = a; d++;
-1087   7421 7E              ld   a, (hl)
-1088   7422 24              inc  h
-1089   7423 12              ld   (de), a
-1090   7424 14              inc  d
-1091   7425                 ; 575 a = *hl; h++; *de = a; d++;
-1092   7425 7E              ld   a, (hl)
-1093   7426 24              inc  h
-1094   7427 12              ld   (de), a
-1095   7428 14              inc  d
-1096   7429                 ; 576 a = *hl; h++; *de = a; d++;
-1097   7429 7E              ld   a, (hl)
-1098   742A 24              inc  h
-1099   742B 12              ld   (de), a
-1100   742C 14              inc  d
-1101   742D                 ; 577 a = *hl; h++; *de = a; d++;
-1102   742D 7E              ld   a, (hl)
-1103   742E 24              inc  h
-1104   742F 12              ld   (de), a
-1105   7430 14              inc  d
-1106   7431                 ; 578 a = *hl; h++; *de = a; d++;
-1107   7431 7E              ld   a, (hl)
-1108   7432 24              inc  h
-1109   7433 12              ld   (de), a
-1110   7434 14              inc  d
-1111   7435                 ; 579 a = *hl; h++; *de = a; // 18
-1112   7435 7E              ld   a, (hl)
-1113   7436 24              inc  h
-1114   7437 12              ld   (de), a
-1115   7438                 ; 580 a = *hl; h++; *bc = a; // 14
-1116   7438 7E              ld   a, (hl)
-1117   7439 24              inc  h
-1118   743A 02              ld   (bc), a
-1119   743B                 ; 581 b++; b++; b++; *bc = a = 0xFF; b--; b--; b--; // Перерисовать
-1120   743B 04              inc  b
-1121   743C 04              inc  b
-1122   743D 04              inc  b
-1123   743E 3E FF           ld   a, 255
-1124   7440 02              ld   (bc), a
-1125   7441 05              dec  b
-1126   7442 05              dec  b
-1127   7443 05              dec  b
-1128   7444                 ; 582 pop(hl);
-1129   7444 E1              pop  hl
-1130   7445                 ; 583 l++;
-1131   7445 2C              inc  l
-1132   7446                 ; 584 d = ixl; // 8
-1133   7446 DD 55           ld   d, ixl
-1134   7448                 ; 585 } // total 202
-1135   7448 C9              ret
-1136   7449                 ; 587 void printDelay(a)
-1137   7449             printDelay: 
-1138   7449                 ; 588 {
-1139   7449                 ; 589 push(a)
-1140   7449                 ; 590 {
-1141   7449 F5              push af
-1142   744A                 ; 591 // Активная видеостраница
-1143   744A                 ; 592 a = videoPage;
-1144   744A 3A 73 62        ld   a, (videoPage)
-1145   744D                 ; 593 hl = [screenAddr1 + 0x10E0];
-1146   744D 21 E0 50        ld   hl, 20704
-1147   7450                 ; 594 if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
-1148   7450 CB 5F           bit  3, a
-1149   7452                 ; 595 hl = [screenAddr2 + 0x10E0];
-1150   7452 CA 58 74        jp   z, l2058
-1151   7455 21 E0 D0        ld   hl, 53472
-1152   7458                 ; 597 // Очиска
-1153   7458                 ; 598 push (hl)
-1154   7458             l2058: 
-1155   7458                 ; 599 {
-1156   7458 E5              push hl
-1157   7459                 ; 600 fillRect(hl, bc = 0x0101);
-1158   7459 01 01 01        ld   bc, 257
-1159   745C CD 67 74        call fillRect
-1160   745F                 ; 601 }
-1161   745F E1              pop  hl
-1162   7460                 ; 602 }
-1163   7460 F1              pop  af
-1164   7461                 ; 603 a += '0';
-1165   7461 C6 30           add  48
-1166   7463                 ; 604 drawCharSub(hl, a);
-1167   7463 CD 8C 62        call drawCharSub
-1168   7466                 ; 605 }
-1169   7466 C9              ret
-1170   7467                 ; 607 // b - высота, c - ширина,
-1171   7467                 ; 609 void fillRect(hl, bc)
-1172   7467             fillRect: 
-1173   7467                 ; 610 {
-1174   7467                 ; 611 do
-1175   7467             l2059: 
-1176   7467                 ; 612 {
-1177   7467                 ; 613 push(bc)
-1178   7467                 ; 614 {
-1179   7467 C5              push bc
-1180   7468                 ; 615 a ^= a;
-1181   7468 AF              xor  a
-1182   7469                 ; 616 d = 8;
-1183   7469 16 08           ld   d, 8
-1184   746B                 ; 617 e = l;
-1185   746B 5D              ld   e, l
-1186   746C                 ; 618 do
-1187   746C             l2060: 
-1188   746C                 ; 619 {
-1189   746C                 ; 620 b = c;
-1190   746C 41              ld   b, c
-1191   746D                 ; 621 do
-1192   746D             l2061: 
-1193   746D                 ; 622 {
-1194   746D                 ; 623 *hl = a;
-1195   746D 77              ld   (hl), a
-1196   746E                 ; 624 l++;
-1197   746E 2C              inc  l
-1198   746F                 ; 625 } while(--b);
-1199   746F 10 FC           djnz l2061
-1200   7471                 ; 626 l = e;
-1201   7471 6B              ld   l, e
-1202   7472                 ; 627 h++;
-1203   7472 24              inc  h
-1204   7473                 ; 628 d--;
-1205   7473 15              dec  d
-1206   7474                 ; 629 } while(flag_nz);
-1207   7474 C2 6C 74        jp   nz, l2060
-1208   7477                 ; 631 // Адрес следующей строки
-1209   7477                 ; 632 hl += (de = [0x20 - 0x800]);
-1210   7477 11 20 F8        ld   de, -2016
-1211   747A 19              add  hl, de
-1212   747B                 ; 633 a = h;
-1213   747B 7C              ld   a, h
-1214   747C                 ; 634 a &= 7;
-1215   747C E6 07           and  7
-1216   747E                 ; 635 if (flag_nz) fillRectAddLine();
-1217   747E C4 86 74        call nz, fillRectAddLine
-1218   7481                 ; 636 }
-1219   7481 C1              pop  bc
-1220   7482                 ; 637 } while(--b);
-1221   7482 10 E3           djnz l2059
-1222   7484                 ; 638 return;
-1223   7484 C9              ret
-1224   7485                 ; 639 }
-1225   7485 C9              ret
-1226   7486                 ; 641 void fillRectAddLine()
-1227   7486             fillRectAddLine: 
-1228   7486                 ; 642 {
-1229   7486                 ; 643 hl += (de = [0x800 - 0x100]);
-1230   7486 11 00 07        ld   de, 1792
-1231   7489 19              add  hl, de
-1232   748A                 ; 644 return;
-1233   748A C9              ret
-1234   748B                 ; 645 }
-1235   748B C9              ret
-1236   748C             
-0001   748C ED 5F       rand:    LD    A, R
-0002   748E C6 00       rand_1:  ADD   0
-0003   7490 32 96 74            LD    (rand_2 + 1), A
-0004   7493 87                  ADD   A
-0005   7494 87                  ADD   A
-0006   7495 C6 00       rand_2:  ADD   0
-0007   7497 3C                  INC   A
-0008   7498 32 8F 74            LD    (rand_1 + 1), A
-0009   749B C9                  RET
-0010   749C             
-0001   749C 00             ds (10000h - $) & 0FFh
+0048   700B 00          npc ds 64
+0049   704B                 ; 49 void swapMaps()
+0050   704B             swapMaps: 
+0051   704B                 ; 50 {
+0052   704B                 ; 51 // Загрузка города
+0053   704B                 ; 52 hl = &city1Tails;
+0054   704B 21 00 75        ld   hl, city1Tails
+0055   704E                 ; 53 de = &city1bTails;
+0056   704E 11 00 92        ld   de, city1bTails
+0057   7051                 ; 54 bc = [9 * 256 + 256 * 20];
+0058   7051 01 00 1D        ld   bc, 7424
+0059   7054                 ; 55 do
+0060   7054             l2000: 
+0061   7054                 ; 56 {
+0062   7054                 ; 57 a = *de;
+0063   7054 1A              ld   a, (de)
+0064   7055                 ; 58 ex(a, a);
+0065   7055 08              ex   af, af
+0066   7056                 ; 59 a = *hl;
+0067   7056 7E              ld   a, (hl)
+0068   7057                 ; 60 *de = a;
+0069   7057 12              ld   (de), a
+0070   7058                 ; 61 ex(a, a);
+0071   7058 08              ex   af, af
+0072   7059                 ; 62 *hl = a;
+0073   7059 77              ld   (hl), a
+0074   705A                 ; 63 hl++;
+0075   705A 23              inc  hl
+0076   705B                 ; 64 de++;
+0077   705B 13              inc  de
+0078   705C                 ; 65 bc--;
+0079   705C 0B              dec  bc
+0080   705D                 ; 66 } while(flag_nz (a = b) |= c);
+0081   705D 78              ld   a, b
+0082   705E B1              or   c
+0083   705F C2 54 70        jp   nz, l2000
+0084   7062                 ; 67 }
+0085   7062 C9              ret
+0086   7063                 ; 69 void main()
+0087   7063             main: 
+0088   7063                 ; 70 {
+0089   7063                 ; 71 cityPlayerX = a = [mapWidth / 2];
+0090   7063 3E 80           ld   a, 128
+0091   7065 32 03 70        ld   (cityPlayerX), a
+0092   7068                 ; 72 cityScrollX = (a -= [viewWidth / 2]);
+0093   7068 D6 10           sub  16
+0094   706A 32 04 70        ld   (cityScrollX), a
+0095   706D                 ; 74 // Инициализация NPC
+0096   706D                 ; 75 initNpc();
+0097   706D CD A7 70        call initNpc
+0098   7070                 ; 77 //swapMaps();
+0099   7070                 ; 79 // Инициализация кеша
+0100   7070                 ; 80 cityInvalidate(hl = cacheAddr1);
+0101   7070 21 00 5B        ld   hl, 23296
+0102   7073 CD 9C 70        call cityInvalidate
+0103   7076                 ; 81 cityInvalidate(hl = cacheAddr2);
+0104   7076 21 00 DB        ld   hl, 56064
+0105   7079 CD 9C 70        call cityInvalidate
+0106   707C                 ; 83 // Перерисовать
+0107   707C                 ; 84 cityRedraw();
+0108   707C CD F5 71        call cityRedraw
+0109   707F                 ; 86 while()
+0110   707F             l2001: 
+0111   707F                 ; 87 {
+0112   707F                 ; 88 while ((a = frame) != *(hl = &processedFrames))
+0113   707F             l2003: 
+0114   707F 3A 72 62        ld   a, (frame)
+0115   7082 21 08 70        ld   hl, processedFrames
+0116   7085 BE              cp   (hl)
+0117   7086 CA 95 70        jp   z, l2004
+0118   7089                 ; 89 {
+0119   7089                 ; 90 *hl = a;
+0120   7089 77              ld   (hl), a
+0121   708A                 ; 91 a &= 3;
+0122   708A E6 03           and  3
+0123   708C                 ; 92 if (flag_z) processPlayer();
+0124   708C CC 67 71        call z, processPlayer
+0125   708F                 ; 93 processNpc();
+0126   708F CD D6 70        call processNpc
+0127   7092                 ; 94 }
+0128   7092 C3 7F 70        jp   l2003
+0129   7095             l2004: 
+0130   7095                 ; 96 cityRedraw();
+0131   7095 CD F5 71        call cityRedraw
+0132   7098                 ; 97 }
+0133   7098 C3 7F 70        jp   l2001
+0134   709B                 ; 98 }
+0135   709B C9              ret
+0136   709C                 ; 100 void cityInvalidate(hl)
+0137   709C             cityInvalidate: 
+0138   709C                 ; 101 {
+0139   709C                 ; 102 d = h; e = l; de++;
+0140   709C 54              ld   d, h
+0141   709D 5D              ld   e, l
+0142   709E 13              inc  de
+0143   709F                 ; 103 *hl = unusedTailCode;
+0144   709F 36 FF           ld   (hl), 255
+0145   70A1                 ; 104 bc = [viewWidth * viewHeight - 1];
+0146   70A1 01 7F 02        ld   bc, 639
+0147   70A4                 ; 105 ldir();
+0148   70A4 ED B0           ldir
+0149   70A6                 ; 106 }
+0150   70A6 C9              ret
+0151   70A7                 ; 108 //----------------------------------------------------------------------------------------------------------------------
+0152   70A7                 ; 109 // Инициализация жителей
+0153   70A7                 ; 111 void initNpc()
+0154   70A7             initNpc: 
+0155   70A7                 ; 112 {
+0156   70A7                 ; 113 ix = &npc;
+0157   70A7 DD 21 0B 70     ld   ix, npc
+0158   70AB                 ; 114 de = npc_sizeof;
+0159   70AB 11 04 00        ld   de, 4
+0160   70AE                 ; 115 b = a = npcCount; // Счетчик цикла
+0161   70AE 3A 0A 70        ld   a, (npcCount)
+0162   70B1 47              ld   b, a
+0163   70B2                 ; 116 do
+0164   70B2             l2006: 
+0165   70B2                 ; 117 {
+0166   70B2                 ; 118 a = b;
+0167   70B2 78              ld   a, b
+0168   70B3                 ; 119 while (a >= npc_defaultSpeed) a -= npc_defaultSpeed;
+0169   70B3             l2007: 
+0170   70B3 FE 07           cp   7
+0171   70B5 DA BD 70        jp   c, l2008
+0172   70B8 D6 07           sub  7
+0173   70BA C3 B3 70        jp   l2007
+0174   70BD             l2008: 
+0175   70BD                 ; 120 a += 1;
+0176   70BD C6 01           add  1
+0177   70BF                 ; 121 ix[npc_timer] = a; // Фаза таймера
+0178   70BF DD 77 00        ld   (ix + 0), a
+0179   70C2                 ; 123 ix[npc_step] = 0;
+0180   70C2 DD 36 02 00     ld   (ix + 2), 0
+0181   70C6                 ; 124 rand();
+0182   70C6 CD FF 73        call rand
+0183   70C9                 ; 125 ix[npc_position] = a;
+0184   70C9 DD 77 03        ld   (ix + 3), a
+0185   70CC                 ; 126 ix[npc_flags] = (a &= [npc_flags_direction | npc_flags_type]);
+0186   70CC E6 03           and  3
+0187   70CE DD 77 01        ld   (ix + 1), a
+0188   70D1                 ; 127 ix += de;
+0189   70D1 DD 19           add  ix, de
+0190   70D3                 ; 128 } while(--b);
+0191   70D3 10 DD           djnz l2006
+0192   70D5                 ; 129 }
+0193   70D5 C9              ret
+0194   70D6                 ; 131 //----------------------------------------------------------------------------------------------------------------------
+0195   70D6                 ; 132 // Перемещение и анимация жителей.
+0196   70D6                 ; 134 void processNpc()
+0197   70D6             processNpc: 
+0198   70D6                 ; 135 {
+0199   70D6                 ; 136 de = npc_sizeof;
+0200   70D6 11 04 00        ld   de, 4
+0201   70D9                 ; 137 hl = &npc;
+0202   70D9 21 0B 70        ld   hl, npc
+0203   70DC                 ; 138 b = a = npcCount;
+0204   70DC 3A 0A 70        ld   a, (npcCount)
+0205   70DF 47              ld   b, a
+0206   70E0                 ; 139 do
+0207   70E0             l2010: 
+0208   70E0                 ; 140 {
+0209   70E0                 ; 141 if (flag_z --*hl) // Скорость
+0210   70E0 35              dec  (hl)
+0211   70E1                 ; 142 {
+0212   70E1 C2 2D 71        jp   nz, l2011
+0213   70E4                 ; 143 rand();
+0214   70E4 CD FF 73        call rand
+0215   70E7                 ; 144 if (flag_z a--) // Внезапная остановка
+0216   70E7 3D              dec  a
+0217   70E8                 ; 145 {
+0218   70E8 C2 F3 70        jp   nz, l2012
+0219   70EB                 ; 146 //! Не полушаге не останавливать
+0220   70EB                 ; 147 push(hl);
+0221   70EB E5              push hl
+0222   70EC                 ; 148 pop(ix);
+0223   70EC DD E1           pop  ix
+0224   70EE                 ; 149 //a = ix[npc_spriteType];
+0225   70EE                 ; 150 //if (a == 1)
+0226   70EE                 ; 151 //{
+0227   70EE                 ; 152 *hl = 255;
+0228   70EE 36 FF           ld   (hl), 255
+0229   70F0                 ; 153 goto continue1;
+0230   70F0 C3 2D 71        jp   continue1
+0231   70F3                 ; 154 //}
+0232   70F3                 ; 155 }
+0233   70F3                 ; 157 // У всех разная скорость
+0234   70F3                 ; 158 *hl = (((a = b) &= 7) += npc_defaultSpeed);
+0235   70F3             l2012: 
+0236   70F3 78              ld   a, b
+0237   70F4 E6 07           and  7
+0238   70F6 C6 07           add  7
+0239   70F8 77              ld   (hl), a
+0240   70F9                 ; 160 if (flag_z a--) // Внезапный поворот
+0241   70F9 3D              dec  a
+0242   70FA                 ; 161 {
+0243   70FA C2 03 71        jp   nz, l2013
+0244   70FD                 ; 162 hl++;
+0245   70FD 23              inc  hl
+0246   70FE                 ; 163 a = *hl;
+0247   70FE 7E              ld   a, (hl)
+0248   70FF                 ; 164 a ^= npc_flags_direction;
+0249   70FF EE 01           xor  1
+0250   7101                 ; 165 *hl = a;
+0251   7101 77              ld   (hl), a
+0252   7102                 ; 166 hl--;
+0253   7102 2B              dec  hl
+0254   7103                 ; 167 }
+0255   7103                 ; 169 hl++;
+0256   7103             l2013: 
+0257   7103 23              inc  hl
+0258   7104                 ; 170 if (*hl & npc_flags_direction) // Направление
+0259   7104 CB 46           bit  0, (hl)
+0260   7106                 ; 171 {
+0261   7106 CA 1A 71        jp   z, l2014
+0262   7109                 ; 172 hl++;
+0263   7109 23              inc  hl
+0264   710A                 ; 173 a = *hl;
+0265   710A 7E              ld   a, (hl)
+0266   710B                 ; 174 a++;
+0267   710B 3C              inc  a
+0268   710C                 ; 175 if (a >= 4) { a = 0; hl++; ++*hl; hl--; }
+0269   710C FE 04           cp   4
+0270   710E DA 16 71        jp   c, l2015
+0271   7111 3E 00           ld   a, 0
+0272   7113 23              inc  hl
+0273   7114 34              inc  (hl)
+0274   7115 2B              dec  hl
+0275   7116                 ; 176 *hl = a;
+0276   7116             l2015: 
+0277   7116 77              ld   (hl), a
+0278   7117                 ; 177 }
+0279   7117                 ; 178 else
+0280   7117 C3 28 71        jp   l2016
+0281   711A             l2014: 
+0282   711A                 ; 179 {
+0283   711A                 ; 180 hl++;
+0284   711A 23              inc  hl
+0285   711B                 ; 181 a = *hl;
+0286   711B 7E              ld   a, (hl)
+0287   711C                 ; 182 a++;
+0288   711C 3C              inc  a
+0289   711D                 ; 183 if (a >= 4) { a = 0; hl++; --*hl; hl--; }
+0290   711D FE 04           cp   4
+0291   711F DA 27 71        jp   c, l2017
+0292   7122 3E 00           ld   a, 0
+0293   7124 23              inc  hl
+0294   7125 35              dec  (hl)
+0295   7126 2B              dec  hl
+0296   7127                 ; 184 *hl = a;
+0297   7127             l2017: 
+0298   7127 77              ld   (hl), a
+0299   7128                 ; 185 }
+0300   7128             l2016: 
+0301   7128                 ; 186 hl++; hl++;
+0302   7128 23              inc  hl
+0303   7129 23              inc  hl
+0304   712A                 ; 187 }
+0305   712A                 ; 188 else
+0306   712A C3 2E 71        jp   l2018
+0307   712D             l2011: 
+0308   712D                 ; 189 {
+0309   712D                 ; 190 continue1:
+0310   712D             continue1: 
+0311   712D                 ; 191 hl += de; // Следующий NPC
+0312   712D 19              add  hl, de
+0313   712E                 ; 192 }
+0314   712E             l2018: 
+0315   712E                 ; 193 } while(flag_nz --b);
+0316   712E 05              dec  b
+0317   712F C2 E0 70        jp   nz, l2010
+0318   7132                 ; 194 }
+0319   7132 C9              ret
+0320   7133                 ; 196 //----------------------------------------------------------------------------------------------------------------------
+0321   7133                 ; 197 // Вход: hl - должно указывать на npc_position
+0322   7133                 ; 198 // Выход: hl - адрес спрайта
+0323   7133                 ; 199 // Портит: a
+0324   7133                 ; 201 // const int npc_timer      = 0;
+0325   7133                 ; 202 // const int npc_direction  = 1;
+0326   7133                 ; 203 // const int npc_step       = 2;
+0327   7133                 ; 204 // const int npc_position   = 3;
+0328   7133                 ; 205 // const int npc_sprite_l   = 4;
+0329   7133                 ; 206 // const int npc_sprite_h   = 5;
+0330   7133                 ; 207 // const int npc_sizeof     = 6;
+0331   7133                 ; 209 void getNpcSprite(hl)
+0332   7133             getNpcSprite: 
+0333   7133                 ; 210 {
+0334   7133                 ; 211 // Вычисление номера спрайта
+0335   7133                 ; 212 hl--;
+0336   7133 2B              dec  hl
+0337   7134                 ; 213 hl--;
+0338   7134 2B              dec  hl
+0339   7135                 ; 214 a = *hl; // npc_direction + npc_type
+0340   7135 7E              ld   a, (hl)
+0341   7136                 ; 215 a += a;
+0342   7136 87              add  a
+0343   7137                 ; 216 a += a;
+0344   7137 87              add  a
+0345   7138                 ; 217 hl++;
+0346   7138 23              inc  hl
+0347   7139                 ; 218 a += *hl; // npc_step
+0348   7139 86              add  (hl)
+0349   713A                 ; 220 // Получение элемента массива
+0350   713A                 ; 221 l = ((a += a) += &sprite_citizen);
+0351   713A 87              add  a
+0352   713B C6 47           add  sprite_citizen
+0353   713D 6F              ld   l, a
+0354   713E                 ; 222 h = ((a +@= [&sprite_citizen >> 8]) -= l);
+0355   713E CE 71           adc  (sprite_citizen) >> (8)
+0356   7140 95              sub  l
+0357   7141 67              ld   h, a
+0358   7142                 ; 223 a = *hl; hl++; h = *hl; l = a;
+0359   7142 7E              ld   a, (hl)
+0360   7143 23              inc  hl
+0361   7144 66              ld   h, (hl)
+0362   7145 6F              ld   l, a
+0363   7146                 ; 224 }
+0364   7146 C9              ret
+0365   7147                 ; 226 uint16_t sprite_citizen[16] =
+0366   7147                 ; 227 {
+0367   7147                 ; 228 &city1s_15, &city1s_16, &city1s_17, &city1s_14,
+0368   7147                 ; 229 &city1s_21, &city1s_20, &city1s_19, &city1s_18,
+0369   7147                 ; 231 &city1s_9,  &city1s_8,  &city1s_7,  &city1s_6,
+0370   7147                 ; 232 &city1s_10, &city1s_11, &city1s_12, &city1s_13
+0371   7147                 ; 233 };
+0372   7147             sprite_citizen: 
+0373   7147 6E B3           dw city1s_15
+0374   7149 00 B4           dw city1s_16
+0375   714B 49 B4           dw city1s_17
+0376   714D 49 B3           dw city1s_14
+0377   714F 92 B5           dw city1s_21
+0378   7151 49 B5           dw city1s_20
+0379   7153 00 B5           dw city1s_19
+0380   7155 92 B4           dw city1s_18
+0381   7157 92 B1           dw city1s_9
+0382   7159 49 B1           dw city1s_8
+0383   715B 00 B1           dw city1s_7
+0384   715D 92 B0           dw city1s_6
+0385   715F 00 B2           dw city1s_10
+0386   7161 25 B2           dw city1s_11
+0387   7163 6E B2           dw city1s_12
+0388   7165 00 B3           dw city1s_13
+0389   7167                 ; 235 //----------------------------------------------------------------------------------------------------------------------
+0390   7167                 ; 236 // Управление игроком и анимация игрока.
+0391   7167                 ; 238 const int sprite_raistlin_left       = &city1s_0;
+0392   7167                 ; 239 const int sprite_raistlin_left_step  = &city1s_1;
+0393   7167                 ; 240 const int sprite_raistlin_right      = &city1s_3;
+0394   7167                 ; 241 const int sprite_raistlin_right_step = &city1s_4;
+0395   7167                 ; 243 void processPlayer()
+0396   7167             processPlayer: 
+0397   7167                 ; 244 {
+0398   7167                 ; 245 b = a = keyPressed;
+0399   7167 3A 76 62        ld   a, (keyPressed)
+0400   716A 47              ld   b, a
+0401   716B                 ; 246 c = a = cityPlayerDirection;
+0402   716B 3A 05 70        ld   a, (cityPlayerDirection)
+0403   716E 4F              ld   c, a
+0404   716F                 ; 247 a = cityPlayerX;
+0405   716F 3A 03 70        ld   a, (cityPlayerX)
+0406   7172                 ; 248 if (b & KEY_LEFT)
+0407   7172 CB 50           bit  2, b
+0408   7174                 ; 249 {
+0409   7174 CA AD 71        jp   z, l2019
+0410   7177                 ; 250 if (c & 1)
+0411   7177 CB 41           bit  0, c
+0412   7179                 ; 251 {            
+0413   7179 CA 84 71        jp   z, l2020
+0414   717C                 ; 252 cityPlayerDirection = (a ^= a);
+0415   717C AF              xor  a
+0416   717D 32 05 70        ld   (cityPlayerDirection), a
+0417   7180                 ; 253 c = a;
+0418   7180 4F              ld   c, a
+0419   7181                 ; 254 }
+0420   7181                 ; 255 else
+0421   7181 C3 AA 71        jp   l2021
+0422   7184             l2020: 
+0423   7184                 ; 256 {
+0424   7184                 ; 257 a -= 1;
+0425   7184 D6 01           sub  1
+0426   7186                 ; 258 if (flag_nc)
+0427   7186                 ; 259 {
+0428   7186 DA AA 71        jp   c, l2022
+0429   7189                 ; 260 cityPlayerX = a;
+0430   7189 32 03 70        ld   (cityPlayerX), a
+0431   718C                 ; 262 // Прокрутка экрана
+0432   718C                 ; 263 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; } //! Почему нельзя без {} ?
+0433   718C D6 10           sub  16
+0434   718E DA 99 71        jp   c, l2023
+0435   7191 FE E1           cp   225
+0436   7193 D2 99 71        jp   nc, l2024
+0437   7196 32 04 70        ld   (cityScrollX), a
+0438   7199                 ; 265 hl = sprite_raistlin_left;
+0439   7199             l2024: 
+0440   7199             l2023: 
+0441   7199 21 00 AF        ld   hl, city1s_0
+0442   719C                 ; 266 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_left_step;
+0443   719C 3A 06 70        ld   a, (cityPlayerSprite)
+0444   719F BD              cp   l
+0445   71A0 C2 A6 71        jp   nz, l2025
+0446   71A3 21 25 AF        ld   hl, city1s_1
+0447   71A6                 ; 267 cityPlayerSprite = hl;
+0448   71A6             l2025: 
+0449   71A6 22 06 70        ld   (cityPlayerSprite), hl
+0450   71A9                 ; 268 return;
+0451   71A9 C9              ret
+0452   71AA                 ; 269 }
+0453   71AA                 ; 270 }
+0454   71AA             l2022: 
+0455   71AA             l2021: 
+0456   71AA                 ; 271 }
+0457   71AA                 ; 272 else if (b & KEY_RIGHT)
+0458   71AA C3 E6 71        jp   l2026
+0459   71AD             l2019: 
+0460   71AD CB 58           bit  3, b
+0461   71AF                 ; 273 {
+0462   71AF CA E6 71        jp   z, l2027
+0463   71B2                 ; 274 if (flag_z c & 1)
+0464   71B2 CB 41           bit  0, c
+0465   71B4                 ; 275 {
+0466   71B4 C2 C0 71        jp   nz, l2028
+0467   71B7                 ; 276 cityPlayerDirection = (a = 1);
+0468   71B7 3E 01           ld   a, 1
+0469   71B9 32 05 70        ld   (cityPlayerDirection), a
+0470   71BC                 ; 277 c = a;
+0471   71BC 4F              ld   c, a
+0472   71BD                 ; 278 }
+0473   71BD                 ; 279 else
+0474   71BD C3 E6 71        jp   l2029
+0475   71C0             l2028: 
+0476   71C0                 ; 280 {
+0477   71C0                 ; 281 a += 1;
+0478   71C0 C6 01           add  1
+0479   71C2                 ; 282 if (flag_nc)
+0480   71C2                 ; 283 {
+0481   71C2 DA E6 71        jp   c, l2030
+0482   71C5                 ; 284 cityPlayerX = a;
+0483   71C5 32 03 70        ld   (cityPlayerX), a
+0484   71C8                 ; 286 // Прокрутка экрана
+0485   71C8                 ; 287 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; }  //! Почему нельзя без {} ?
+0486   71C8 D6 10           sub  16
+0487   71CA DA D5 71        jp   c, l2031
+0488   71CD FE E1           cp   225
+0489   71CF D2 D5 71        jp   nc, l2032
+0490   71D2 32 04 70        ld   (cityScrollX), a
+0491   71D5                 ; 289 hl = sprite_raistlin_right;
+0492   71D5             l2032: 
+0493   71D5             l2031: 
+0494   71D5 21 B7 AF        ld   hl, city1s_3
+0495   71D8                 ; 290 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_right_step;
+0496   71D8 3A 06 70        ld   a, (cityPlayerSprite)
+0497   71DB BD              cp   l
+0498   71DC C2 E2 71        jp   nz, l2033
+0499   71DF 21 00 B0        ld   hl, city1s_4
+0500   71E2                 ; 291 cityPlayerSprite = hl;
+0501   71E2             l2033: 
+0502   71E2 22 06 70        ld   (cityPlayerSprite), hl
+0503   71E5                 ; 292 return;
+0504   71E5 C9              ret
+0505   71E6                 ; 293 }
+0506   71E6                 ; 294 }
+0507   71E6             l2030: 
+0508   71E6             l2029: 
+0509   71E6                 ; 295 }
+0510   71E6                 ; 297 // Убираем анимацию шага, если ни одна клавиша не нажата
+0511   71E6                 ; 298 hl = sprite_raistlin_left;
+0512   71E6             l2027: 
+0513   71E6             l2026: 
+0514   71E6 21 00 AF        ld   hl, city1s_0
+0515   71E9                 ; 299 if (c & 1) hl = sprite_raistlin_right;
+0516   71E9 CB 41           bit  0, c
+0517   71EB CA F1 71        jp   z, l2034
+0518   71EE 21 B7 AF        ld   hl, city1s_3
+0519   71F1                 ; 300 cityPlayerSprite = hl;
+0520   71F1             l2034: 
+0521   71F1 22 06 70        ld   (cityPlayerSprite), hl
+0522   71F4                 ; 301 }
+0523   71F4 C9              ret
+0524   71F5                 ; 303 //----------------------------------------------------------------------------------------------------------------------
+0525   71F5                 ; 305 void cityRedraw()
+0526   71F5             cityRedraw: 
+0527   71F5                 ; 306 {
+0528   71F5                 ; 307 // Оценка времени
+0529   71F5                 ; 308 startFrame = a = frame;
+0530   71F5 3A 72 62        ld   a, (frame)
+0531   71F8 32 09 70        ld   (startFrame), a
+0532   71FB                 ; 310 // Ждем, если активная страница еще не стала видимой
+0533   71FB                 ; 311 while ((a = videoPage) & 1);
+0534   71FB             l2035: 
+0535   71FB 3A 73 62        ld   a, (videoPage)
+0536   71FE CB 47           bit  0, a
+0537   7200 CA 06 72        jp   z, l2036
+0538   7203 C3 FB 71        jp   l2035
+0539   7206             l2036: 
+0540   7206                 ; 313 // Адрес карты / источник
+0541   7206                 ; 314 d` = [&city1Map >> 8];
+0542   7206 16 7E           ld   d, (city1Map) >> (8)
+0543   7208                 ; 315 e` = a = cityScrollX;
+0544   7208 3A 04 70        ld   a, (cityScrollX)
+0545   720B 5F              ld   e, a
+0546   720C                 ; 316 b` = e`;
+0547   720C 43              ld   b, e
+0548   720D                 ; 318 // Адрес видеостраницы / назначение
+0549   720D                 ; 319 a = videoPage;
+0550   720D 3A 73 62        ld   a, (videoPage)
+0551   7210                 ; 320 if (a & 8)
+0552   7210 CB 5F           bit  3, a
+0553   7212                 ; 321 {
+0554   7212 CA 22 72        jp   z, l2038
+0555   7215                 ; 322 hl` = [cacheAddr1 - 1];
+0556   7215 21 FF 5A        ld   hl, 23295
+0557   7218                 ; 323 ex(bc, de, hl);
+0558   7218 D9              exx
+0559   7219                 ; 324 de = screenAddr1;
+0560   7219 11 00 40        ld   de, 16384
+0561   721C                 ; 325 bc = screenAttrAddr1;
+0562   721C 01 00 58        ld   bc, 22528
+0563   721F                 ; 326 }
+0564   721F                 ; 327 else
+0565   721F C3 2C 72        jp   l2039
+0566   7222             l2038: 
+0567   7222                 ; 328 {
+0568   7222                 ; 329 hl` = [cacheAddr2 - 1];
+0569   7222 21 FF DA        ld   hl, 56063
+0570   7225                 ; 330 ex(bc, de, hl);
+0571   7225 D9              exx
+0572   7226                 ; 331 de = screenAddr2;
+0573   7226 11 00 C0        ld   de, 49152
+0574   7229                 ; 332 bc = screenAttrAddr2;
+0575   7229 01 00 D8        ld   bc, 55296
+0576   722C                 ; 333 }
+0577   722C             l2039: 
+0578   722C                 ; 335 // Цикл строк
+0579   722C                 ; 336 ixh = viewHeight;
+0580   722C DD 26 14        ld   ixh, 20
+0581   722F                 ; 337 do
+0582   722F             l2040: 
+0583   722F                 ; 338 {
+0584   722F                 ; 339 // Сохранение адреса вывода
+0585   722F                 ; 340 iyl = e;
+0586   722F FD 6B           ld   iyl, e
+0587   7231                 ; 341 iyh = d;
+0588   7231 FD 62           ld   iyh, d
+0589   7233                 ; 343 // Цикл стобцов
+0590   7233                 ; 344 ixl = viewWidth;
+0591   7233 DD 2E 20        ld   ixl, 32
+0592   7236                 ; 345 do
+0593   7236             l2041: 
+0594   7236                 ; 346 {
+0595   7236                 ; 347 optimize0:  // Чтение номера тейла из карты уровня
+0596   7236             optimize0: 
+0597   7236                 ; 348 ex(bc, de, hl);
+0598   7236 D9              exx
+0599   7237                 ; 349 hl`++;
+0600   7237 23              inc  hl
+0601   7238                 ; 350 c` = *hl;
+0602   7238 4E              ld   c, (hl)
+0603   7239                 ; 351 a = *de`;
+0604   7239 1A              ld   a, (de)
+0605   723A                 ; 352 if (a == c`) goto optimize1;
+0606   723A B9              cp   c
+0607   723B CA A2 72        jp   z, optimize1
+0608   723E                 ; 353 if (flag_z c`++) goto optimize3;
+0609   723E 0C              inc  c
+0610   723F CA 9F 72        jp   z, optimize3
+0611   7242                 ; 354 e`++;
+0612   7242 1C              inc  e
+0613   7243                 ; 355 *hl` = a;
+0614   7243 77              ld   (hl), a
+0615   7244                 ; 356 ex(bc, de, hl);
+0616   7244 D9              exx
+0617   7245                 ; 358 // Вычисление адреса тейла
+0618   7245                 ; 359 h = [&city1Tails >> 8];
+0619   7245 26 75           ld   h, (city1Tails) >> (8)
+0620   7247                 ; 360 l = a;
+0621   7247 6F              ld   l, a
+0622   7248                 ; 362 // Вывод на экран
+0623   7248                 ; 363 a = *hl; h++; *de = a; d++;
+0624   7248 7E              ld   a, (hl)
+0625   7249 24              inc  h
+0626   724A 12              ld   (de), a
+0627   724B 14              inc  d
+0628   724C                 ; 364 a = *hl; h++; *de = a; d++;
+0629   724C 7E              ld   a, (hl)
+0630   724D 24              inc  h
+0631   724E 12              ld   (de), a
+0632   724F 14              inc  d
+0633   7250                 ; 365 a = *hl; h++; *de = a; d++;
+0634   7250 7E              ld   a, (hl)
+0635   7251 24              inc  h
+0636   7252 12              ld   (de), a
+0637   7253 14              inc  d
+0638   7254                 ; 366 a = *hl; h++; *de = a; d++;
+0639   7254 7E              ld   a, (hl)
+0640   7255 24              inc  h
+0641   7256 12              ld   (de), a
+0642   7257 14              inc  d
+0643   7258                 ; 367 a = *hl; h++; *de = a; d++;
+0644   7258 7E              ld   a, (hl)
+0645   7259 24              inc  h
+0646   725A 12              ld   (de), a
+0647   725B 14              inc  d
+0648   725C                 ; 368 a = *hl; h++; *de = a; d++;
+0649   725C 7E              ld   a, (hl)
+0650   725D 24              inc  h
+0651   725E 12              ld   (de), a
+0652   725F 14              inc  d
+0653   7260                 ; 369 a = *hl; h++; *de = a; d++;
+0654   7260 7E              ld   a, (hl)
+0655   7261 24              inc  h
+0656   7262 12              ld   (de), a
+0657   7263 14              inc  d
+0658   7264                 ; 370 a = *hl; h++; *de = a;
+0659   7264 7E              ld   a, (hl)
+0660   7265 24              inc  h
+0661   7266 12              ld   (de), a
+0662   7267                 ; 371 a = *hl;      *bc = a; bc++;
+0663   7267 7E              ld   a, (hl)
+0664   7268 02              ld   (bc), a
+0665   7269 03              inc  bc
+0666   726A                 ; 373 d = iyh;
+0667   726A FD 54           ld   d, iyh
+0668   726C                 ; 374 e++;
+0669   726C 1C              inc  e
+0670   726D                 ; 375 ixl--;
+0671   726D DD 2D           dec  ixl
+0672   726F                 ; 376 } while(flag_nz);
+0673   726F C2 36 72        jp   nz, l2041
+0674   7272                 ; 377 optimize2:
+0675   7272             optimize2: 
+0676   7272                 ; 379 // Следующая строка карты
+0677   7272                 ; 380 ex(bc, de, hl);
+0678   7272 D9              exx
+0679   7273                 ; 381 e` = b`;
+0680   7273 58              ld   e, b
+0681   7274                 ; 382 d`++;
+0682   7274 14              inc  d
+0683   7275                 ; 383 ex(bc, de, hl);
+0684   7275 D9              exx
+0685   7276                 ; 385 // Адрес следующей чб строки на экране
+0686   7276                 ; 386 e = ((a = iyl) += 0x20);
+0687   7276 FD 7D           ld   a, iyl
+0688   7278 C6 20           add  32
+0689   727A 5F              ld   e, a
+0690   727B                 ; 387 if (flag_c) d = ((a = d) += 0x08);
+0691   727B D2 82 72        jp   nc, l2042
+0692   727E 7A              ld   a, d
+0693   727F C6 08           add  8
+0694   7281 57              ld   d, a
+0695   7282                 ; 389 ixh--;
+0696   7282             l2042: 
+0697   7282 DD 25           dec  ixh
+0698   7284                 ; 390 } while(flag_nz);
+0699   7284 C2 2F 72        jp   nz, l2040
+0700   7287                 ; 392 drawSprites();
+0701   7287 CD AF 72        call drawSprites
+0702   728A                 ; 394 // Переключить видеостраницы во время следующего прерывания
+0703   728A                 ; 395 videoPage = ((a = videoPage) ^= 8 |= 1);
+0704   728A 3A 73 62        ld   a, (videoPage)
+0705   728D EE 08           xor  8
+0706   728F F6 01           or   1
+0707   7291 32 73 62        ld   (videoPage), a
+0708   7294                 ; 397 // Оценка времени
+0709   7294                 ; 398 printDelay((a = frame) -= *(hl = &startFrame));
+0710   7294 3A 72 62        ld   a, (frame)
+0711   7297 21 09 70        ld   hl, startFrame
+0712   729A 96              sub  (hl)
+0713   729B CD DB 73        call printDelay
+0714   729E                 ; 400 return;
+0715   729E C9              ret
+0716   729F                 ; 401 optimize3:
+0717   729F             optimize3: 
+0718   729F                 ; 402 *hl` = a = 254;
+0719   729F 3E FE           ld   a, 254
+0720   72A1 77              ld   (hl), a
+0721   72A2                 ; 403 optimize1:
+0722   72A2             optimize1: 
+0723   72A2                 ; 404 e`++;
+0724   72A2 1C              inc  e
+0725   72A3                 ; 405 ex(bc, de, hl);
+0726   72A3 D9              exx
+0727   72A4                 ; 406 bc++;
+0728   72A4 03              inc  bc
+0729   72A5                 ; 407 e++;
+0730   72A5 1C              inc  e
+0731   72A6                 ; 408 ixl--;
+0732   72A6 DD 2D           dec  ixl
+0733   72A8                 ; 409 if(flag_nz) goto optimize0;
+0734   72A8 C2 36 72        jp   nz, optimize0
+0735   72AB                 ; 410 goto optimize2;
+0736   72AB C3 72 72        jp   optimize2
+0737   72AE                 ; 411 }
+0738   72AE C9              ret
+0739   72AF                 ; 413 void drawSprites()
+0740   72AF             drawSprites: 
+0741   72AF                 ; 414 {
+0742   72AF                 ; 415 a = videoPage;
+0743   72AF 3A 73 62        ld   a, (videoPage)
+0744   72B2                 ; 416 if (a & 8) ixh = [screenAddr1 >> 8];
+0745   72B2 CB 5F           bit  3, a
+0746   72B4 CA BD 72        jp   z, l2043
+0747   72B7 DD 26 40        ld   ixh, 64
+0748   72BA                 ; 417 else ixh = [screenAddr2 >> 8];
+0749   72BA C3 C0 72        jp   l2044
+0750   72BD             l2043: 
+0751   72BD DD 26 C0        ld   ixh, 192
+0752   72C0             l2044: 
+0753   72C0                 ; 419 // const int npc_timer      = 0;
+0754   72C0                 ; 420 // const int npc_direction  = 1;
+0755   72C0                 ; 421 // const int npc_step       = 2;
+0756   72C0                 ; 422 // const int npc_position   = 3;
+0757   72C0                 ; 423 // const int npc_sprite_l   = 4;
+0758   72C0                 ; 424 // const int npc_sprite_h   = 5;
+0759   72C0                 ; 425 // const int npc_sizeof     = 6;
+0760   72C0                 ; 427 // Спрайты
+0761   72C0                 ; 428 hl = [&npc + npc_position];
+0762   72C0 21 0E 70        ld   hl, (npc) + (3)
+0763   72C3                 ; 429 b = a = npcCount;
+0764   72C3 3A 0A 70        ld   a, (npcCount)
+0765   72C6 47              ld   b, a
+0766   72C7                 ; 430 c = (a = cityScrollX); c--;
+0767   72C7 3A 04 70        ld   a, (cityScrollX)
+0768   72CA 4F              ld   c, a
+0769   72CB 0D              dec  c
+0770   72CC                 ; 431 de = npc_sizeof;
+0771   72CC 11 04 00        ld   de, 4
+0772   72CF                 ; 432 do
+0773   72CF             l2045: 
+0774   72CF                 ; 433 {
+0775   72CF                 ; 434 // Если спрайт за экраном, то не рисуем его
+0776   72CF                 ; 435 if (((a = *hl) -= c) < [viewWidth + 1]) //! для const int можно <=
+0777   72CF 7E              ld   a, (hl)
+0778   72D0 91              sub  c
+0779   72D1 FE 21           cp   33
+0780   72D3                 ; 436 {
+0781   72D3 D2 FB 72        jp   nc, l2046
+0782   72D6                 ; 437 push(bc, de, hl)
+0783   72D6                 ; 438 {
+0784   72D6 C5              push bc
+0785   72D7 D5              push de
+0786   72D8 E5              push hl
+0787   72D9                 ; 439 c = --a; // Для drawSprite
+0788   72D9 3D              dec  a
+0789   72DA 4F              ld   c, a
+0790   72DB                 ; 441 // Цвет {
+0791   72DB                 ; 442 a = b;
+0792   72DB 78              ld   a, b
+0793   72DC                 ; 443 while(a >= 14) a -= 14;
+0794   72DC             l2047: 
+0795   72DC FE 0E           cp   14
+0796   72DE DA E6 72        jp   c, l2048
+0797   72E1 D6 0E           sub  14
+0798   72E3 C3 DC 72        jp   l2047
+0799   72E6             l2048: 
+0800   72E6                 ; 444 if (a >= 7) a += [0x40 - 7]; a++;
+0801   72E6 FE 07           cp   7
+0802   72E8 DA ED 72        jp   c, l2050
+0803   72EB C6 39           add  57
+0804   72ED             l2050: 
+0805   72ED 3C              inc  a
+0806   72EE                 ; 445 iyh = a;
+0807   72EE FD 67           ld   iyh, a
+0808   72F0                 ; 446 // }
+0809   72F0                 ; 448 getNpcSprite(hl);
+0810   72F0 CD 33 71        call getNpcSprite
+0811   72F3                 ; 449 b = cityRoadY;
+0812   72F3 06 0D           ld   b, 13
+0813   72F5                 ; 450 drawSprite();
+0814   72F5 CD 17 73        call drawSprite
+0815   72F8                 ; 451 }
+0816   72F8 E1              pop  hl
+0817   72F9 D1              pop  de
+0818   72FA C1              pop  bc
+0819   72FB                 ; 452 }
+0820   72FB                 ; 453 hl += de;
+0821   72FB             l2046: 
+0822   72FB 19              add  hl, de
+0823   72FC                 ; 454 } while(--b);
+0824   72FC 10 D1           djnz l2045
+0825   72FE                 ; 456 // Рисование игрока
+0826   72FE                 ; 457 b = cityRoadY;
+0827   72FE 06 0D           ld   b, 13
+0828   7300                 ; 458 c++;
+0829   7300 0C              inc  c
+0830   7301                 ; 459 c = ((a = cityPlayerX) -= c);
+0831   7301 3A 03 70        ld   a, (cityPlayerX)
+0832   7304 91              sub  c
+0833   7305 4F              ld   c, a
+0834   7306                 ; 460 hl = cityPlayerSprite;
+0835   7306 2A 06 70        ld   hl, (cityPlayerSprite)
+0836   7309                 ; 461 if ((a = l) == &city1s_1) c--;
+0837   7309 7D              ld   a, l
+0838   730A FE 25           cp   city1s_1
+0839   730C C2 10 73        jp   nz, l2051
+0840   730F 0D              dec  c
+0841   7310                 ; 462 iyh = 0;
+0842   7310             l2051: 
+0843   7310 FD 26 00        ld   iyh, 0
+0844   7313                 ; 463 drawSprite(bc, de, hl);
+0845   7313 CD 17 73        call drawSprite
+0846   7316                 ; 464 }
+0847   7316 C9              ret
+0848   7317                 ; 466 // Вывод спрайта
+0849   7317                 ; 467 // c - координата X (от -1 до 31)
+0850   7317                 ; 468 // b - координата Y (от 0 до 23)
+0851   7317                 ; 469 // hl - спрайт
+0852   7317                 ; 471 void drawSprite(bc, hl, ixh, iyh)
+0853   7317             drawSprite: 
+0854   7317                 ; 472 {
+0855   7317                 ; 473 // Читаем ширину спрайта
+0856   7317                 ; 474 d = *hl; l++;
+0857   7317 56              ld   d, (hl)
+0858   7318 2C              inc  l
+0859   7319                 ; 476 // Если спрайт за левым краем экрана
+0860   7319                 ; 477 if (c & 0x80) //! Можно оптимизировать
+0861   7319 CB 79           bit  7, c
+0862   731B                 ; 478 do
+0863   731B CA 2A 73        jp   z, l2052
+0864   731E             l2053: 
+0865   731E                 ; 479 {
+0866   731E                 ; 480 l = ((a = l) += [4 * 9]);
+0867   731E 7D              ld   a, l
+0868   731F C6 24           add  36
+0869   7321 6F              ld   l, a
+0870   7322                 ; 481 c++;
+0871   7322 0C              inc  c
+0872   7323                 ; 482 d--;
+0873   7323 15              dec  d
+0874   7324                 ; 483 if (flag_z) return;
+0875   7324 C8              ret  z
+0876   7325                 ; 484 } while (c & 0x80);
+0877   7325 CB 79           bit  7, c
+0878   7327 C2 1E 73        jp   nz, l2053
+0879   732A                 ; 486 // Если спрайт за правым краем экрана
+0880   732A                 ; 487 (a = viewWidth) -= c;
+0881   732A             l2052: 
+0882   732A 3E 20           ld   a, 32
+0883   732C 91              sub  c
+0884   732D                 ; 488 if (flag_c) return;
+0885   732D D8              ret  c
+0886   732E                 ; 489 if (flag_z) return;
+0887   732E C8              ret  z
+0888   732F                 ; 490 if (a < d) d = a;
+0889   732F BA              cp   d
+0890   7330 D2 34 73        jp   nc, l2054
+0891   7333 57              ld   d, a
+0892   7334                 ; 491 iyl = d;
+0893   7334             l2054: 
+0894   7334 FD 6A           ld   iyl, d
+0895   7336                 ; 493 // Вычисление координаты
+0896   7336                 ; 494 //       43210    43210
+0897   7336                 ; 495 // de .1.43... 210.....
+0898   7336                 ; 496 // bc .1.11.43 210.....
+0899   7336                 ; 497 d = (((a = b) &= 0x18) |= ixh);
+0900   7336 78              ld   a, b
+0901   7337 E6 18           and  24
+0902   7339 DD B4           or   ixh
+0903   733B 57              ld   d, a
+0904   733C                 ; 498 a = b;
+0905   733C 78              ld   a, b
+0906   733D                 ; 499 a >>r= 3;
+0907   733D 0F              rrca
+0908   733E 0F              rrca
+0909   733F 0F              rrca
+0910   7340                 ; 500 b = a;
+0911   7340 47              ld   b, a
+0912   7341                 ; 501 c = e = ((a &= 0xE0) |= c);
+0913   7341 E6 E0           and  224
+0914   7343 B1              or   c
+0915   7344 5F              ld   e, a
+0916   7345 4B              ld   c, e
+0917   7346                 ; 502 b = ((((a = b) &= 0x03) |= 0x18) |= ixh);
+0918   7346 78              ld   a, b
+0919   7347 E6 03           and  3
+0920   7349 F6 18           or   24
+0921   734B DD B4           or   ixh
+0922   734D 47              ld   b, a
+0923   734E                 ; 504 while()
+0924   734E             l2055: 
+0925   734E                 ; 505 {
+0926   734E                 ; 506 push(bc, de)
+0927   734E                 ; 507 {
+0928   734E C5              push bc
+0929   734F D5              push de
+0930   7350                 ; 508 drawSprite1(bc, de, hl);
+0931   7350 CD 9D 73        call drawSprite1
+0932   7353                 ; 509 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+0933   7353 79              ld   a, c
+0934   7354 C6 20           add  32
+0935   7356 4F              ld   c, a
+0936   7357 88              adc  b
+0937   7358 91              sub  c
+0938   7359 47              ld   b, a
+0939   735A                 ; 510 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+0940   735A 7B              ld   a, e
+0941   735B C6 20           add  32
+0942   735D 5F              ld   e, a
+0943   735E D2 65 73        jp   nc, l2057
+0944   7361 7A              ld   a, d
+0945   7362 C6 08           add  8
+0946   7364 57              ld   d, a
+0947   7365                 ; 511 drawSprite1(bc, de, hl);
+0948   7365             l2057: 
+0949   7365 CD 9D 73        call drawSprite1
+0950   7368                 ; 512 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+0951   7368 79              ld   a, c
+0952   7369 C6 20           add  32
+0953   736B 4F              ld   c, a
+0954   736C 88              adc  b
+0955   736D 91              sub  c
+0956   736E 47              ld   b, a
+0957   736F                 ; 513 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+0958   736F 7B              ld   a, e
+0959   7370 C6 20           add  32
+0960   7372 5F              ld   e, a
+0961   7373 D2 7A 73        jp   nc, l2058
+0962   7376 7A              ld   a, d
+0963   7377 C6 08           add  8
+0964   7379 57              ld   d, a
+0965   737A                 ; 514 drawSprite1(bc, de, hl);
+0966   737A             l2058: 
+0967   737A CD 9D 73        call drawSprite1
+0968   737D                 ; 515 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+0969   737D 79              ld   a, c
+0970   737E C6 20           add  32
+0971   7380 4F              ld   c, a
+0972   7381 88              adc  b
+0973   7382 91              sub  c
+0974   7383 47              ld   b, a
+0975   7384                 ; 516 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+0976   7384 7B              ld   a, e
+0977   7385 C6 20           add  32
+0978   7387 5F              ld   e, a
+0979   7388 D2 8F 73        jp   nc, l2059
+0980   738B 7A              ld   a, d
+0981   738C C6 08           add  8
+0982   738E 57              ld   d, a
+0983   738F                 ; 517 drawSprite1(bc, de, hl);
+0984   738F             l2059: 
+0985   738F CD 9D 73        call drawSprite1
+0986   7392                 ; 518 }
+0987   7392 D1              pop  de
+0988   7393 C1              pop  bc
+0989   7394                 ; 519 iyl--;
+0990   7394 FD 2D           dec  iyl
+0991   7396                 ; 520 if (flag_z) return;
+0992   7396 C8              ret  z
+0993   7397                 ; 521 c++;
+0994   7397 0C              inc  c
+0995   7398                 ; 522 e++;
+0996   7398 1C              inc  e
+0997   7399                 ; 523 };
+0998   7399 C3 4E 73        jp   l2055
+0999   739C                 ; 524 }
+1000   739C C9              ret
+1001   739D                 ; 526 void drawSprite1(de, bc, hl)
+1002   739D             drawSprite1: 
+1003   739D                 ; 527 {
+1004   739D                 ; 528 ixl = d;
+1005   739D DD 6A           ld   ixl, d
+1006   739F                 ; 529 *de = ((a = *de) |= *hl); l++; d++;
+1007   739F 1A              ld   a, (de)
+1008   73A0 B6              or   (hl)
+1009   73A1 12              ld   (de), a
+1010   73A2 2C              inc  l
+1011   73A3 14              inc  d
+1012   73A4                 ; 530 *de = ((a = *de) |= *hl); l++; d++;
+1013   73A4 1A              ld   a, (de)
+1014   73A5 B6              or   (hl)
+1015   73A6 12              ld   (de), a
+1016   73A7 2C              inc  l
+1017   73A8 14              inc  d
+1018   73A9                 ; 531 *de = ((a = *de) |= *hl); l++; d++;
+1019   73A9 1A              ld   a, (de)
+1020   73AA B6              or   (hl)
+1021   73AB 12              ld   (de), a
+1022   73AC 2C              inc  l
+1023   73AD 14              inc  d
+1024   73AE                 ; 532 *de = ((a = *de) |= *hl); l++; d++;
+1025   73AE 1A              ld   a, (de)
+1026   73AF B6              or   (hl)
+1027   73B0 12              ld   (de), a
+1028   73B1 2C              inc  l
+1029   73B2 14              inc  d
+1030   73B3                 ; 533 *de = ((a = *de) |= *hl); l++; d++;
+1031   73B3 1A              ld   a, (de)
+1032   73B4 B6              or   (hl)
+1033   73B5 12              ld   (de), a
+1034   73B6 2C              inc  l
+1035   73B7 14              inc  d
+1036   73B8                 ; 534 *de = ((a = *de) |= *hl); l++; d++;
+1037   73B8 1A              ld   a, (de)
+1038   73B9 B6              or   (hl)
+1039   73BA 12              ld   (de), a
+1040   73BB 2C              inc  l
+1041   73BC 14              inc  d
+1042   73BD                 ; 535 *de = ((a = *de) |= *hl); l++; d++;
+1043   73BD 1A              ld   a, (de)
+1044   73BE B6              or   (hl)
+1045   73BF 12              ld   (de), a
+1046   73C0 2C              inc  l
+1047   73C1 14              inc  d
+1048   73C2                 ; 536 *de = ((a = *de) |= *hl); l++;
+1049   73C2 1A              ld   a, (de)
+1050   73C3 B6              or   (hl)
+1051   73C4 12              ld   (de), a
+1052   73C5 2C              inc  l
+1053   73C6                 ; 537 a = *hl; if (a == 0x45) a = iyh; *bc = a; l++;
+1054   73C6 7E              ld   a, (hl)
+1055   73C7 FE 45           cp   69
+1056   73C9 C2 CE 73        jp   nz, l2060
+1057   73CC FD 7C           ld   a, iyh
+1058   73CE             l2060: 
+1059   73CE 02              ld   (bc), a
+1060   73CF 2C              inc  l
+1061   73D0                 ; 538 d = b; b++; b++; b++; *bc = a = 0xFE; b = d;
+1062   73D0 50              ld   d, b
+1063   73D1 04              inc  b
+1064   73D2 04              inc  b
+1065   73D3 04              inc  b
+1066   73D4 3E FE           ld   a, 254
+1067   73D6 02              ld   (bc), a
+1068   73D7 42              ld   b, d
+1069   73D8                 ; 540 // *de = a = *hl; l++; d++;
+1070   73D8                 ; 541 // *de = a = *hl; l++; d++;
+1071   73D8                 ; 542 // *de = a = *hl; l++; d++;
+1072   73D8                 ; 543 // *de = a = *hl; l++; d++;
+1073   73D8                 ; 544 // *de = a = *hl; l++; d++;
+1074   73D8                 ; 545 // *de = a = *hl; l++; d++;
+1075   73D8                 ; 546 // *de = a = *hl; l++; d++;
+1076   73D8                 ; 547 // *de = a = *hl; l++;
+1077   73D8                 ; 548 // *bc = a = *hl; l++;
+1078   73D8                 ; 549 // d = b; b++; b++; b++; *bc = a = 0xFF; b = d;
+1079   73D8                 ; 551 d = ixl;
+1080   73D8 DD 55           ld   d, ixl
+1081   73DA                 ; 552 }
+1082   73DA C9              ret
+1083   73DB                 ; 554 void printDelay(a)
+1084   73DB             printDelay: 
+1085   73DB                 ; 555 {
+1086   73DB                 ; 556 push(a)
+1087   73DB                 ; 557 {
+1088   73DB F5              push af
+1089   73DC                 ; 558 // Активная видеостраница
+1090   73DC                 ; 559 a = videoPage;
+1091   73DC 3A 73 62        ld   a, (videoPage)
+1092   73DF                 ; 560 hl = [screenAddr1 + 0x10E0];
+1093   73DF 21 E0 50        ld   hl, 20704
+1094   73E2                 ; 561 if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
+1095   73E2 CB 5F           bit  3, a
+1096   73E4                 ; 562 hl = [screenAddr2 + 0x10E0];
+1097   73E4 CA EA 73        jp   z, l2061
+1098   73E7 21 E0 D0        ld   hl, 53472
+1099   73EA                 ; 564 // Очиска
+1100   73EA                 ; 565 push (hl)
+1101   73EA             l2061: 
+1102   73EA                 ; 566 {
+1103   73EA E5              push hl
+1104   73EB                 ; 567 fillRect(hl, bc = 0x0101);
+1105   73EB 01 01 01        ld   bc, 257
+1106   73EE CD B7 B5        call fillRect
+1107   73F1                 ; 568 }
+1108   73F1 E1              pop  hl
+1109   73F2                 ; 569 }
+1110   73F2 F1              pop  af
+1111   73F3                 ; 570 a += '0';
+1112   73F3 C6 30           add  48
+1113   73F5                 ; 571 drawCharSub(hl, a);
+1114   73F5 CD 8C 62        call drawCharSub
+1115   73F8                 ; 572 }
+1116   73F8 C9              ret
+1117   73F9                 ; 574 void fillRectAddLine()
+1118   73F9             fillRectAddLine: 
+1119   73F9                 ; 575 {
+1120   73F9                 ; 576 hl += (de = [0x800 - 0x100]);
+1121   73F9 11 00 07        ld   de, 1792
+1122   73FC 19              add  hl, de
+1123   73FD                 ; 577 return;
+1124   73FD C9              ret
+1125   73FE                 ; 578 }
+1126   73FE C9              ret
+1127   73FF             
+0001   73FF ED 5F       rand:    LD    A, R
+0002   7401 C6 00       rand_1:  ADD   0
+0003   7403 32 09 74            LD    (rand_2 + 1), A
+0004   7406 87                  ADD   A
+0005   7407 87                  ADD   A
+0006   7408 C6 00       rand_2:  ADD   0
+0007   740A 3C                  INC   A
+0008   740B 32 02 74            LD    (rand_1 + 1), A
+0009   740E C9                  RET
+0010   740F             
+0001   740F 00             ds (10000h - $) & 0FFh
 0002   7500             
 0003   7500             city1Tails:  ; count 255
 0004   7500                 db 000h, 0ECh, 0ECh, 0ECh, 0ECh, 0ECh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0ECh, 000h, 0FCh
@@ -2430,3 +2321,412 @@
 0276   AF00             ;   66,  50,  76,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  76,  44,  66,  66,  50,  76,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  52,  76,  44,  66,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,
 0277   AF00             ;   66,  50,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  50,  50,  50,  50,  50,  50,  50,  50,   2,   2,  44,  44,  44,  44,  44,  44,  66,  66,  50,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  26,  50,  50,  50,  50,  50,  50,  50,  50,   2,   2,  44,  44,  44,  44,  44,  44,  66,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,3751,
 0278   AF00             
+0001   AF00                 ds (10000h - $) & 0FFh
+0002   AF00             city1s_0:  ; 0
+0003   AF00 01              db 1
+0004   AF01                 db 000h, 070h, 0F8h, 098h, 0ECh, 0F4h, 074h, 004h, 046h
+0004   AF01 0070F898ECF4740446
+0005   AF0A                 db 07Ch, 09Eh, 0AFh, 0B7h, 0B2h, 0B4h, 0B4h, 0B4h, 042h
+0005   AF0A 7C9EAFB7B2B4B4B442
+0006   AF13                 db 0B4h, 0B4h, 0B4h, 0B4h, 0B4h, 0CEh, 0FEh, 0FEh, 042h
+0006   AF13 B4B4B4B4B4CEFEFE42
+0007   AF1C                 db 0FEh, 0FEh, 0FEh, 0FEh, 0FEh, 030h, 030h, 070h, 042h
+0007   AF1C FEFEFEFEFE30307042
+0008   AF25             city1s_1:  ; 25
+0009   AF25 02              db 2
+0010   AF26                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0010   AF26 000000000000000000
+0011   AF2F                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0011   AF2F 000000000000000000
+0012   AF38                 db 000h, 000h, 000h, 001h, 001h, 001h, 001h, 001h, 042h
+0012   AF38 000000010101010142
+0013   AF41                 db 001h, 003h, 003h, 003h, 003h, 003h, 003h, 007h, 042h
+0013   AF41 010303030303030742
+0014   AF4A                 db 000h, 070h, 0F8h, 098h, 0ECh, 0F4h, 074h, 004h, 046h
+0014   AF4A 0070F898ECF4740446
+0015   AF53                 db 07Ch, 09Eh, 0AFh, 0B7h, 0B2h, 0B4h, 0B4h, 0DAh, 042h
+0015   AF53 7C9EAFB7B2B4B4DA42
+0016   AF5C                 db 0DAh, 0DAh, 0DAh, 0DAh, 0DAh, 0E6h, 0FEh, 0FEh, 042h
+0016   AF5C DADADADADAE6FEFE42
+0017   AF65                 db 0FEh, 0FBh, 0FBh, 0FBh, 0FBh, 003h, 003h, 007h, 042h
+0017   AF65 FEFBFBFBFB03030742
+0018   AF6E             city1s_2:  ; 6e
+0019   AF6E 02              db 2
+0020   AF6F                 db 000h, 007h, 00Fh, 009h, 00Eh, 00Fh, 007h, 000h, 046h
+0020   AF6F 00070F090E0F070046
+0021   AF78                 db 007h, 009h, 00Ah, 00Bh, 00Bh, 00Bh, 00Bh, 00Dh, 042h
+0021   AF78 07090A0B0B0B0B0D42
+0022   AF81                 db 00Dh, 00Dh, 00Dh, 01Dh, 01Dh, 01Eh, 01Fh, 01Fh, 042h
+0022   AF81 0D0D0D1D1D1E1F1F42
+0023   AF8A                 db 01Fh, 03Fh, 03Fh, 03Fh, 03Fh, 030h, 030h, 070h, 042h
+0023   AF8A 1F3F3F3F3F30307042
+0024   AF93                 db 000h, 000h, 080h, 080h, 0C0h, 040h, 040h, 040h, 046h
+0024   AF93 00008080C040404046
+0025   AF9C                 db 0C0h, 0E0h, 0F0h, 070h, 020h, 040h, 040h, 0A0h, 042h
+0025   AF9C C0E0F070204040A042
+0026   AFA5                 db 0A0h, 0A0h, 0A0h, 0A0h, 0A0h, 060h, 0E0h, 0E0h, 042h
+0026   AFA5 A0A0A0A0A060E0E042
+0027   AFAE                 db 0E0h, 0B0h, 0B0h, 0B0h, 0B0h, 030h, 030h, 070h, 042h
+0027   AFAE E0B0B0B0B030307042
+0028   AFB7             city1s_3:  ; b7
+0029   AFB7 01              db 1
+0030   AFB8                 db 000h, 00Eh, 01Fh, 019h, 037h, 02Fh, 02Eh, 020h, 046h
+0030   AFB8 000E1F19372F2E2046
+0031   AFC1                 db 03Eh, 079h, 0F5h, 0EDh, 04Dh, 02Dh, 02Dh, 02Dh, 042h
+0031   AFC1 3E79F5ED4D2D2D2D42
+0032   AFCA                 db 02Dh, 02Dh, 02Dh, 02Dh, 02Dh, 073h, 07Fh, 07Fh, 042h
+0032   AFCA 2D2D2D2D2D737F7F42
+0033   AFD3                 db 07Fh, 07Fh, 07Fh, 07Fh, 07Fh, 00Ch, 00Ch, 00Eh, 042h
+0033   AFD3 7F7F7F7F7F0C0C0E42
+0034   AFDC 00              ds (10000h - $) & 0FFh
+0035   B000             city1s_4:  ; 0
+0036   B000 02              db 2
+0037   B001                 db 000h, 00Eh, 01Fh, 019h, 037h, 02Fh, 02Eh, 020h, 046h
+0037   B001 000E1F19372F2E2046
+0038   B00A                 db 03Eh, 079h, 0F5h, 0EDh, 04Dh, 02Dh, 02Dh, 05Bh, 042h
+0038   B00A 3E79F5ED4D2D2D5B42
+0039   B013                 db 05Bh, 05Bh, 05Bh, 05Bh, 05Bh, 067h, 07Fh, 07Fh, 042h
+0039   B013 5B5B5B5B5B677F7F42
+0040   B01C                 db 07Fh, 0DFh, 0DFh, 0DFh, 0DFh, 0C0h, 0C0h, 0E0h, 042h
+0040   B01C 7FDFDFDFDFC0C0E042
+0041   B025                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0041   B025 000000000000000000
+0042   B02E                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0042   B02E 000000000000000000
+0043   B037                 db 000h, 000h, 000h, 080h, 080h, 080h, 080h, 080h, 042h
+0043   B037 000000808080808042
+0044   B040                 db 080h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0E0h, 042h
+0044   B040 80C0C0C0C0C0C0E042
+0045   B049             city1s_5:  ; 49
+0046   B049 02              db 2
+0047   B04A                 db 000h, 000h, 001h, 001h, 003h, 002h, 002h, 002h, 046h
+0047   B04A 000001010302020246
+0048   B053                 db 003h, 007h, 00Fh, 00Eh, 004h, 002h, 002h, 005h, 042h
+0048   B053 03070F0E0402020542
+0049   B05C                 db 005h, 005h, 005h, 005h, 005h, 006h, 007h, 007h, 042h
+0049   B05C 050505050506070742
+0050   B065                 db 007h, 00Dh, 00Dh, 00Dh, 00Dh, 00Ch, 00Ch, 00Eh, 042h
+0050   B065 070D0D0D0D0C0C0E42
+0051   B06E                 db 000h, 0E0h, 0F0h, 090h, 070h, 0F0h, 0E0h, 000h, 046h
+0051   B06E 00E0F09070F0E00046
+0052   B077                 db 0E0h, 090h, 050h, 0D0h, 0D0h, 0D0h, 0D0h, 0B0h, 042h
+0052   B077 E09050D0D0D0D0B042
+0053   B080                 db 0B0h, 0B0h, 0B0h, 0B8h, 0B8h, 078h, 0F8h, 0F8h, 042h
+0053   B080 B0B0B0B8B878F8F842
+0054   B089                 db 0F8h, 0FCh, 0FCh, 0FCh, 0FCh, 00Ch, 00Ch, 00Eh, 042h
+0054   B089 F8FCFCFCFC0C0C0E42
+0055   B092             city1s_6:  ; 92
+0056   B092 01              db 1
+0057   B093                 db 000h, 038h, 07Ch, 04Eh, 076h, 07Ah, 03Bh, 003h, 047h
+0057   B093 00387C4E767A3B0347
+0058   B09C                 db 03Bh, 03Dh, 066h, 06Ah, 06Ah, 06Ah, 02Ah, 02Ah, 045h
+0058   B09C 3B3D666A6A6A2A2A45
+0059   B0A5                 db 02Ah, 02Ah, 06Bh, 06Bh, 063h, 07Fh, 07Fh, 07Fh, 045h
+0059   B0A5 2A2A6B6B637F7F7F45
+0060   B0AE                 db 018h, 018h, 018h, 018h, 010h, 010h, 018h, 038h, 007h
+0060   B0AE 181818181010183807
+0061   B0B7 00              ds (10000h - $) & 0FFh
+0062   B100             city1s_7:  ; 0
+0063   B100 02              db 2
+0064   B101                 db 000h, 00Eh, 01Fh, 013h, 01Dh, 01Eh, 00Eh, 000h, 047h
+0064   B101 000E1F131D1E0E0047
+0065   B10A                 db 00Eh, 00Fh, 019h, 01Ah, 01Ah, 01Ah, 00Ah, 00Ah, 045h
+0065   B10A 0E0F191A1A1A0A0A45
+0066   B113                 db 005h, 005h, 015h, 015h, 011h, 01Fh, 01Fh, 01Fh, 045h
+0066   B113 05051515111F1F1F45
+0067   B11C                 db 01Dh, 018h, 018h, 018h, 010h, 010h, 018h, 039h, 007h
+0067   B11C 1D1818181010183907
+0068   B125                 db 000h, 000h, 000h, 080h, 080h, 080h, 0C0h, 0C0h, 047h
+0068   B125 000000808080C0C047
+0069   B12E                 db 0C0h, 040h, 080h, 080h, 080h, 080h, 080h, 080h, 045h
+0069   B12E C04080808080808045
+0070   B137                 db 080h, 080h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 045h
+0070   B137 8080C0C0C0C0C0C045
+0071   B140                 db 0C0h, 0C0h, 0C0h, 0C0h, 040h, 040h, 0C0h, 0C0h, 007h
+0071   B140 C0C0C0C04040C0C007
+0072   B149             city1s_8:  ; 49
+0073   B149 02              db 2
+0074   B14A                 db 000h, 003h, 007h, 004h, 007h, 007h, 003h, 000h, 047h
+0074   B14A 000307040707030047
+0075   B153                 db 003h, 003h, 006h, 006h, 006h, 006h, 002h, 002h, 045h
+0075   B153 030306060606020245
+0076   B15C                 db 002h, 002h, 006h, 006h, 006h, 007h, 00Fh, 00Fh, 045h
+0076   B15C 0202060606070F0F45
+0077   B165                 db 00Eh, 00Eh, 00Ch, 00Ch, 00Ch, 008h, 018h, 038h, 007h
+0077   B165 0E0E0C0C0C08183807
+0078   B16E                 db 000h, 080h, 0C0h, 0E0h, 060h, 0A0h, 0B0h, 030h, 047h
+0078   B16E 0080C0E060A0B03047
+0079   B177                 db 0B0h, 0D0h, 060h, 0A0h, 0A0h, 0A0h, 0A0h, 0A0h, 045h
+0079   B177 B0D060A0A0A0A0A045
+0080   B180                 db 0A0h, 0A0h, 0B0h, 0B0h, 030h, 0F0h, 0F8h, 0F8h, 045h
+0080   B180 A0A0B0B030F0F8F845
+0081   B189                 db 038h, 038h, 018h, 018h, 018h, 008h, 018h, 038h, 007h
+0081   B189 383818181808183807
+0082   B192             city1s_9:  ; 92
+0083   B192 02              db 2
+0084   B193                 db 000h, 000h, 001h, 001h, 001h, 001h, 000h, 000h, 047h
+0084   B193 000001010101000047
+0085   B19C                 db 000h, 000h, 001h, 001h, 001h, 001h, 000h, 000h, 045h
+0085   B19C 000001010101000045
+0086   B1A5                 db 000h, 000h, 001h, 001h, 001h, 001h, 001h, 001h, 045h
+0086   B1A5 000001010101010145
+0087   B1AE                 db 001h, 001h, 001h, 001h, 001h, 001h, 003h, 007h, 007h
+0087   B1AE 010101010101030707
+0088   B1B7                 db 000h, 0E0h, 0F0h, 038h, 0D8h, 0E8h, 0ECh, 00Ch, 047h
+0088   B1B7 00E0F038D8E8EC0C47
+0089   B1C0                 db 0ECh, 0F4h, 098h, 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 045h
+0089   B1C0 ECF498A8A8A8A8A845
+0090   B1C9                 db 0D0h, 0D0h, 0D4h, 0D4h, 0C4h, 0FCh, 0FCh, 0FCh, 045h
+0090   B1C9 D0D0D4D4C4FCFCFC45
+0091   B1D2                 db 0D8h, 098h, 098h, 098h, 090h, 010h, 018h, 038h, 007h
+0091   B1D2 D89898989010183807
+0092   B1DB 00              ds (10000h - $) & 0FFh
+0093   B200             city1s_10:  ; 0
+0094   B200 01              db 1
+0095   B201                 db 000h, 00Eh, 01Fh, 039h, 037h, 02Fh, 06Eh, 060h, 047h
+0095   B201 000E1F39372F6E6047
+0096   B20A                 db 06Eh, 05Eh, 033h, 02Bh, 02Bh, 02Bh, 02Ah, 02Ah, 045h
+0096   B20A 6E5E332B2B2B2A2A45
+0097   B213                 db 02Ah, 02Ah, 06Bh, 06Bh, 063h, 07Fh, 07Fh, 07Fh, 045h
+0097   B213 2A2A6B6B637F7F7F45
+0098   B21C                 db 00Ch, 00Ch, 00Ch, 00Ch, 004h, 004h, 00Ch, 00Eh, 007h
+0098   B21C 0C0C0C0C04040C0E07
+0099   B225             city1s_11:  ; 25
+0100   B225 02              db 2
+0101   B226                 db 000h, 003h, 007h, 00Eh, 00Dh, 00Bh, 01Bh, 018h, 047h
+0101   B226 0003070E0D0B1B1847
+0102   B22F                 db 01Bh, 017h, 00Ch, 00Ah, 00Ah, 00Ah, 00Ah, 00Ah, 045h
+0102   B22F 1B170C0A0A0A0A0A45
+0103   B238                 db 005h, 005h, 015h, 015h, 011h, 01Fh, 01Fh, 01Fh, 045h
+0103   B238 05051515111F1F1F45
+0104   B241                 db 00Dh, 00Ch, 00Ch, 00Ch, 004h, 004h, 00Ch, 00Eh, 007h
+0104   B241 0D0C0C0C04040C0E07
+0105   B24A                 db 000h, 080h, 0C0h, 040h, 0C0h, 0C0h, 080h, 000h, 047h
+0105   B24A 0080C040C0C0800047
+0106   B253                 db 080h, 080h, 0C0h, 0C0h, 0C0h, 0C0h, 080h, 080h, 045h
+0106   B253 8080C0C0C0C0808045
+0107   B25C                 db 080h, 080h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 045h
+0107   B25C 8080C0C0C0C0C0C045
+0108   B265                 db 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 040h, 060h, 070h, 007h
+0108   B265 C0C0C0C0C040607007
+0109   B26E             city1s_12:  ; 6e
+0110   B26E 02              db 2
+0111   B26F                 db 000h, 000h, 001h, 003h, 003h, 002h, 006h, 006h, 047h
+0111   B26F 000001030302060647
+0112   B278                 db 006h, 005h, 003h, 002h, 002h, 002h, 002h, 002h, 045h
+0112   B278 060503020202020245
+0113   B281                 db 002h, 002h, 006h, 006h, 006h, 007h, 00Fh, 00Fh, 045h
+0113   B281 0202060606070F0F45
+0114   B28A                 db 00Eh, 00Eh, 00Ch, 00Ch, 00Ch, 008h, 00Ch, 00Eh, 007h
+0114   B28A 0E0E0C0C0C080C0E07
+0115   B293                 db 000h, 0E0h, 0F0h, 090h, 070h, 0F0h, 0E0h, 000h, 047h
+0115   B293 00E0F09070F0E00047
+0116   B29C                 db 0E0h, 0E0h, 030h, 0B0h, 0B0h, 0B0h, 0A0h, 0A0h, 045h
+0116   B29C E0E030B0B0B0A0A045
+0117   B2A5                 db 0A0h, 0A0h, 0B0h, 0B0h, 030h, 0F0h, 0F8h, 0F8h, 045h
+0117   B2A5 A0A0B0B030F0F8F845
+0118   B2AE                 db 038h, 038h, 018h, 018h, 018h, 008h, 00Ch, 00Eh, 007h
+0118   B2AE 3838181818080C0E07
+0119   B2B7 00              ds (10000h - $) & 0FFh
+0120   B300             city1s_13:  ; 0
+0121   B300 02              db 2
+0122   B301                 db 000h, 000h, 000h, 000h, 000h, 000h, 001h, 001h, 047h
+0122   B301 000000000000010147
+0123   B30A                 db 001h, 001h, 000h, 000h, 000h, 000h, 000h, 000h, 045h
+0123   B30A 010100000000000045
+0124   B313                 db 000h, 000h, 001h, 001h, 001h, 001h, 001h, 001h, 045h
+0124   B313 000001010101010145
+0125   B31C                 db 001h, 001h, 001h, 001h, 001h, 001h, 001h, 001h, 007h
+0125   B31C 010101010101010107
+0126   B325                 db 000h, 038h, 07Ch, 0E4h, 0DCh, 0BCh, 0B8h, 080h, 047h
+0126   B325 00387CE4DCBCB88047
+0127   B32E                 db 0B8h, 078h, 0CCh, 0ACh, 0ACh, 0ACh, 0A8h, 0A8h, 045h
+0127   B32E B878CCACACACA8A845
+0128   B337                 db 0D0h, 0D0h, 0D4h, 0D4h, 0C4h, 0FCh, 0FCh, 0FCh, 045h
+0128   B337 D0D0D4D4C4FCFCFC45
+0129   B340                 db 0DCh, 08Ch, 08Ch, 08Ch, 004h, 004h, 08Ch, 0CEh, 007h
+0129   B340 DC8C8C8C04048CCE07
+0130   B349             city1s_14:  ; 49
+0131   B349 01              db 1
+0132   B34A                 db 000h, 01Ch, 03Eh, 026h, 03Ah, 03Ch, 01Eh, 00Ch, 047h
+0132   B34A 001C3E263A3C1E0C47
+0133   B353                 db 00Eh, 011h, 035h, 035h, 035h, 035h, 035h, 035h, 045h
+0133   B353 0E1135353535353545
+0134   B35C                 db 035h, 015h, 015h, 015h, 01Bh, 01Eh, 00Eh, 00Eh, 045h
+0134   B35C 351515151B1E0E0E45
+0135   B365                 db 00Eh, 00Eh, 00Eh, 00Eh, 00Ch, 00Ch, 00Ch, 01Ch, 006h
+0135   B365 0E0E0E0E0C0C0C1C06
+0136   B36E             city1s_15:  ; 6e
+0137   B36E 02              db 2
+0138   B36F                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0138   B36F 000000000000000000
+0139   B378                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0139   B378 000000000000000000
+0140   B381                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0140   B381 000000000000000000
+0141   B38A                 db 000h, 000h, 001h, 001h, 001h, 001h, 001h, 003h, 006h
+0141   B38A 000001010101010306
+0142   B393                 db 000h, 070h, 0F8h, 098h, 0E8h, 0F0h, 078h, 030h, 047h
+0142   B393 0070F898E8F0783047
+0143   B39C                 db 038h, 044h, 0D4h, 0D4h, 0D4h, 0D4h, 0D4h, 0ACh, 045h
+0143   B39C 3844D4D4D4D4D4AC45
+0144   B3A5                 db 0A8h, 0A8h, 0A8h, 0A8h, 0DCh, 0FCh, 0FCh, 0FCh, 045h
+0144   B3A5 A8A8A8A8DCFCFCFC45
+0145   B3AE                 db 0DCh, 0DCh, 0DCh, 0DCh, 08Ch, 08Ch, 08Ch, 09Ch, 006h
+0145   B3AE DCDCDCDC8C8C8C9C06
+0146   B3B7 00              ds (10000h - $) & 0FFh
+0147   B400             city1s_16:  ; 0
+0148   B400 02              db 2
+0149   B401                 db 000h, 001h, 003h, 002h, 003h, 003h, 001h, 000h, 047h
+0149   B401 000103020303010047
+0150   B40A                 db 000h, 001h, 003h, 003h, 003h, 003h, 003h, 003h, 045h
+0150   B40A 000103030303030345
+0151   B413                 db 003h, 001h, 001h, 001h, 003h, 003h, 003h, 007h, 045h
+0151   B413 030101010303030745
+0152   B41C                 db 007h, 007h, 00Eh, 00Eh, 00Eh, 00Ch, 00Ch, 01Ch, 006h
+0152   B41C 07070E0E0E0C0C1C06
+0153   B425                 db 000h, 0C0h, 0E0h, 060h, 0A0h, 0C0h, 0E0h, 0C0h, 047h
+0153   B425 00C0E060A0C0E0C047
+0154   B42E                 db 0E0h, 010h, 050h, 050h, 050h, 050h, 050h, 050h, 045h
+0154   B42E E01050505050505045
+0155   B437                 db 050h, 050h, 050h, 050h, 0B0h, 0F0h, 0F0h, 0F8h, 045h
+0155   B437 50505050B0F0F0F845
+0156   B440                 db 078h, 038h, 038h, 01Ch, 01Ch, 00Ch, 00Ch, 01Ch, 006h
+0156   B440 7838381C1C0C0C1C06
+0157   B449             city1s_17:  ; 49
+0158   B449 02              db 2
+0159   B44A                 db 000h, 007h, 00Fh, 009h, 00Eh, 00Fh, 007h, 003h, 047h
+0159   B44A 00070F090E0F070347
+0160   B453                 db 003h, 004h, 00Dh, 00Dh, 00Dh, 00Dh, 00Dh, 00Eh, 045h
+0160   B453 03040D0D0D0D0D0E45
+0161   B45C                 db 00Eh, 006h, 006h, 006h, 007h, 007h, 007h, 00Fh, 045h
+0161   B45C 0E0606060707070F45
+0162   B465                 db 00Fh, 00Eh, 00Eh, 00Eh, 00Ch, 00Ch, 00Ch, 01Ch, 006h
+0162   B465 0F0E0E0E0C0C0C1C06
+0163   B46E                 db 000h, 000h, 080h, 080h, 080h, 000h, 080h, 000h, 047h
+0163   B46E 000080808000800047
+0164   B477                 db 080h, 040h, 040h, 040h, 040h, 040h, 040h, 0C0h, 045h
+0164   B477 80404040404040C045
+0165   B480                 db 0C0h, 0C0h, 0C0h, 0C0h, 040h, 0C0h, 0E0h, 0E0h, 045h
+0165   B480 C0C0C0C040C0E0E045
+0166   B489                 db 0E0h, 0E0h, 060h, 060h, 070h, 030h, 030h, 070h, 006h
+0166   B489 E0E060607030307006
+0167   B492             city1s_18:  ; 92
+0168   B492 02              db 2
+0169   B493                 db 000h, 000h, 001h, 001h, 001h, 000h, 001h, 000h, 047h
+0169   B493 000001010100010047
+0170   B49C                 db 001h, 002h, 002h, 002h, 002h, 002h, 002h, 003h, 045h
+0170   B49C 010202020202020345
+0171   B4A5                 db 003h, 003h, 003h, 003h, 002h, 003h, 007h, 007h, 045h
+0171   B4A5 030303030203070745
+0172   B4AE                 db 007h, 007h, 006h, 006h, 00Eh, 00Ch, 00Ch, 00Eh, 006h
+0172   B4AE 070706060E0C0C0E06
+0173   B4B7                 db 000h, 0E0h, 0F0h, 090h, 070h, 0F0h, 0E0h, 0C0h, 047h
+0173   B4B7 00E0F09070F0E0C047
+0174   B4C0                 db 0C0h, 020h, 0B0h, 0B0h, 0B0h, 0B0h, 0B0h, 070h, 045h
+0174   B4C0 C020B0B0B0B0B07045
+0175   B4C9                 db 070h, 060h, 060h, 060h, 0E0h, 0E0h, 0E0h, 0F0h, 045h
+0175   B4C9 70606060E0E0E0F045
+0176   B4D2                 db 0F0h, 070h, 070h, 070h, 030h, 030h, 030h, 038h, 006h
+0176   B4D2 F07070703030303806
+0177   B4DB 00              ds (10000h - $) & 0FFh
+0178   B500             city1s_19:  ; 0
+0179   B500 02              db 2
+0180   B501                 db 000h, 003h, 007h, 006h, 005h, 003h, 007h, 003h, 047h
+0180   B501 000307060503070347
+0181   B50A                 db 007h, 008h, 00Ah, 00Ah, 00Ah, 00Ah, 00Ah, 00Ah, 045h
+0181   B50A 07080A0A0A0A0A0A45
+0182   B513                 db 00Ah, 00Ah, 00Ah, 00Ah, 00Dh, 00Fh, 00Fh, 01Fh, 045h
+0182   B513 0A0A0A0A0D0F0F1F45
+0183   B51C                 db 01Eh, 01Ch, 01Ch, 038h, 038h, 030h, 030h, 038h, 006h
+0183   B51C 1E1C1C383830303806
+0184   B525                 db 000h, 080h, 0C0h, 040h, 0C0h, 0C0h, 080h, 000h, 047h
+0184   B525 0080C040C0C0800047
+0185   B52E                 db 000h, 080h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 045h
+0185   B52E 0080C0C0C0C0C0C045
+0186   B537                 db 0C0h, 080h, 080h, 080h, 0C0h, 0C0h, 0C0h, 0E0h, 045h
+0186   B537 C0808080C0C0C0E045
+0187   B540                 db 0E0h, 0E0h, 070h, 070h, 070h, 030h, 030h, 038h, 006h
+0187   B540 E0E070707030303806
+0188   B549             city1s_20:  ; 49
+0189   B549 02              db 2
+0190   B54A                 db 000h, 00Eh, 01Fh, 019h, 017h, 00Fh, 01Eh, 00Ch, 047h
+0190   B54A 000E1F19170F1E0C47
+0191   B553                 db 01Ch, 022h, 02Bh, 02Bh, 02Bh, 02Bh, 02Bh, 035h, 045h
+0191   B553 1C222B2B2B2B2B3545
+0192   B55C                 db 015h, 015h, 015h, 015h, 03Bh, 03Fh, 03Fh, 03Fh, 045h
+0192   B55C 151515153B3F3F3F45
+0193   B565                 db 03Bh, 03Bh, 03Bh, 03Bh, 031h, 031h, 031h, 039h, 006h
+0193   B565 3B3B3B3B3131313906
+0194   B56E                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0194   B56E 000000000000000000
+0195   B577                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0195   B577 000000000000000000
+0196   B580                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+0196   B580 000000000000000000
+0197   B589                 db 000h, 000h, 080h, 080h, 080h, 080h, 080h, 0C0h, 006h
+0197   B589 00008080808080C006
+0198   B592             city1s_21:  ; 92
+0199   B592 01              db 1
+0200   B593                 db 000h, 038h, 07Ch, 064h, 05Ch, 03Ch, 078h, 030h, 047h
+0200   B593 00387C645C3C783047
+0201   B59C                 db 070h, 088h, 0ACh, 0ACh, 0ACh, 0ACh, 0ACh, 0ACh, 045h
+0201   B59C 7088ACACACACACAC45
+0202   B5A5                 db 0ACh, 0A8h, 0A8h, 0A8h, 0D8h, 078h, 070h, 070h, 045h
+0202   B5A5 ACA8A8A8D878707045
+0203   B5AE                 db 070h, 070h, 070h, 070h, 030h, 030h, 030h, 038h, 006h
+0203   B5AE 707070703030303806
+0204   B5B7             
+0001   B5B7                 ; 3 void fillRect(hl, bc)
+0002   B5B7             fillRect: 
+0003   B5B7                 ; 4 {
+0004   B5B7                 ; 5 do
+0005   B5B7             l3000: 
+0006   B5B7                 ; 6 {
+0007   B5B7                 ; 7 push(bc)
+0008   B5B7                 ; 8 {
+0009   B5B7 C5              push bc
+0010   B5B8                 ; 9 a ^= a;
+0011   B5B8 AF              xor  a
+0012   B5B9                 ; 10 d = 8;
+0013   B5B9 16 08           ld   d, 8
+0014   B5BB                 ; 11 e = l;
+0015   B5BB 5D              ld   e, l
+0016   B5BC                 ; 12 do
+0017   B5BC             l3001: 
+0018   B5BC                 ; 13 {
+0019   B5BC                 ; 14 b = c;
+0020   B5BC 41              ld   b, c
+0021   B5BD                 ; 15 do
+0022   B5BD             l3002: 
+0023   B5BD                 ; 16 {
+0024   B5BD                 ; 17 *hl = a; l++;
+0025   B5BD 77              ld   (hl), a
+0026   B5BE 2C              inc  l
+0027   B5BF                 ; 18 } while(--b);
+0028   B5BF 10 FC           djnz l3002
+0029   B5C1                 ; 19 l = e;
+0030   B5C1 6B              ld   l, e
+0031   B5C2                 ; 20 h++;
+0032   B5C2 24              inc  h
+0033   B5C3                 ; 21 d--;
+0034   B5C3 15              dec  d
+0035   B5C4                 ; 22 } while(flag_nz);
+0036   B5C4 C2 BC B5        jp   nz, l3001
+0037   B5C7                 ; 24 // Адрес следующей строки
+0038   B5C7                 ; 25 hl += (de = [0x20 - 0x800]);
+0039   B5C7 11 20 F8        ld   de, -2016
+0040   B5CA 19              add  hl, de
+0041   B5CB                 ; 26 a = h;
+0042   B5CB 7C              ld   a, h
+0043   B5CC                 ; 27 a &= 7;
+0044   B5CC E6 07           and  7
+0045   B5CE                 ; 28 if (flag_nz) fillRectAddLine();
+0046   B5CE C4 F9 73        call nz, fillRectAddLine
+0047   B5D1                 ; 29 }
+0048   B5D1 C1              pop  bc
+0049   B5D2                 ; 30 } while(--b);
+0050   B5D2 10 E3           djnz l3000
+0051   B5D4                 ; 31 }
+0052   B5D4 C9              ret
+0053   B5D5             

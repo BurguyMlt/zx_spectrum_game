@@ -1444,19 +1444,19 @@
 184   9402             
 001   9402                 ; 2 // (c) Морозов Алексей
 002   9402                 ; 3 // Главное меню.
-003   9402                 ; 5 const KEY_UP = 1;
-004   9402                 ; 6 const KEY_DOWN = 2;
-005   9402                 ; 7 const KEY_LEFT = 4;
-006   9402                 ; 8 const KEY_RIGHT = 8;
-007   9402                 ; 9 const KEY_FIRE = 16;
-008   9402                 ; 11 const menuLogoX      = 1;
-009   9402                 ; 12 const menuLogoY      = 1;
-010   9402                 ; 13 const menuItemH      = 10;
-011   9402                 ; 14 const menuItemsY     = 100;
-012   9402                 ; 15 const menuItemsX     = 80;
-013   9402                 ; 16 const menuItemsSX    = 72;
-014   9402                 ; 17 const menuItemsCount = 3;
-015   9402                 ; 18 const menuItemsM     = menuItemsCount * menuItemH;
+003   9402                 ; 5 const int KEY_UP = 1;
+004   9402                 ; 6 const int KEY_DOWN = 2;
+005   9402                 ; 7 const int KEY_LEFT = 4;
+006   9402                 ; 8 const int KEY_RIGHT = 8;
+007   9402                 ; 9 const int KEY_FIRE = 16;
+008   9402                 ; 11 const int menuLogoX      = 1;
+009   9402                 ; 12 const int menuLogoY      = 1;
+010   9402                 ; 13 const int menuItemH      = 10;
+011   9402                 ; 14 const int menuItemsY     = 100;
+012   9402                 ; 15 const int menuItemsX     = 80;
+013   9402                 ; 16 const int menuItemsSX    = 72;
+014   9402                 ; 17 const int menuItemsCount = 3;
+015   9402                 ; 18 const int menuItemsM     = menuItemsCount * menuItemH;
 016   9402                 ; 20 uint8_t menuX = 0;
 017   9402 00          menuX db 0
 018   9403                 ; 21 uint8_t menuX1 = 0;

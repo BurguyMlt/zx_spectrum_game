@@ -20,6 +20,8 @@
 ./Scanner.h
 ./cmm.y
 ./Makefile
+./cmm.includes
 ./cmm.creator
 ./parse.cc
+./const.h
 ./Parserbase.h

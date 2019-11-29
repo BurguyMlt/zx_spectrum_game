@@ -97,8 +97,8 @@
 097   62F3             
 098   62F3             ;-------------------------------------------------------------------------------
 099   62F3             
-100   62F3 6D656E7500  aStart db "menu", 0
-101   62F8             ;aStart db "city", 0
+100   62F3             ;aStart db "menu", 0
+101   62F3 6369747900  aStart db "city", 0
 102   62F8             aFileNotFound db "Не найден файл ", 0
 102   62F8 CDE520EDE0E9E4E5ED20F4E0E9EB2000
 103   6308             aSpace = $ - 2
@@ -561,7 +561,7 @@
 033   694A                 ; 25 a = systemPage;
 034   694A 3A 74 62        ld   a, (systemPage)
 035   694D                 ; 26 a &= [~8];
-036   694D E6 F7           and  -9
+036   694D E6 F7           and  ~(8)
 037   694F                 ; 27 systemPage = a;
 038   694F 32 74 62        ld   (systemPage), a
 039   6952                 ; 28 out(bc = 0x7FFD, a);
@@ -972,11 +972,11 @@
 283   6AF9 6F                  LD     L, A
 284   6AFA CD E0 69            CALL   drawTextEx
 285   6AFD             
-001   6AFD                 ; 3 const KEY_UP = 1;
-002   6AFD                 ; 4 const KEY_DOWN = 2;
-003   6AFD                 ; 5 const KEY_LEFT = 4;
-004   6AFD                 ; 6 const KEY_RIGHT = 8;
-005   6AFD                 ; 7 const KEY_FIRE = 16;
+001   6AFD                 ; 3 const int KEY_UP = 1;
+002   6AFD                 ; 4 const int KEY_DOWN = 2;
+003   6AFD                 ; 5 const int KEY_LEFT = 4;
+004   6AFD                 ; 6 const int KEY_RIGHT = 8;
+005   6AFD                 ; 7 const int KEY_FIRE = 16;
 006   6AFD                 ; 9 // Использует A, BC, HL
 007   6AFD                 ; 10 void readKey()
 008   6AFD             readKey: 

@@ -17,6 +17,10 @@ O += convert/font2zx
 convert/font2zx: convert/font2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
 	g++ --std=c++11 convert/font2zx.cpp convert/png.cpp convert/tail.cpp -oconvert/font2zx -lpng
 
+O += convert/sprites2zx
+convert/sprites2zx: convert/sprites2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
+	g++ --std=c++11 convert/sprites2zx.cpp convert/png.cpp convert/tail.cpp -oconvert/sprites2zx -lpng
+
 O += levels/city1.asm
 levels/city1.asm: levels/city1.png convert/map2zx
 	./convert/map2zx $@ $<
@@ -24,6 +28,10 @@ levels/city1.asm: levels/city1.png convert/map2zx
 O += levels/city1b.asm
 levels/city1b.asm: levels/city1b.png convert/map2zx
 	./convert/map2zx $@ $<
+
+O += levels/city1s.asm
+levels/city1s.asm: levels/city1s.png convert/sprites2zx
+	./convert/sprites2zx $@ $<
 
 O += menu/logo.asm
 menu/logo.asm: menu/logo.png convert/png2zx
@@ -53,8 +61,12 @@ O += city/city.asm
 city/city.asm: city/city.c ./bin/cmm
 	./bin/cmm $@ $<
 
+O += city/fillrect.asm
+city/fillrect.asm: city/fillrect.c ./bin/cmm
+	./bin/cmm $@ $<
+
 O += city/city.7000.C city/city.7000.C.lst
-city/city.7000.C: module.asm city/city.asm city/rand.asm levels/city1.asm levels/city1b.asm
+city/city.7000.C: module.asm city/city.asm city/rand.asm levels/city1.asm levels/city1b.asm levels/city1s.asm city/fillrect.asm
 	./bin/sjasmplus --raw=$@ --lst=$@.lst $^ || rm $@
 
 O += base/keyboard.asm

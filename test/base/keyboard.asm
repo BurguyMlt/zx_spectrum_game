@@ -1,8 +1,8 @@
-    ; 3 const KEY_UP = 1;
-    ; 4 const KEY_DOWN = 2;
-    ; 5 const KEY_LEFT = 4;
-    ; 6 const KEY_RIGHT = 8;
-    ; 7 const KEY_FIRE = 16;
+    ; 3 const int KEY_UP = 1;
+    ; 4 const int KEY_DOWN = 2;
+    ; 5 const int KEY_LEFT = 4;
+    ; 6 const int KEY_RIGHT = 8;
+    ; 7 const int KEY_FIRE = 16;
     ; 9 // Использует A, BC, HL
     ; 10 void readKey()
 readKey:

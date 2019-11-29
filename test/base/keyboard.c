@@ -1,10 +1,10 @@
 #counter 1000
 
-const KEY_UP = 1;
-const KEY_DOWN = 2;
-const KEY_LEFT = 4;
-const KEY_RIGHT = 8;
-const KEY_FIRE = 16;
+const int KEY_UP = 1;
+const int KEY_DOWN = 2;
+const int KEY_LEFT = 4;
+const int KEY_RIGHT = 8;
+const int KEY_FIRE = 16;
 
 // Использует A, BC, HL
 void readKey()

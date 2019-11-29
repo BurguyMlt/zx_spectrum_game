@@ -10,8 +10,10 @@
     Unsigned: unsigned;
     Number: long long int;
     CStringArray: std::shared_ptr<std::vector<const char*>>;
+    StringArray: std::shared_ptr<std::vector<std::string>>;
 
-%token VOID INT8 INT16 INT32 INT64 UINT8 UINT16 UINT32 UINT64
+%token CALC
+%token VOID INT INT8 INT16 INT32 INT64 UINT8 UINT16 UINT32 UINT64
 %token FLAG_Z, FLAG_NZ, FLAG_C, FLAG_NC, FLAG_PO, FLAG_PE, FLAG_P, FLAG_M
 
 %token ';' '(' '{' '}' ')' '~'
@@ -38,10 +40,11 @@
 
 %type <Compare> compare shift
 %type <CString> regPush reg16 reg8
-%type <String> ID STRING const addr alu alu_arg com8 com16 reg8phl return_call scalc
+%type <String> CALC ID STRING const addr alu alu_arg com8 com16 reg8phl return_call scalc
 %type <Number> NUMBER number icalc
 %type <Unsigned> write_label alloc_label init_array type
 %type <CStringArray> reg_push_array
+%type <StringArray> init_values init_values_1
 
 %%
 
@@ -59,11 +62,35 @@ init_array:
     | '[' icalc ']' { $$($2); }
 ;
 
+init_values:
+    init_values_1           { $$($1); }
+    | /* empty */           { auto a = std::make_shared<std::vector<std::string>>(); $$(a); }
+;
+
+init_values_1:
+    init_values_1 ',' scalc { $1->push_back($3); $$($1); }
+    | scalc                 { auto a = std::make_shared<std::vector<std::string>>(); a->push_back($1); $$(a); }
+;
+
 decl:
     VOID proto_args_0 ID '(' proto_args ')' { out << $3 << ":\n"; } '{' function_body '}' { out << "    ret\n"; }
     | type ID init_array ';' { out << $2 << " "; if ($3 != 1) out << "ds " << ($1 * $3) << "\n"; else out << asmTypeDecl($1) << " 0" << "\n"; }
+
+    | type ID init_array '=' '{' init_values '}' ';' {
+        out << $2 << ":\n";
+        auto& a = *$6;
+        unsigned rc = a.size(), ic = $3;
+        if (rc > ic) throw "Incorrect size " + std::to_string(rc) + " > " + std::to_string(ic);
+        const char* d = asmTypeDecl($1);
+        for(auto& v : a)
+            out << "    " << d << " " << v << "\n";
+        unsigned zs = (ic - rc);
+        if (zs != 0) out << "    ds " << (zs * $1) << "\n";
+    }
+
     | type ID '=' const ';' { out << $2 << " " << asmTypeDecl($1) << " " << $4 << "\n"; }
-    | CONST ID '=' icalc ';' { consts[$2] = $4; } //! тут надо scalc
+    | CONST INT ID '=' icalc ';' { consts[$3] = $5; }
+    | CONST INT ID '=' scalc ';' { consts[$3] = $5; }
     | '#' { d_scanner.preprocessor = true; } preprocessor M_EOL { d_scanner.preprocessor = false; }
 ;
 
@@ -311,6 +338,7 @@ com:
     // ix[]
     | '*' com16 OP_SAND number      { onlyHl($2);            out << "    res  " << getBit($4 ^ 0xFF) << ", (" << $2 << ")\n"; return; } // 74. RES bit, (HL)
     // ix[]
+    | reg8phl '&' number            {                        out << "    bit  " << getBit($3) << ", " << $1 << "\n"; } // 73. BIT bit, SSS
 ;
 
 com8:
@@ -325,16 +353,18 @@ com8:
     | com8 '=' com8                 {                        out << "    ld   " << $1 << ", " << $3 << "\n"; $$($1); } // 30. LD DDD, SSS
     | com8 '=' const                {                        out << "    ld   " << $1 << ", " << $3 << "\n"; $$($1); } // 18. LD DDD, d
     // Заменить number на const
-    | com8 alu number               { if ($1 != "a" && $2.compare("or  ") == 0) { out << "    set  " << getBit($3) << ", " << $1 << "\n"; $$($1); return; } // 75. SET bit, SSS
-                                      if ($1 != "a" && $2.compare("and ") == 0) { out << "    res  " << getBit($3 ^ 0xFF) << ", " << $1 << "\n"; $$($1); return; } // 74. RES bit, SSS
+    | com8 alu const                { if ($1 != "a" && $2.compare("or  ") == 0) { out << "    set  " << getBit(strtoll_throw($3)) << ", " << $1 << "\n"; $$($1); return; } // 75. SET bit, SSS
+                                      if ($1 != "a" && $2.compare("and ") == 0) { out << "    res  " << getBit(strtoll_throw($3) ^ 0xFF) << ", " << $1 << "\n"; $$($1); return; } // 74. RES bit, SSS
                                       onlyA($1);             out << "    " << $2 << " " << $3 << "\n"; $$($1); }
     | com8 alu com8                 { onlyA($1);             out << "    " << $2 << " " << $3 << "\n"; $$($1); }
     | com8 alu '*' com16            { onlyA($1); onlyHl($4); out << "    " << $2 << " (" << $4 << ")\n"; $$($1); }
     // ix[]
     | reg8                          { $$($1); }    
-    | com8 shift number             { if ($3 != 1) throw("Сдвигать можно только на один бит");
-                                      if (!$1.compare("a"))  out << "    " << $2.f << "\n";
-                                                       else  out << "    " << $2.t << " " << $1 << "\n"; $$($1); }
+    | com8 shift number             { if ($3 < 1 || $3 > 8) throw("Сдвигать можно только на 1 .. 8 бит");
+                                      unsigned n = (unsigned)$3;
+                                      if (!$1.compare("a")) { while(n--) out << "    " << $2.f << "\n"; }
+                                                       else { while(n--) out << "    " << $2.t << " " << $1 << "\n"; }
+                                      $$($1); }
 ;
 
 com16:
@@ -351,6 +381,7 @@ com16:
 
 const:
       STRING                   { $$ = "s" + std::to_string(allocString($1)); }
+    | CALC                     { $$($1); }
     | number                   { $$(std::to_string($1)); }
     | '[' scalc ']'            { $$($2); }
     | '&' ID                   { $$($2); }
@@ -364,6 +395,7 @@ number:
 
 scalc:
       '&' ID                   { $$($2); }
+    | CALC                     { $$($1); }
     | '~' scalc                { $$("~(" + $2 + ")"); }
     | '(' scalc ')'            { $$("+(" + $2 + ")"); }
     | '[' scalc ']'            { $$("+(" + $2 + ")"); }

@@ -97,8 +97,8 @@ fileNotFound:
 
 ;-------------------------------------------------------------------------------
 
-aStart db "menu", 0
-;aStart db "city", 0
+;aStart db "menu", 0
+aStart db "city", 0
 aFileNotFound db "Не найден файл ", 0
 aSpace = $ - 2
 aExt db "C",0

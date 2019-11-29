@@ -1,9 +1,11 @@
+./convert/sprites2zx
 ./convert/png.cpp
 ./convert/tail.h
 ./convert/tail.cpp
 ./convert/map2zx
 ./convert/font2zx.cpp
 ./convert/font2zx
+./convert/sprites2zx.cpp
 ./convert/map2zx.cpp
 ./convert/png2zx
 ./convert/png2zx.cpp
@@ -31,15 +33,19 @@
 ./menu/rast.png
 ./test.creator
 ./city/city.7000.C
+./city/fillrect.c
 ./city/city.c
 ./city/city.asm
 ./city/rand.asm
 ./city/city.7000.C.lst
+./city/fillrect.asm
 ./test.creator.user.eb2d028
 ./test.includes
+./levels/city1s.png
 ./levels/city1b.asm
 ./levels/city1b.png
 ./levels/city1.asm
+./levels/city1s.asm
 ./levels/city1.png
 ./Makefile
 ./lsttrial.trd
@@ -54,4 +60,5 @@
 ./base/base.626F.C.lst
 ./base/base.626F.C
 ./base/keyboard.c
+./test.creator.user.ac15531
 ./module.asm

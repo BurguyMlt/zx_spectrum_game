@@ -6,6 +6,7 @@
 
 // Типы
 "void" { return Parser::VOID; }
+"int" { return Parser::INT; }
 "int8_t" { return Parser::INT8; }
 "int16_t" { return Parser::INT16; }
 "int32_t" { return Parser::INT32; }
@@ -101,8 +102,20 @@
     auto c = consts->find(s);
     if (c != consts->end())
     {
-        *d_val = c->second;
-        return Parser::NUMBER;
+        const Const& co = c->second; // Без const значение в map уничтожается
+        switch(co.type)
+        {
+            case Const::ctNumber:
+                *d_val = co.n;
+                return Parser::NUMBER;
+                break;
+            case Const::ctString:
+                *d_val = co.s;                
+                return Parser::CALC;
+                break;
+            default:
+                throw "Unkown constant type";
+        }
     }
     *d_val = s;
     return Parser::ID;

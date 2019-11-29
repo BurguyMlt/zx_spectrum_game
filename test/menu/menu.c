@@ -2,20 +2,20 @@
 // (c) Морозов Алексей
 // Главное меню.
 
-const KEY_UP = 1;
-const KEY_DOWN = 2;
-const KEY_LEFT = 4;
-const KEY_RIGHT = 8;
-const KEY_FIRE = 16;
+const int KEY_UP = 1;
+const int KEY_DOWN = 2;
+const int KEY_LEFT = 4;
+const int KEY_RIGHT = 8;
+const int KEY_FIRE = 16;
 
-const menuLogoX      = 1;
-const menuLogoY      = 1;
-const menuItemH      = 10;
-const menuItemsY     = 100;
-const menuItemsX     = 80;
-const menuItemsSX    = 72;
-const menuItemsCount = 3;
-const menuItemsM     = menuItemsCount * menuItemH;
+const int menuLogoX      = 1;
+const int menuLogoY      = 1;
+const int menuItemH      = 10;
+const int menuItemsY     = 100;
+const int menuItemsX     = 80;
+const int menuItemsSX    = 72;
+const int menuItemsCount = 3;
+const int menuItemsM     = menuItemsCount * menuItemH;
 
 uint8_t menuX = 0;
 uint8_t menuX1 = 0;

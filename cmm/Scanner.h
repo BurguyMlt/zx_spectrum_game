@@ -7,6 +7,7 @@
 #include "Scannerbase.h"
 #include <map>
 #include <functional>
+#include "const.h"
 
 // $insert classHead
 class Scanner: public ScannerBase
@@ -22,7 +23,7 @@ class Scanner: public ScannerBase
         // $insert lexFunctionDecl
         int lex();
         typedef std::function<void(unsigned, const std::string&)> onNextLine_t;
-        void setSval(Parser::STYPE__* d_val__, std::map<std::string, long long int>* consts, onNextLine_t onNextLine);
+        void setSval(Parser::STYPE__* d_val__, std::map<std::string, Const> *consts, onNextLine_t onNextLine);
         void setSourceForGetLine(const std::string& getLineSource);
         void setFilename(std::string const &name) { ScannerBase::setFilename(name); }
 
@@ -41,7 +42,7 @@ class Scanner: public ScannerBase
         std::string getLine(unsigned l);
 
         Parser::STYPE__* d_val = nullptr;
-        std::map<std::string, long long int>* consts = nullptr;
+        std::map<std::string, Const>* consts = nullptr;
         onNextLine_t onNextLine;
         std::string getLineSource;
         unsigned getLineCacheLine = 1;
@@ -80,7 +81,7 @@ inline void Scanner::print()
     print__();
 }
 
-inline void Scanner::setSval(Parser::STYPE__* d_val__,  std::map<std::string, long long int>* _consts, onNextLine_t _onNextLine)
+inline void Scanner::setSval(Parser::STYPE__* d_val__,  std::map<std::string, Const>* _consts, onNextLine_t _onNextLine)
 {
     onNextLine = _onNextLine;
     consts = _consts;

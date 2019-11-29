@@ -8,6 +8,7 @@
 // $insert scanner.h
 #include "Scanner.h"
 #include <map>
+#include "const.h"
 
 #undef Parser
     // CAVEAT: between the baseclass-include directive and the 
@@ -25,7 +26,7 @@ class Parser: public ParserBase
     public:
         unsigned stringCounter = 0;
         std::map<std::string, unsigned> stringsMap;
-        std::map<std::string, long long int> consts;
+        std::map<std::string, Const> consts;
         std::ostream& out;
 
         Parser(Scanner& d_scanner, std::ostream& out);

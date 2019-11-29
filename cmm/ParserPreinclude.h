@@ -66,3 +66,11 @@ inline unsigned getBit(long long int vv)
         default: throw "Только один бит";
     }
 }
+
+inline long long strtoll_throw(std::string& str)
+{
+    char* end = nullptr;
+    long long v = strtoll(str.c_str(), &end, 10);
+    if (end[0] != 0) throw "Need const (" + str + ")";
+    return v;
+}
