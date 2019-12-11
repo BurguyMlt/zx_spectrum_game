@@ -1,5 +1,14 @@
+uint16_t mainPage[] = {
+    "Добрый день, чем я\x00"
+    "я могу Вам помочь?\x00"
+    "Мне пора идти\n"
+    "Я хочу купить\n"
+    "Я хочу продать",
+    &shopLeave,
+    &shopBuy,
+    &shopTrade
+};
 
-uint8_t spr;
 
 void getNpcSprite(hl)
 {

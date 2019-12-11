@@ -8,16 +8,16 @@ clearScreen:
     ; 10 {
     push af
     ; 11 // В прерывании не выбирать видеостраницу
-    ; 12 videoPage = a = 0;
+    ; 12 gVideoPage = a = 0;
     ld   a, 0
-    ld   (videoPage), a
+    ld   (gVideoPage), a
     ; 14 // Выбрать вторую видеостраницу для записи
-    ; 15 a = systemPage;
-    ld   a, (systemPage)
+    ; 15 a = gSystemPage;
+    ld   a, (gSystemPage)
     ; 16 a |= 7;
     or   7
-    ; 17 systemPage = a;
-    ld   (systemPage), a
+    ; 17 gSystemPage = a;
+    ld   (gSystemPage), a
     ; 18 out(bc = 0x7FFD, a);
     ld   bc, 32765
     out  (c), a
@@ -30,12 +30,12 @@ clearScreen:
     ld   hl, 56063
     call clearScreen1
     ; 24 // Выбрать первую видеостраницу для отображения
-    ; 25 a = systemPage;
-    ld   a, (systemPage)
+    ; 25 a = gSystemPage;
+    ld   a, (gSystemPage)
     ; 26 a &= [~8];
     and  ~(8)
-    ; 27 systemPage = a;
-    ld   (systemPage), a
+    ; 27 gSystemPage = a;
+    ld   (gSystemPage), a
     ; 28 out(bc = 0x7FFD, a);
     ld   bc, 32765
     out  (c), a

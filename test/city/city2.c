@@ -20,7 +20,7 @@ const int screenEndAddr1 = screenAttrAddr1 + screenAttrSize;
 const int screenEndAddr2 = screenAttrAddr2 + screenAttrSize;
 const int cacheAddr1 = screenEndAddr1;
 const int cacheAddr2 = screenEndAddr2;
-const int unusedTailCode = 0xFF;
+const int unusedTailCode = 0xFE;
 const int viewWidth = 32;
 const int viewHeight = 20;
 const int cityRoadY = 13;
@@ -42,7 +42,7 @@ uint8_t cityScrollX = 0;
 uint8_t cityPlayerDirection = 0;
 uint16_t cityPlayerSprite = &city1s_0;
 uint8_t processedFrames = 0;
-uint8_t startFrame;
+//uint8_t startFrame;
 uint8_t npcCount = npc_maxCount;
 uint8_t npc[npc_sizeof * npc_maxCount];
 
@@ -66,10 +66,25 @@ void swapMaps()
     } while(flag_nz (a = b) |= c);
 }
 
+void cityFullRedraw()
+{
+    cityInvalidate(hl = cacheAddr1);
+    *[cacheAddr1 + screenAttrSize] = a = 0;
+    cityInvalidate(hl = cacheAddr2);
+    *[cacheAddr2 + screenAttrSize] = a = 0;
+}
+
 void main()
 {
+    gPanelChanged1 = a = 0xFF;
+    gPanelChanged2 = a = 0xFF;
+    gPlayerMoney = hl = 10;
+
     cityPlayerX = a = [mapWidth / 2];
     cityScrollX = (a -= [viewWidth / 2]);
+
+    // Перерисовать панель
+    gDrawPanel();
 
     // Инициализация NPC
     initNpc();
@@ -77,23 +92,22 @@ void main()
     //swapMaps();
 
     // Инициализация кеша
-    cityInvalidate(hl = cacheAddr1);
-    cityInvalidate(hl = cacheAddr2);
+    cityFullRedraw();
 
     // Перерисовать
-    cityRedraw();
-
     while()
     {
-        while ((a = frame) != *(hl = &processedFrames))
+        beginDraw();
+        cityDraw();
+        endDraw();
+
+        while ((a = gFrame) != *(hl = &processedFrames))
         {
             *hl = a;
             a &= 3;
             if (flag_z) processPlayer();
             processNpc();
         }
-
-        cityRedraw();
     }
 }
 
@@ -242,7 +256,17 @@ const int sprite_raistlin_right_step = &city1s_4;
 
 void processPlayer()
 {
-    b = a = keyPressed;
+    if (*(hl = &gKeyTrigger) & KEY_FIRE)
+    {
+        *hl = 0;
+        shopMain();
+        // Перерисовать всё
+        cityInvalidate(hl = cacheAddr1);
+        cityInvalidate(hl = cacheAddr2);
+        return;
+    }
+
+    b = a = gKeyPressed;
     c = a = cityPlayerDirection;
     a = cityPlayerX;
     if (b & KEY_LEFT)
@@ -302,22 +326,39 @@ void processPlayer()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void cityRedraw()
+void beginDraw()
+{
+    hl = &gVideoPage;
+    while ((a = *hl) & 1);
+    a &= 0x7F;
+    if (flag_z a & 8) a |= 0x80;
+    *hl = a;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void endDraw()
+{
+    gVideoPage = ((a = gVideoPage) ^= 8 |= 1);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+void cityDraw()
 {
     // Оценка времени
-    startFrame = a = frame;
+    //startFrame = a = gFrame;
 
-    // Ждем, если активная страница еще не стала видимой
-    while ((a = videoPage) & 1);
+    // Обновить панель
+    playerMoneyRedraw();
 
-    // Адрес карты / источник
+    // Адрес карты / и сточник
     d` = [&city1Map >> 8];
     e` = a = cityScrollX;
     b` = e`;
 
     // Адрес видеостраницы / назначение
-    a = videoPage;
-    if (a & 8)
+    if (flag_z (a = gVideoPage) &= 0x80)
     {
         hl` = [cacheAddr1 - 1];
         ex(bc, de, hl);
@@ -391,11 +432,8 @@ optimize2:
 
     drawSprites();
 
-    // Переключить видеостраницы во время следующего прерывания
-    videoPage = ((a = videoPage) ^= 8 |= 1);
-
     // Оценка времени
-    printDelay((a = frame) -= *(hl = &startFrame));
+    //printDelay((a = gFrame) -= *(hl = &startFrame));
 
     return;
 optimize3:
@@ -412,7 +450,7 @@ optimize1:
 
 void drawSprites()
 {
-    a = videoPage;
+    a = gVideoPage;
     if (a & 8) ixh = [screenAddr1 >> 8];
           else ixh = [screenAddr2 >> 8];
 
@@ -551,15 +589,16 @@ void drawSprite1(de, bc, hl)
     d = ixl;
 }
 
+/*
 void printDelay(a)
 {
     push(a)
     {
         // Активная видеостраница
-        a = videoPage;
-        hl = [screenAddr1 + 0x10E0];
-        if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
-            hl = [screenAddr2 + 0x10E0];
+        a = gVideoPage;
+        hl = [screenAddr1 + 0x10E9];
+        if (a & 0x80)
+            hl = [screenAddr2 + 0x10E9];
 
         // Очиска
         push (hl)
@@ -568,11 +607,6 @@ void printDelay(a)
         }
     }
     a += '0';
-    drawCharSub(hl, a);
+    gDrawCharSub(hl, a);
 }
-
-void fillRectAddLine()
-{
-    hl += (de = [0x800 - 0x100]);
-    return;
-}
+*/

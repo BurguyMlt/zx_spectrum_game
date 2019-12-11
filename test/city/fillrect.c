@@ -2,30 +2,27 @@
 
 void fillRect(hl, bc)
 {
+    ixl = b;
     do
     {
-        push(bc)
+        a ^= a;
+        d = h; e = l;
+        b = c;
+        do
         {
-            a ^= a;
-            d = 8;
-            e = l;
-            do
-            {
-                b = c;
-                do
-                {
-                    *hl = a; l++;
-                } while(--b);
-                l = e;
-                h++;
-                d--;
-            } while(flag_nz);
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h++;
+            *hl = a; h = d;
+            l++;
+        } while(--b);
 
-            // Адрес следующей строки
-            hl += (de = [0x20 - 0x800]);
-            a = h;
-            a &= 7;
-            if (flag_nz) fillRectAddLine();
-        }
-    } while(--b);
+        // Адрес следующей строки
+        l = ((a = e) += 32);
+        if (flag_c) h = ((a = h) += 8);
+    } while(flag_nz --ixl);
 }

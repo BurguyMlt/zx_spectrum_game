@@ -9,12 +9,12 @@ void clearScreen(a)
     push(a)
     {
         // В прерывании не выбирать видеостраницу
-        videoPage = a = 0;
+        gVideoPage = a = 0;
 
         // Выбрать вторую видеостраницу для записи
-        a = systemPage;
+        a = gSystemPage;
         a |= 7;
-        systemPage = a;
+        gSystemPage = a;
         out(bc = 0x7FFD, a);
     }
 
@@ -22,9 +22,9 @@ void clearScreen(a)
     clearScreen1(hl = [0xDB00 - 1], a);
 
     // Выбрать первую видеостраницу для отображения
-    a = systemPage;
+    a = gSystemPage;
     a &= [~8];
-    systemPage = a;
+    gSystemPage = a;
     out(bc = 0x7FFD, a);
 }
 

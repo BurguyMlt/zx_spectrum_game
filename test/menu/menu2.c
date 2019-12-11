@@ -24,13 +24,12 @@ uint16_t test;
 
 void menuDrawCursor()
 {
-    drawTextEx(h = ((a = menuX1) += menuItemsY), l = menuItemsSX, de = "@");
-    return;
+    gDrawTextEx(h = ((a = menuX1) += menuItemsY), l = menuItemsSX, de = "@", a = 0x44);
 }
 
 void wait()
 {
-    hl = &frame;
+    hl = &gFrame;
     a ^= a;
     do { a |= *hl; } while(flag_z);
     *hl = 0;
@@ -38,15 +37,15 @@ void wait()
 
 void main()
 {
-    clearScreen(a = 0x45);
-    drawImage(de = [0x5800 + menuLogoX + (menuLogoY << 5)], hl = &image_logo);
-    drawTextEx(hl = [(menuItemsY + menuItemH * 0) * 256 + menuItemsX], de = "Начать новую игру");
-    drawTextEx(hl = [(menuItemsY + menuItemH * 1) * 256 + menuItemsX], de = "Настроить управление");
-    drawTextEx(hl = [(menuItemsY + menuItemH * 2) * 256 + menuItemsX], de = "Ввести пароль");
+    gClearScreen(a = 0x45);
+    gDrawImage(de = [0x5800 + menuLogoX + (menuLogoY << 5)], hl = &image_logo);
+    gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 0) * 256 + menuItemsX], de = "Начать новую игру");
+    gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 1) * 256 + menuItemsX], de = "Настроить управление");
+    gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 2) * 256 + menuItemsX], de = "Ввести пароль");
 
-    drawTextCenter(h = [192 - 8 - menuItemH * 2], de = "Игра | 2019 Алексей {Alemorf} Морозов");
-    drawTextCenter(h = [192 - 8 - menuItemH * 1], de = "Мюзикл | 1998 Антон {Саруман} Круглов,");
-    drawTextCenter(h = [192 - 8 - menuItemH * 0], de = "Елена {Мириам} Ханпира");
+    gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 2], de = "Игра | 2019 Алексей {Alemorf} Морозов");
+    gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 1], de = "Мюзикл | 1998 Антон {Саруман} Круглов,");
+    gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 0], de = "Елена {Мириам} Ханпира");
 
     menuX = a ^= a;
     menuX1 = (++a);
@@ -64,7 +63,7 @@ void main()
 void menuTick()
 {
     // Получить нажатую клавишу
-    hl = &keyTrigger;
+    hl = &gKeyTrigger;
     b = *hl;
     *hl = 0;
 
@@ -72,7 +71,7 @@ void menuTick()
     a = menuX;
     if (b & KEY_FIRE)
     {
-        if (a == [0 * menuItemH]) return exec(hl = "city");
+        if (a == [0 * menuItemH]) return gExec(hl = "city");
         if (a == [1 * menuItemH]) return intro();
         //if (a == [2 * menuItemH]) return loadGame();
         //return saveGame();

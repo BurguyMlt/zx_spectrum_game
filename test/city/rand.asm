@@ -7,3 +7,10 @@ rand_2: ADD   0
         INC   A
         LD    (rand_1 + 1), A
         RET
+
+callIx:
+        jp    (ix)
+
+subHlDe:
+        SUB HL, DE
+        RET

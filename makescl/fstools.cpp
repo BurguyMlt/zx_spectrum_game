@@ -6,9 +6,9 @@
 #include <unistd.h> // unlink
 #include <iostream>
 
-bool loadFile(std::vector<uint8_t>& output, const char* fileName, unsigned maxFileSize)
+bool loadFile(std::vector<uint8_t>& output, const std::string& fileName, unsigned maxFileSize)
 {
-    FILE* o = fopen(fileName, "r");
+    FILE* o = fopen(fileName.c_str(), "r");
     if (!o)
     {
         std::cerr << "Can't open file " << fileName << std::endl;

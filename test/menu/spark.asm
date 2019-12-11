@@ -120,7 +120,7 @@ sparkCreated:
         LD    A, H ; X
         EXX
         LD    L, A
-        CALL  calcCoords
+        CALL  gCalcCoords
 
         ; Вычисление маски (a = 80h >> c)
         LD     A, pixelMaskTbl & 0xFF

@@ -40,7 +40,7 @@
 
 %type <Compare> compare shift
 %type <CString> regPush reg16 reg8
-%type <String> CALC ID STRING const addr alu alu_arg com8 com16 reg8phl return_call scalc
+%type <String> CALC ID STRING const addr alu alu_arg com8 com16 reg8phl return_call scalc string2
 %type <Number> NUMBER number icalc
 %type <Unsigned> write_label alloc_label init_array type
 %type <CStringArray> reg_push_array
@@ -59,6 +59,7 @@ preprocessor:
 
 init_array:
     /*empty*/ { $$(1); }
+    | '[' ']'       { $$(UINT_MAX); }
     | '[' icalc ']' { $$($2); }
 ;
 
@@ -74,12 +75,20 @@ init_values_1:
 
 decl:
     VOID proto_args_0 ID '(' proto_args ')' { out << $3 << ":\n"; } '{' function_body '}' { out << "    ret\n"; }
-    | type ID init_array ';' { out << $2 << " "; if ($3 != 1) out << "ds " << ($1 * $3) << "\n"; else out << asmTypeDecl($1) << " 0" << "\n"; }
+
+    | type ID init_array ';' {
+        unsigned ic = $3;
+        if (ic == UINT_MAX) throw "Не указан размер";
+        out << $2 << " ";
+        if (ic != 1) out << "ds " << ($1 * $3) << "\n";
+                else out << asmTypeDecl($1) << " 0" << "\n";
+    }
 
     | type ID init_array '=' '{' init_values '}' ';' {
         out << $2 << ":\n";
         auto& a = *$6;
         unsigned rc = a.size(), ic = $3;
+        if (ic == UINT_MAX) ic = rc;
         if (rc > ic) throw "Incorrect size " + std::to_string(rc) + " > " + std::to_string(ic);
         const char* d = asmTypeDecl($1);
         for(auto& v : a)
@@ -379,8 +388,13 @@ com16:
     | reg16                    { $$($1); }
 ;
 
+string2:
+    STRING                     { $$($1); }
+    | string2 STRING           { $$($1 + $2); }
+;
+
 const:
-      STRING                   { $$ = "s" + std::to_string(allocString($1)); }
+      string2                  { $$ = "s" + std::to_string(allocString($1)); }
     | CALC                     { $$($1); }
     | number                   { $$(std::to_string($1)); }
     | '[' scalc ']'            { $$($2); }
@@ -395,6 +409,7 @@ number:
 
 scalc:
       '&' ID                   { $$($2); }
+    | string2                  { $$ = "s" + std::to_string(allocString($1)); }
     | CALC                     { $$($1); }
     | '~' scalc                { $$("~(" + $2 + ")"); }
     | '(' scalc ')'            { $$("+(" + $2 + ")"); }

@@ -22,14 +22,14 @@ void readKey()
 
     // Чтение прошлого значения и сохранение нового
     b = a;
-    hl = &keyPressed;
+    hl = &gKeyPressed;
     a = *hl;
     *hl = b;
 
     // Выделение события нажатия
     a ^= 0xFF;
     a &= b;
-    hl = &keyTrigger;
+    hl = &gKeyTrigger;
     a |= *hl;
     *hl = a;
 

@@ -233,11 +233,55 @@
 }
 <STRING> {
     \" {
-        begin(StartCondition__::INITIAL);
-        *d_val = matched();
+        begin(StartCondition__::INITIAL);       
+        std::string str = matched();
+
+        if (str.size() >= 2)
+        {
+            char* s = (char*)str.data() + 1;
+            char* se = (char*)str.data() + (str.size() - 1);
+            char* d = (char*)str.data();
+            while(s != se)
+            {
+                char c = *s++;
+                if (c == '\\')
+                {
+                if (s == se) throw "Unterminated string";
+                    c = *s++;
+                    if (c == 'n') c = '\n';
+                    else if(c == 'r') c = '\r';
+                    else if(c == '\\') c = '\\';
+                    else if(c == '\'') c = '\'';
+                    else if(c == '"') c = '"';
+                    else if(c == 'x')
+                    {
+                        if (s == se) throw "Unterminated string";
+                        char c1 = *s++;
+                        if (c1 >= '0' && c1 <= '9') c1 -= '0';
+                        else if (c1 >= 'a' && c1 <= 'f') c1 -= 'a' - 10;
+                        else if (c1 >= 'A' && c1 <= 'F') c1 -= 'A' - 10;
+                        else throw "Unknown esc";
+                        if (s == se) throw "Unterminated string";
+                        char c2 = *s++;
+                        if (c2>='0' && c2<='9') c2-='0';
+                        else if (c2 >= 'a' && c2 <= 'f') c2 -= 'a' - 10;
+                        else if (c2 >= 'A' && c2 <= 'F') c2 -= 'A' - 10;
+                        else throw "Unknown esc";
+                        c = (c1 << 4) + c2;
+                    }
+                    else
+                    {
+                        throw "Unknown esc";
+                    }
+                }
+                *d++ = c;
+            }
+            str.resize(d - str.data());
+        }
+        *d_val = str;
         return Parser::STRING;
     }
-    
+
     \\.|. {
         more();
     }

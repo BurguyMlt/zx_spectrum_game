@@ -4,6 +4,7 @@
 
 // $insert class.h
 #include "Parser.h"
+#include <limits.h>
 
 Parser::Parser(Scanner& scanner, std::ostream& out) : d_scanner(scanner), out(out)
 {
@@ -52,6 +53,36 @@ void Parser::writeFooter()
     {
         out << "    ; strings\n";
         for(auto& i : stringsMap)
-            out << "s" << i.second << " db  " << i.first << ", 0\n";
+        {
+            out << "s" << i.second << " db ";
+            const char* s = i.first.c_str();
+            const char* e = s + i.first.size() + 1;
+            bool sm = false;
+            bool f = true;
+            for(; s != e; s++)
+            {
+                char c = *s;
+                if ((unsigned char)c >= (unsigned char)' ' && c != '"')
+                {
+                    if (!sm)
+                    {
+                        if (!f) out << ",";
+                        out << "\"";
+                        sm = true;
+                    }
+                    out << c;
+                }
+                else
+                {
+                    if (sm) out << "\"";
+                    sm = false;
+                    if (!f) out << ",";
+                    out << (unsigned)(unsigned char)c;
+                }
+                f = false;
+            }
+            if (sm) out << "\"";
+            out << "\n";
+        }
     }
 }

@@ -1,8 +1,9 @@
         DEVICE ZXSPECTRUM128
 
-DOS=15619
-BASE=25199
+        include "../module.inc"
 
+DOS=15619
+BASE=moverAddr
 NUMBER=0Eh
 CLEAR=0FDh
 RANDOMIZE=0F9h
@@ -12,6 +13,8 @@ LOAD=0EFh
 CODE=0AFh
 EOL=0Dh
 
+        org 4000h
+begin:
 Basic:  db 0, 10
         db Line1e - Line1, 0
 Line1:

@@ -9,6 +9,7 @@
 #include <limits>
 #include <string.h>
 #include <stdlib.h> // strtoul
+#include <libgen.h>
 #include <memory>
 
 template<class A, class B>
@@ -34,10 +35,9 @@ public:
     uint16_t start;
 };
 
-bool parseTrdosFileInfo(TrdosFileInfo& out, const char* srcFullName, uint16_t defaultStart)
-{
-    const char* srcName = strrchr(srcFullName, '/');
-    if (srcName) srcName++; else srcName = srcFullName;
+bool parseTrdosFileInfo(TrdosFileInfo& out, const std::string& srcFullName, uint16_t defaultStart)
+{    
+    const char* srcName = basename((char*)srcFullName.c_str());
 
     char name[strlen(srcName) + 1];
     strcpy(name, srcName);
@@ -47,24 +47,27 @@ bool parseTrdosFileInfo(TrdosFileInfo& out, const char* srcFullName, uint16_t de
     extPtr[0] = '\0';
     out.ext = extPtr[1];
 
-    if (out.ext == 'B')
-    {
-        out.start = defaultStart;
-    }
-    else
-    {
-        char* startPtr = strrchr(name, '.');
-        if (!startPtr) return false;
-        *startPtr++ = '\0';
-        char* startOk;
-        unsigned long r = strtoul(startPtr, &startOk, 16);
-        if (r > std::numeric_limits<typeof(out.start)>::max() || startOk[0] != '\0') return false;
-        out.start = (typeof(out.start))r;
-    }
+    out.start = defaultStart;
 
     if (strlen(name) > sizeof(out.name) - 1) return false;
     strncpy(out.name, name, sizeof(out.name));
     return true;
+}
+
+bool parseFileArg(std::string& fileName, uint16_t& addr, const char* arg)
+{
+    char* e = strchr((char*)arg, '@');
+    if (!e)
+    {
+        fileName = arg;
+        addr = 0;
+        return true;
+    }
+    fileName.assign(arg, e - arg);
+    char* end = nullptr;
+    unsigned long v = strtoul(e + 1, &end, 10);
+    if (end[0] != 0 || v > UINT16_MAX) return false;
+    return (uint16_t)v;
 }
 
 bool makeSclFile(const char* destFileName, unsigned srcFileNamesCount, const char** srcFileNames)
@@ -92,7 +95,13 @@ bool makeSclFile(const char* destFileName, unsigned srcFileNamesCount, const cha
 
     for (unsigned i = 0; i < srcFileNamesCount; i++)
     {
-        const char* srcFileName = srcFileNames[i];
+        std::string srcFileName;
+        uint16_t addr;
+        if (!parseFileArg(srcFileName, addr, srcFileNames[i]))
+        {
+            std::cout << "Incorrect argument " << srcFileNames[i] << std::endl;
+            return false;
+        }
 
         // Загружаем файл
         if (!loadFile(file, srcFileName, SclFileStruct::maxFileSize)) return false;

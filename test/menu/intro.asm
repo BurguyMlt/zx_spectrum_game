@@ -26,12 +26,12 @@ introUniversal:
 
         ; Очистка экранов
         LD     A, 45h
-        CALL   clearScreen
+        CALL   gClearScreen
 
         ; Рисуем изображение
         POP    DE
         POP    HL
-        CALL   drawImage
+        CALL   gDrawImage
 
         ; Инициализация эффектов
         CALL   sparkReset ; Сохраняет EXX, IX, IY
@@ -48,7 +48,7 @@ intro_1:
 
         ; Вычисление ширины строки
         PUSH   DE
-        CALL   measureText
+        CALL   gMeasureText
         POP    DE
         POP    HL
         PUSH   HL
@@ -98,7 +98,7 @@ introDrawText:
         LD     (SPARK_INIT_X), A
         LD     A, H
         LD     (SPARK_INIT_Y), A
-        CALL   calcCoords
+        CALL   gCalcCoords
 introDrawText_1:
         LD     A, (DE)
         INC    DE
@@ -108,7 +108,7 @@ introDrawText_1:
         ; Анимация
         CALL   intro_3
 
-        CALL   drawCharSub
+        CALL   gDrawCharSub
 
         ; Перемещаем и искру
         LD     A, (SPARK_INIT_X)

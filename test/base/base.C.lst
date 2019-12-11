@@ -1,0 +1,110 @@
+01   0000                 DEVICE ZXSPECTRUM128
+02   0000             
+03   0000                 include "../module.inc"
+01+  0000             ;romAddr        = 0
+02+  0000             ;screenAddr     = 4000h
+03+  0000             ;cacheAddr      = 5B00h
+04+  0000             
+05+  0000             gPanelChanged1  = 0x5D80
+06+  0000             gPanelChanged2  = 0x5D80 | 0x8000
+07+  0000             
+08+  0000             irqTableAddr      = 5F00h
+09+  0000             irqAddr           = 6060h
+10+  0000             stackBeginAddr    = 6001h
+11+  0000             stackEndAddr      = 605Fh
+12+  0000             baseAddr          = 6063h
+13+  0000             moduleLoadAddr    = 7000h
+14+  0000             moverAddr         = 8000h
+15+  0000             
+16+  0000             gEnd = baseAddr
+17+  0000             
+18+  0000             ; Функции
+19+  0000             gDrawText         = gEnd
+20+  0000             gEnd = gEnd + 3
+21+  0000             gDrawTextCenter   = gEnd
+22+  0000             gEnd = gEnd + 3
+23+  0000             gDrawTextEx       = gEnd
+24+  0000             gEnd = gEnd + 3
+25+  0000             gClearScreen      = gEnd
+26+  0000             gEnd = gEnd + 3
+27+  0000             gDrawImage        = gEnd
+28+  0000             gEnd = gEnd + 3
+29+  0000             gMeasureText      = gEnd
+30+  0000             gEnd = gEnd + 3
+31+  0000             gCalcCoords       = gEnd
+32+  0000             gEnd = gEnd + 3
+33+  0000             gDrawCharSub      = gEnd
+34+  0000             gEnd = gEnd + 3
+35+  0000             gExec             = gEnd
+36+  0000             gEnd = gEnd + 3
+37+  0000             gIrqHandler       = gEnd
+38+  0000             gEnd = gEnd + 3
+39+  0000             gDrawPanel        = gEnd
+40+  0000             gEnd = gEnd + 3
+41+  0000             
+42+  0000             ; Переменные
+43+  0000             gFrame            = gEnd
+44+  0000             gEnd = gEnd + 1
+45+  0000             gVideoPage        = gEnd
+46+  0000             gEnd = gEnd + 1
+47+  0000             gSystemPage       = gEnd
+48+  0000             gEnd = gEnd + 1
+49+  0000             gKeyTrigger       = gEnd
+50+  0000             gEnd = gEnd + 1
+51+  0000             gKeyPressed       = gEnd
+52+  0000             gEnd = gEnd + 1
+53+  0000             gPlayerMoney      = gEnd
+54+  0000             gEnd = gEnd + 2
+55+  0000             
+04   0000             
+05   0000                 org moverAddr
+06   8000             
+07   8000             begin: 
+08   8000                 ; Выключение прерываний
+09   8000 F3              DI
+10   8001             
+11   8001                 ; Перенос модуля
+12   8001 21 46 80        LD HL, baseCode
+13   8004 11 63 60        LD DE, baseAddr
+14   8007 01 65 0D        LD BC, baseCodeEnd - baseCode
+15   800A ED B0           LDIR
+16   800C             
+17   800C                 ; Инициализация стека
+18   800C 31 5F 60        LD    SP, stackEndAddr
+19   800F             
+20   800F                 ; Выбор второй видеостраницы
+21   800F AF              XOR   A
+22   8010 32 85 60        LD    (gVideoPage), A
+23   8013 3E 17           LD    A, 17h
+24   8015 32 86 60        LD    (gSystemPage), A
+25   8018 01 FD 7F        LD    BC, 7FFDh
+26   801B ED 79           OUT   (C), A
+27   801D             
+28   801D                 ; Установка обработчика прерываний
+29   801D 21 00 5F        LD    HL, irqTableAddr
+30   8020 11 01 5F        LD    DE, irqTableAddr + 1
+31   8023 01 00 01        LD    BC, 100h
+32   8026 36 60           LD    (HL), irqAddr
+33   8028 7C              LD    A, H
+34   8029 ED B0           LDIR
+35   802B ED 47           LD    I, A
+36   802D 3E C3           LD    A, 195 ; Код команды JP
+37   802F 32 60 60        LD    (irqAddr), A
+38   8032 21 7E 60        LD    HL, gIrqHandler
+39   8035 22 61 60        LD    (irqAddr + 1), HL
+40   8038 ED 5E           IM    2
+41   803A FB              EI
+42   803B             
+43   803B                 ; Загрузка файла
+44   803B 21 41 80        LD    HL, aStart
+45   803E C3 7B 60        JP    gExec
+46   8041             
+47   8041 6369747900  aStart db "city", 0
+48   8046             ;aStart db "menu", 0
+49   8046             
+50   8046             baseCode: 
+51   8046                 incbin "base.bin"
+52   8DAB             baseCodeEnd: 
+53   8DAB             
+01   8DAB                 savebin "base/base.C", begin, $ - begin
+02   8DAB             

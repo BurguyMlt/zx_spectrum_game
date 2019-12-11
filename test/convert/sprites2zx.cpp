@@ -17,7 +17,7 @@ static std::string truncFileExt(const char* str)
     return std::string(str, ext - str);
 }
 
-bool sprites2zx(const char* outputFileName, const char* inputFileName, bool levelMode, unsigned cityRoadY)
+bool sprites2zx(int mode, const char* outputFileName, const char* inputFileName)
 {
     std::string name = truncFileExt(basename(inputFileName));
 
@@ -29,71 +29,97 @@ bool sprites2zx(const char* outputFileName, const char* inputFileName, bool leve
     FILE* fo = fopen(outputFileName, "w");
     if(!fo) return false;
 
-    fprintf(fo, "    ds (10000h - $) & 0FFh\n");
-
-    unsigned s = 0;
-    unsigned n = 0;
-    for (unsigned x = 0; x < w; x++)
+    if (mode == 0)
     {
-        unsigned gx = x * 8;
-
-        Tail t;
-        readTail(t, png, x * 8, 0);
-        bool tn = t.data[7] != 0;
-
-        unsigned ix;
-        for(ix = x + 1; ix < w; ix++)
+        fprintf(fo, "    ds (10000h - $) & 0FFh\n");
+        unsigned s = 0;
+        unsigned n = 0;
+        for (unsigned x = 0; x < w; x++)
         {
+            unsigned gx = x * 8;
+
             Tail t;
-            readTail(t, png, ix * 8, 0);
-            bool tn1 = t.data[7] != 0;
-            if (tn != tn1) break;
-        }
-        unsigned sw = ix - x;
+            readTail(t, png, x * 8, 0);
+            bool tn = t.data[7] != 0;
 
-        unsigned ss = sw * 9 * 4 + 1;
-        if (s + ss >= 256)
-        {
-            fprintf(fo, "    ds (10000h - $) & 0FFh\n");
-            s = 0;
-        }
-
-        fprintf(fo, "%s_%u: ; %x\n", name.c_str(), n, s);
-        n++;
-        fprintf(fo, "    db %u\n", sw);
-
-        for (ix = x; ix < x + sw; ix++)
-        {
-            for (unsigned y = 1; y < h; y++)
+            unsigned ix;
+            for(ix = x + 1; ix < w; ix++)
             {
                 Tail t;
-                unsigned gy = y * 8;
-                readTail(t, png, ix * 8, gy);
+                readTail(t, png, ix * 8, 0);
+                bool tn1 = t.data[7] != 0;
+                if (tn != tn1) break;
+            }
+            unsigned sw = ix - x;
 
-                fprintf(fo, "    db ");
-                for (unsigned i = 0; i < sizeof(t.data); i++)
+            unsigned ss = sw * 9 * 4 + 1;
+            if (s + ss >= 256)
+            {
+                fprintf(fo, "    ds (10000h - $) & 0FFh\n");
+                s = 0;
+            }
+
+            fprintf(fo, "%s_%u: ; %x\n", name.c_str(), n, s);
+            n++;
+            fprintf(fo, "    db %u\n", sw);
+
+            for (ix = x; ix < x + sw; ix++)
+            {
+                for (unsigned y = 1; y < h; y++)
                 {
-                    fprintf(fo, "%s%03Xh", i == 0 ? "" : ", ", t.data[i]);
+                    Tail t;
+                    unsigned gy = y * 8;
+                    readTail(t, png, ix * 8, gy);
+
+                    fprintf(fo, "    db ");
+                    for (unsigned i = 0; i < sizeof(t.data); i++)
+                    {
+                        fprintf(fo, "%s%03Xh", i == 0 ? "" : ", ", t.data[i]);
+                    }
+                    fprintf(fo, "\n");
                 }
-                fprintf(fo, "\n");
+            }
+
+            s += ss;
+            x += sw - 1;
+        }
+    }
+    else
+    {
+        unsigned n = 0;
+        for (unsigned y = 0; y < h; y++)
+        {
+            for (unsigned x = 0; x < w; x++)
+            {
+                Tail t;
+                readTail(t, png, x * 8, y * 8);
+
+                if (t.data[8] != 0x5B)
+                {
+                    if (t.data[8] == 0) t.data[8] = 0x47;
+                    fprintf(fo, "%s_%u  db ", name.c_str(), n);
+                    for (unsigned i = 0; i < sizeof(t.data); i++)
+                    {
+                        fprintf(fo, "%s%03Xh", i == 0 ? "" : ", ", t.data[i]);
+                    }
+                    fprintf(fo, "\n");
+
+                    n++;
+                }
             }
         }
-
-        s += ss;
-        x += sw - 1;
     }
-
     fclose(fo);
     return true;
 }
 
 int main(int argc, char **argv)
 {
-    if (argc != 3)
+    if (argc != 4)
     {
         std::cerr << "sprites2zx (c) 25-11-2019 Alemorf" << std::endl
-                  << "Syntax: " << argv[0] << " output_file.inc input_file.png" << std::endl;;
+                  << "Syntax: " << argv[0] << " mode output_file.inc input_file.png" << std::endl;;
         return 2;
     }
-    return sprites2zx(argv[1], argv[2], false, 13) ? 0 : 1;
+    return sprites2zx(atoi(argv[1]), argv[2], argv[3]) ? 0 : 1;
 }

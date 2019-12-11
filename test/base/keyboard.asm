@@ -48,8 +48,8 @@ l1004:
     ; 23 // Чтение прошлого значения и сохранение нового
     ; 24 b = a;
     ld   b, a
-    ; 25 hl = &keyPressed;
-    ld   hl, keyPressed
+    ; 25 hl = &gKeyPressed;
+    ld   hl, gKeyPressed
     ; 26 a = *hl;
     ld   a, (hl)
     ; 27 *hl = b;
@@ -59,8 +59,8 @@ l1004:
     xor  255
     ; 31 a &= b;
     and  b
-    ; 32 hl = &keyTrigger;
-    ld   hl, keyTrigger
+    ; 32 hl = &gKeyTrigger;
+    ld   hl, gKeyTrigger
     ; 33 a |= *hl;
     or   (hl)
     ; 34 *hl = a;

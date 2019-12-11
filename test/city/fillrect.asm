@@ -1,52 +1,62 @@
     ; 3 void fillRect(hl, bc)
 fillRect:
     ; 4 {
-    ; 5 do
+    ; 5 ixl = b;
+    ld   ixl, b
+    ; 6 do
 l3000:
-    ; 6 {
-    ; 7 push(bc)
-    ; 8 {
-    push bc
-    ; 9 a ^= a;
+    ; 7 {
+    ; 8 a ^= a;
     xor  a
-    ; 10 d = 8;
-    ld   d, 8
-    ; 11 e = l;
+    ; 9 d = h; e = l;
+    ld   d, h
     ld   e, l
-    ; 12 do
-l3001:
-    ; 13 {
-    ; 14 b = c;
+    ; 10 b = c;
     ld   b, c
-    ; 15 do
-l3002:
-    ; 16 {
-    ; 17 *hl = a; l++;
+    ; 11 do
+l3001:
+    ; 12 {
+    ; 13 *hl = a; h++;
     ld   (hl), a
-    inc  l
-    ; 18 } while(--b);
-    djnz l3002
-    ; 19 l = e;
-    ld   l, e
-    ; 20 h++;
     inc  h
-    ; 21 d--;
-    dec  d
-    ; 22 } while(flag_nz);
-    jp   nz, l3001
+    ; 14 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 15 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 16 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 17 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 18 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 19 *hl = a; h++;
+    ld   (hl), a
+    inc  h
+    ; 20 *hl = a; h = d;
+    ld   (hl), a
+    ld   h, d
+    ; 21 l++;
+    inc  l
+    ; 22 } while(--b);
+    djnz l3001
     ; 24 // Адрес следующей строки
-    ; 25 hl += (de = [0x20 - 0x800]);
-    ld   de, -2016
-    add  hl, de
-    ; 26 a = h;
+    ; 25 l = ((a = e) += 32);
+    ld   a, e
+    add  32
+    ld   l, a
+    ; 26 if (flag_c) h = ((a = h) += 8);
+    jp   nc, l3002
     ld   a, h
-    ; 27 a &= 7;
-    and  7
-    ; 28 if (flag_nz) fillRectAddLine();
-    call nz, fillRectAddLine
-    ; 29 }
-    pop  bc
-    ; 30 } while(--b);
-    djnz l3000
-    ; 31 }
+    add  8
+    ld   h, a
+    ; 27 } while(flag_nz --ixl);
+l3002:
+    dec  ixl
+    jp   nz, l3000
+    ; 28 }
     ret

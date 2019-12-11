@@ -1,25 +1,67 @@
 0001   0000                 DEVICE ZXSPECTRUM128
-0002   0000                 org 7000h
-0003   7000             
-0004   7000             boot = 626Fh + 3
-0005   7000             
-0006   7000             frame            = boot + 0 ; db
-0007   7000             videoPage        = boot + 1 ; db
-0008   7000             systemPage       = boot + 2 ; db
-0009   7000             keyTrigger       = boot + 3 ; db
-0010   7000             keyPressed       = boot + 4 ; db
-0011   7000             drawText         = boot + 5 + 3 * 0
-0012   7000             drawTextCenter   = boot + 5 + 3 * 1
-0013   7000             drawTextEx       = boot + 5 + 3 * 2
-0014   7000             clearScreen      = boot + 5 + 3 * 3
-0015   7000             drawImage        = boot + 5 + 3 * 4
-0016   7000             measureText      = boot + 5 + 3 * 5
-0017   7000             calcCoords       = boot + 5 + 3 * 6
-0018   7000             drawCharSub      = boot + 5 + 3 * 7
-0019   7000             exec             = boot + 5 + 3 * 8
-0020   7000             
-0021   7000 C3 63 70        jp main
-0022   7003             
+0002   0000             
+0003   0000                 include "../module.inc"
+0001+  0000             ;romAddr        = 0
+0002+  0000             ;screenAddr     = 4000h
+0003+  0000             ;cacheAddr      = 5B00h
+0004+  0000             
+0005+  0000             gPanelChanged1  = 0x5D80
+0006+  0000             gPanelChanged2  = 0x5D80 | 0x8000
+0007+  0000             
+0008+  0000             irqTableAddr      = 5F00h
+0009+  0000             irqAddr           = 6060h
+0010+  0000             stackBeginAddr    = 6001h
+0011+  0000             stackEndAddr      = 605Fh
+0012+  0000             baseAddr          = 6063h
+0013+  0000             moduleLoadAddr    = 7000h
+0014+  0000             moverAddr         = 8000h
+0015+  0000             
+0016+  0000             gEnd = baseAddr
+0017+  0000             
+0018+  0000             ; Функции
+0019+  0000             gDrawText         = gEnd
+0020+  0000             gEnd = gEnd + 3
+0021+  0000             gDrawTextCenter   = gEnd
+0022+  0000             gEnd = gEnd + 3
+0023+  0000             gDrawTextEx       = gEnd
+0024+  0000             gEnd = gEnd + 3
+0025+  0000             gClearScreen      = gEnd
+0026+  0000             gEnd = gEnd + 3
+0027+  0000             gDrawImage        = gEnd
+0028+  0000             gEnd = gEnd + 3
+0029+  0000             gMeasureText      = gEnd
+0030+  0000             gEnd = gEnd + 3
+0031+  0000             gCalcCoords       = gEnd
+0032+  0000             gEnd = gEnd + 3
+0033+  0000             gDrawCharSub      = gEnd
+0034+  0000             gEnd = gEnd + 3
+0035+  0000             gExec             = gEnd
+0036+  0000             gEnd = gEnd + 3
+0037+  0000             gIrqHandler       = gEnd
+0038+  0000             gEnd = gEnd + 3
+0039+  0000             gDrawPanel        = gEnd
+0040+  0000             gEnd = gEnd + 3
+0041+  0000             
+0042+  0000             ; Переменные
+0043+  0000             gFrame            = gEnd
+0044+  0000             gEnd = gEnd + 1
+0045+  0000             gVideoPage        = gEnd
+0046+  0000             gEnd = gEnd + 1
+0047+  0000             gSystemPage       = gEnd
+0048+  0000             gEnd = gEnd + 1
+0049+  0000             gKeyTrigger       = gEnd
+0050+  0000             gEnd = gEnd + 1
+0051+  0000             gKeyPressed       = gEnd
+0052+  0000             gEnd = gEnd + 1
+0053+  0000             gPlayerMoney      = gEnd
+0054+  0000             gEnd = gEnd + 2
+0055+  0000             
+0004   0000             
+0005   0000                 org moduleLoadAddr
+0006   7000             
+0007   7000             begin: 
+0008   7000 C3 79 70        jp main
+0009   7003             
 0001   7003                 ; 3 const int KEY_UP = 1;
 0002   7003                 ; 4 const int KEY_DOWN = 2;
 0003   7003                 ; 5 const int KEY_LEFT = 4;
@@ -38,7 +80,7 @@
 0016   7003                 ; 20 const int screenEndAddr2 = screenAttrAddr2 + screenAttrSize;
 0017   7003                 ; 21 const int cacheAddr1 = screenEndAddr1;
 0018   7003                 ; 22 const int cacheAddr2 = screenEndAddr2;
-0019   7003                 ; 23 const int unusedTailCode = 0xFF;
+0019   7003                 ; 23 const int unusedTailCode = 0xFE;
 0020   7003                 ; 24 const int viewWidth = 32;
 0021   7003                 ; 25 const int viewHeight = 20;
 0022   7003                 ; 26 const int cityRoadY = 13;
@@ -62,1102 +104,1129 @@
 0040   7006 00 AF       cityPlayerSprite dw city1s_0
 0041   7008                 ; 44 uint8_t processedFrames = 0;
 0042   7008 00          processedFrames db 0
-0043   7009                 ; 45 uint8_t startFrame;
-0044   7009 00          startFrame db 0
-0045   700A                 ; 46 uint8_t npcCount = npc_maxCount;
-0046   700A 10          npcCount db 16
-0047   700B                 ; 47 uint8_t npc[npc_sizeof * npc_maxCount];
-0048   700B 00          npc ds 64
-0049   704B                 ; 49 void swapMaps()
-0050   704B             swapMaps: 
-0051   704B                 ; 50 {
-0052   704B                 ; 51 // Загрузка города
-0053   704B                 ; 52 hl = &city1Tails;
-0054   704B 21 00 75        ld   hl, city1Tails
-0055   704E                 ; 53 de = &city1bTails;
-0056   704E 11 00 92        ld   de, city1bTails
-0057   7051                 ; 54 bc = [9 * 256 + 256 * 20];
-0058   7051 01 00 1D        ld   bc, 7424
-0059   7054                 ; 55 do
-0060   7054             l2000: 
-0061   7054                 ; 56 {
-0062   7054                 ; 57 a = *de;
-0063   7054 1A              ld   a, (de)
-0064   7055                 ; 58 ex(a, a);
-0065   7055 08              ex   af, af
-0066   7056                 ; 59 a = *hl;
-0067   7056 7E              ld   a, (hl)
-0068   7057                 ; 60 *de = a;
-0069   7057 12              ld   (de), a
-0070   7058                 ; 61 ex(a, a);
-0071   7058 08              ex   af, af
-0072   7059                 ; 62 *hl = a;
-0073   7059 77              ld   (hl), a
-0074   705A                 ; 63 hl++;
-0075   705A 23              inc  hl
-0076   705B                 ; 64 de++;
-0077   705B 13              inc  de
-0078   705C                 ; 65 bc--;
-0079   705C 0B              dec  bc
-0080   705D                 ; 66 } while(flag_nz (a = b) |= c);
-0081   705D 78              ld   a, b
-0082   705E B1              or   c
-0083   705F C2 54 70        jp   nz, l2000
-0084   7062                 ; 67 }
-0085   7062 C9              ret
-0086   7063                 ; 69 void main()
-0087   7063             main: 
-0088   7063                 ; 70 {
-0089   7063                 ; 71 cityPlayerX = a = [mapWidth / 2];
-0090   7063 3E 80           ld   a, 128
-0091   7065 32 03 70        ld   (cityPlayerX), a
-0092   7068                 ; 72 cityScrollX = (a -= [viewWidth / 2]);
-0093   7068 D6 10           sub  16
-0094   706A 32 04 70        ld   (cityScrollX), a
-0095   706D                 ; 74 // Инициализация NPC
-0096   706D                 ; 75 initNpc();
-0097   706D CD A7 70        call initNpc
-0098   7070                 ; 77 //swapMaps();
-0099   7070                 ; 79 // Инициализация кеша
-0100   7070                 ; 80 cityInvalidate(hl = cacheAddr1);
-0101   7070 21 00 5B        ld   hl, 23296
-0102   7073 CD 9C 70        call cityInvalidate
-0103   7076                 ; 81 cityInvalidate(hl = cacheAddr2);
-0104   7076 21 00 DB        ld   hl, 56064
-0105   7079 CD 9C 70        call cityInvalidate
-0106   707C                 ; 83 // Перерисовать
-0107   707C                 ; 84 cityRedraw();
-0108   707C CD F5 71        call cityRedraw
-0109   707F                 ; 86 while()
-0110   707F             l2001: 
-0111   707F                 ; 87 {
-0112   707F                 ; 88 while ((a = frame) != *(hl = &processedFrames))
-0113   707F             l2003: 
-0114   707F 3A 72 62        ld   a, (frame)
-0115   7082 21 08 70        ld   hl, processedFrames
-0116   7085 BE              cp   (hl)
-0117   7086 CA 95 70        jp   z, l2004
-0118   7089                 ; 89 {
-0119   7089                 ; 90 *hl = a;
-0120   7089 77              ld   (hl), a
-0121   708A                 ; 91 a &= 3;
-0122   708A E6 03           and  3
-0123   708C                 ; 92 if (flag_z) processPlayer();
-0124   708C CC 67 71        call z, processPlayer
-0125   708F                 ; 93 processNpc();
-0126   708F CD D6 70        call processNpc
-0127   7092                 ; 94 }
-0128   7092 C3 7F 70        jp   l2003
-0129   7095             l2004: 
-0130   7095                 ; 96 cityRedraw();
-0131   7095 CD F5 71        call cityRedraw
-0132   7098                 ; 97 }
-0133   7098 C3 7F 70        jp   l2001
-0134   709B                 ; 98 }
-0135   709B C9              ret
-0136   709C                 ; 100 void cityInvalidate(hl)
-0137   709C             cityInvalidate: 
-0138   709C                 ; 101 {
-0139   709C                 ; 102 d = h; e = l; de++;
-0140   709C 54              ld   d, h
-0141   709D 5D              ld   e, l
-0142   709E 13              inc  de
-0143   709F                 ; 103 *hl = unusedTailCode;
-0144   709F 36 FF           ld   (hl), 255
-0145   70A1                 ; 104 bc = [viewWidth * viewHeight - 1];
-0146   70A1 01 7F 02        ld   bc, 639
-0147   70A4                 ; 105 ldir();
-0148   70A4 ED B0           ldir
-0149   70A6                 ; 106 }
-0150   70A6 C9              ret
-0151   70A7                 ; 108 //----------------------------------------------------------------------------------------------------------------------
-0152   70A7                 ; 109 // Инициализация жителей
-0153   70A7                 ; 111 void initNpc()
-0154   70A7             initNpc: 
-0155   70A7                 ; 112 {
-0156   70A7                 ; 113 ix = &npc;
-0157   70A7 DD 21 0B 70     ld   ix, npc
-0158   70AB                 ; 114 de = npc_sizeof;
-0159   70AB 11 04 00        ld   de, 4
-0160   70AE                 ; 115 b = a = npcCount; // Счетчик цикла
-0161   70AE 3A 0A 70        ld   a, (npcCount)
-0162   70B1 47              ld   b, a
-0163   70B2                 ; 116 do
-0164   70B2             l2006: 
-0165   70B2                 ; 117 {
-0166   70B2                 ; 118 a = b;
-0167   70B2 78              ld   a, b
-0168   70B3                 ; 119 while (a >= npc_defaultSpeed) a -= npc_defaultSpeed;
-0169   70B3             l2007: 
-0170   70B3 FE 07           cp   7
-0171   70B5 DA BD 70        jp   c, l2008
-0172   70B8 D6 07           sub  7
-0173   70BA C3 B3 70        jp   l2007
-0174   70BD             l2008: 
-0175   70BD                 ; 120 a += 1;
-0176   70BD C6 01           add  1
-0177   70BF                 ; 121 ix[npc_timer] = a; // Фаза таймера
-0178   70BF DD 77 00        ld   (ix + 0), a
-0179   70C2                 ; 123 ix[npc_step] = 0;
-0180   70C2 DD 36 02 00     ld   (ix + 2), 0
-0181   70C6                 ; 124 rand();
-0182   70C6 CD FF 73        call rand
-0183   70C9                 ; 125 ix[npc_position] = a;
-0184   70C9 DD 77 03        ld   (ix + 3), a
-0185   70CC                 ; 126 ix[npc_flags] = (a &= [npc_flags_direction | npc_flags_type]);
-0186   70CC E6 03           and  3
-0187   70CE DD 77 01        ld   (ix + 1), a
-0188   70D1                 ; 127 ix += de;
-0189   70D1 DD 19           add  ix, de
-0190   70D3                 ; 128 } while(--b);
-0191   70D3 10 DD           djnz l2006
-0192   70D5                 ; 129 }
-0193   70D5 C9              ret
-0194   70D6                 ; 131 //----------------------------------------------------------------------------------------------------------------------
-0195   70D6                 ; 132 // Перемещение и анимация жителей.
-0196   70D6                 ; 134 void processNpc()
-0197   70D6             processNpc: 
-0198   70D6                 ; 135 {
-0199   70D6                 ; 136 de = npc_sizeof;
-0200   70D6 11 04 00        ld   de, 4
-0201   70D9                 ; 137 hl = &npc;
-0202   70D9 21 0B 70        ld   hl, npc
-0203   70DC                 ; 138 b = a = npcCount;
-0204   70DC 3A 0A 70        ld   a, (npcCount)
-0205   70DF 47              ld   b, a
-0206   70E0                 ; 139 do
-0207   70E0             l2010: 
-0208   70E0                 ; 140 {
-0209   70E0                 ; 141 if (flag_z --*hl) // Скорость
-0210   70E0 35              dec  (hl)
-0211   70E1                 ; 142 {
-0212   70E1 C2 2D 71        jp   nz, l2011
-0213   70E4                 ; 143 rand();
-0214   70E4 CD FF 73        call rand
-0215   70E7                 ; 144 if (flag_z a--) // Внезапная остановка
-0216   70E7 3D              dec  a
-0217   70E8                 ; 145 {
-0218   70E8 C2 F3 70        jp   nz, l2012
-0219   70EB                 ; 146 //! Не полушаге не останавливать
-0220   70EB                 ; 147 push(hl);
-0221   70EB E5              push hl
-0222   70EC                 ; 148 pop(ix);
-0223   70EC DD E1           pop  ix
-0224   70EE                 ; 149 //a = ix[npc_spriteType];
-0225   70EE                 ; 150 //if (a == 1)
-0226   70EE                 ; 151 //{
-0227   70EE                 ; 152 *hl = 255;
-0228   70EE 36 FF           ld   (hl), 255
-0229   70F0                 ; 153 goto continue1;
-0230   70F0 C3 2D 71        jp   continue1
-0231   70F3                 ; 154 //}
-0232   70F3                 ; 155 }
-0233   70F3                 ; 157 // У всех разная скорость
-0234   70F3                 ; 158 *hl = (((a = b) &= 7) += npc_defaultSpeed);
-0235   70F3             l2012: 
-0236   70F3 78              ld   a, b
-0237   70F4 E6 07           and  7
-0238   70F6 C6 07           add  7
-0239   70F8 77              ld   (hl), a
-0240   70F9                 ; 160 if (flag_z a--) // Внезапный поворот
-0241   70F9 3D              dec  a
-0242   70FA                 ; 161 {
-0243   70FA C2 03 71        jp   nz, l2013
-0244   70FD                 ; 162 hl++;
-0245   70FD 23              inc  hl
-0246   70FE                 ; 163 a = *hl;
-0247   70FE 7E              ld   a, (hl)
-0248   70FF                 ; 164 a ^= npc_flags_direction;
-0249   70FF EE 01           xor  1
-0250   7101                 ; 165 *hl = a;
-0251   7101 77              ld   (hl), a
-0252   7102                 ; 166 hl--;
-0253   7102 2B              dec  hl
-0254   7103                 ; 167 }
-0255   7103                 ; 169 hl++;
-0256   7103             l2013: 
-0257   7103 23              inc  hl
-0258   7104                 ; 170 if (*hl & npc_flags_direction) // Направление
-0259   7104 CB 46           bit  0, (hl)
-0260   7106                 ; 171 {
-0261   7106 CA 1A 71        jp   z, l2014
-0262   7109                 ; 172 hl++;
-0263   7109 23              inc  hl
-0264   710A                 ; 173 a = *hl;
-0265   710A 7E              ld   a, (hl)
-0266   710B                 ; 174 a++;
-0267   710B 3C              inc  a
-0268   710C                 ; 175 if (a >= 4) { a = 0; hl++; ++*hl; hl--; }
-0269   710C FE 04           cp   4
-0270   710E DA 16 71        jp   c, l2015
-0271   7111 3E 00           ld   a, 0
-0272   7113 23              inc  hl
-0273   7114 34              inc  (hl)
-0274   7115 2B              dec  hl
-0275   7116                 ; 176 *hl = a;
-0276   7116             l2015: 
-0277   7116 77              ld   (hl), a
-0278   7117                 ; 177 }
-0279   7117                 ; 178 else
-0280   7117 C3 28 71        jp   l2016
-0281   711A             l2014: 
-0282   711A                 ; 179 {
-0283   711A                 ; 180 hl++;
-0284   711A 23              inc  hl
-0285   711B                 ; 181 a = *hl;
-0286   711B 7E              ld   a, (hl)
-0287   711C                 ; 182 a++;
-0288   711C 3C              inc  a
-0289   711D                 ; 183 if (a >= 4) { a = 0; hl++; --*hl; hl--; }
-0290   711D FE 04           cp   4
-0291   711F DA 27 71        jp   c, l2017
-0292   7122 3E 00           ld   a, 0
-0293   7124 23              inc  hl
-0294   7125 35              dec  (hl)
-0295   7126 2B              dec  hl
-0296   7127                 ; 184 *hl = a;
-0297   7127             l2017: 
-0298   7127 77              ld   (hl), a
-0299   7128                 ; 185 }
-0300   7128             l2016: 
-0301   7128                 ; 186 hl++; hl++;
-0302   7128 23              inc  hl
-0303   7129 23              inc  hl
-0304   712A                 ; 187 }
-0305   712A                 ; 188 else
-0306   712A C3 2E 71        jp   l2018
-0307   712D             l2011: 
-0308   712D                 ; 189 {
-0309   712D                 ; 190 continue1:
-0310   712D             continue1: 
-0311   712D                 ; 191 hl += de; // Следующий NPC
-0312   712D 19              add  hl, de
-0313   712E                 ; 192 }
-0314   712E             l2018: 
-0315   712E                 ; 193 } while(flag_nz --b);
-0316   712E 05              dec  b
-0317   712F C2 E0 70        jp   nz, l2010
-0318   7132                 ; 194 }
-0319   7132 C9              ret
-0320   7133                 ; 196 //----------------------------------------------------------------------------------------------------------------------
-0321   7133                 ; 197 // Вход: hl - должно указывать на npc_position
-0322   7133                 ; 198 // Выход: hl - адрес спрайта
-0323   7133                 ; 199 // Портит: a
-0324   7133                 ; 201 // const int npc_timer      = 0;
-0325   7133                 ; 202 // const int npc_direction  = 1;
-0326   7133                 ; 203 // const int npc_step       = 2;
-0327   7133                 ; 204 // const int npc_position   = 3;
-0328   7133                 ; 205 // const int npc_sprite_l   = 4;
-0329   7133                 ; 206 // const int npc_sprite_h   = 5;
-0330   7133                 ; 207 // const int npc_sizeof     = 6;
-0331   7133                 ; 209 void getNpcSprite(hl)
-0332   7133             getNpcSprite: 
-0333   7133                 ; 210 {
-0334   7133                 ; 211 // Вычисление номера спрайта
-0335   7133                 ; 212 hl--;
-0336   7133 2B              dec  hl
-0337   7134                 ; 213 hl--;
-0338   7134 2B              dec  hl
-0339   7135                 ; 214 a = *hl; // npc_direction + npc_type
-0340   7135 7E              ld   a, (hl)
-0341   7136                 ; 215 a += a;
-0342   7136 87              add  a
-0343   7137                 ; 216 a += a;
-0344   7137 87              add  a
-0345   7138                 ; 217 hl++;
-0346   7138 23              inc  hl
-0347   7139                 ; 218 a += *hl; // npc_step
-0348   7139 86              add  (hl)
-0349   713A                 ; 220 // Получение элемента массива
-0350   713A                 ; 221 l = ((a += a) += &sprite_citizen);
-0351   713A 87              add  a
-0352   713B C6 47           add  sprite_citizen
-0353   713D 6F              ld   l, a
-0354   713E                 ; 222 h = ((a +@= [&sprite_citizen >> 8]) -= l);
-0355   713E CE 71           adc  (sprite_citizen) >> (8)
-0356   7140 95              sub  l
-0357   7141 67              ld   h, a
-0358   7142                 ; 223 a = *hl; hl++; h = *hl; l = a;
-0359   7142 7E              ld   a, (hl)
-0360   7143 23              inc  hl
-0361   7144 66              ld   h, (hl)
-0362   7145 6F              ld   l, a
-0363   7146                 ; 224 }
-0364   7146 C9              ret
-0365   7147                 ; 226 uint16_t sprite_citizen[16] =
-0366   7147                 ; 227 {
-0367   7147                 ; 228 &city1s_15, &city1s_16, &city1s_17, &city1s_14,
-0368   7147                 ; 229 &city1s_21, &city1s_20, &city1s_19, &city1s_18,
-0369   7147                 ; 231 &city1s_9,  &city1s_8,  &city1s_7,  &city1s_6,
-0370   7147                 ; 232 &city1s_10, &city1s_11, &city1s_12, &city1s_13
-0371   7147                 ; 233 };
-0372   7147             sprite_citizen: 
-0373   7147 6E B3           dw city1s_15
-0374   7149 00 B4           dw city1s_16
-0375   714B 49 B4           dw city1s_17
-0376   714D 49 B3           dw city1s_14
-0377   714F 92 B5           dw city1s_21
-0378   7151 49 B5           dw city1s_20
-0379   7153 00 B5           dw city1s_19
-0380   7155 92 B4           dw city1s_18
-0381   7157 92 B1           dw city1s_9
-0382   7159 49 B1           dw city1s_8
-0383   715B 00 B1           dw city1s_7
-0384   715D 92 B0           dw city1s_6
-0385   715F 00 B2           dw city1s_10
-0386   7161 25 B2           dw city1s_11
-0387   7163 6E B2           dw city1s_12
-0388   7165 00 B3           dw city1s_13
-0389   7167                 ; 235 //----------------------------------------------------------------------------------------------------------------------
-0390   7167                 ; 236 // Управление игроком и анимация игрока.
-0391   7167                 ; 238 const int sprite_raistlin_left       = &city1s_0;
-0392   7167                 ; 239 const int sprite_raistlin_left_step  = &city1s_1;
-0393   7167                 ; 240 const int sprite_raistlin_right      = &city1s_3;
-0394   7167                 ; 241 const int sprite_raistlin_right_step = &city1s_4;
-0395   7167                 ; 243 void processPlayer()
-0396   7167             processPlayer: 
-0397   7167                 ; 244 {
-0398   7167                 ; 245 b = a = keyPressed;
-0399   7167 3A 76 62        ld   a, (keyPressed)
-0400   716A 47              ld   b, a
-0401   716B                 ; 246 c = a = cityPlayerDirection;
-0402   716B 3A 05 70        ld   a, (cityPlayerDirection)
-0403   716E 4F              ld   c, a
-0404   716F                 ; 247 a = cityPlayerX;
-0405   716F 3A 03 70        ld   a, (cityPlayerX)
-0406   7172                 ; 248 if (b & KEY_LEFT)
-0407   7172 CB 50           bit  2, b
-0408   7174                 ; 249 {
-0409   7174 CA AD 71        jp   z, l2019
-0410   7177                 ; 250 if (c & 1)
-0411   7177 CB 41           bit  0, c
-0412   7179                 ; 251 {            
-0413   7179 CA 84 71        jp   z, l2020
-0414   717C                 ; 252 cityPlayerDirection = (a ^= a);
-0415   717C AF              xor  a
-0416   717D 32 05 70        ld   (cityPlayerDirection), a
-0417   7180                 ; 253 c = a;
-0418   7180 4F              ld   c, a
-0419   7181                 ; 254 }
-0420   7181                 ; 255 else
-0421   7181 C3 AA 71        jp   l2021
-0422   7184             l2020: 
-0423   7184                 ; 256 {
-0424   7184                 ; 257 a -= 1;
-0425   7184 D6 01           sub  1
-0426   7186                 ; 258 if (flag_nc)
-0427   7186                 ; 259 {
-0428   7186 DA AA 71        jp   c, l2022
-0429   7189                 ; 260 cityPlayerX = a;
-0430   7189 32 03 70        ld   (cityPlayerX), a
-0431   718C                 ; 262 // Прокрутка экрана
-0432   718C                 ; 263 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; } //! Почему нельзя без {} ?
-0433   718C D6 10           sub  16
-0434   718E DA 99 71        jp   c, l2023
-0435   7191 FE E1           cp   225
-0436   7193 D2 99 71        jp   nc, l2024
-0437   7196 32 04 70        ld   (cityScrollX), a
-0438   7199                 ; 265 hl = sprite_raistlin_left;
-0439   7199             l2024: 
-0440   7199             l2023: 
-0441   7199 21 00 AF        ld   hl, city1s_0
-0442   719C                 ; 266 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_left_step;
-0443   719C 3A 06 70        ld   a, (cityPlayerSprite)
-0444   719F BD              cp   l
-0445   71A0 C2 A6 71        jp   nz, l2025
-0446   71A3 21 25 AF        ld   hl, city1s_1
-0447   71A6                 ; 267 cityPlayerSprite = hl;
-0448   71A6             l2025: 
-0449   71A6 22 06 70        ld   (cityPlayerSprite), hl
-0450   71A9                 ; 268 return;
-0451   71A9 C9              ret
-0452   71AA                 ; 269 }
-0453   71AA                 ; 270 }
-0454   71AA             l2022: 
-0455   71AA             l2021: 
-0456   71AA                 ; 271 }
-0457   71AA                 ; 272 else if (b & KEY_RIGHT)
-0458   71AA C3 E6 71        jp   l2026
-0459   71AD             l2019: 
-0460   71AD CB 58           bit  3, b
-0461   71AF                 ; 273 {
-0462   71AF CA E6 71        jp   z, l2027
-0463   71B2                 ; 274 if (flag_z c & 1)
-0464   71B2 CB 41           bit  0, c
-0465   71B4                 ; 275 {
-0466   71B4 C2 C0 71        jp   nz, l2028
-0467   71B7                 ; 276 cityPlayerDirection = (a = 1);
-0468   71B7 3E 01           ld   a, 1
-0469   71B9 32 05 70        ld   (cityPlayerDirection), a
-0470   71BC                 ; 277 c = a;
-0471   71BC 4F              ld   c, a
-0472   71BD                 ; 278 }
-0473   71BD                 ; 279 else
-0474   71BD C3 E6 71        jp   l2029
-0475   71C0             l2028: 
-0476   71C0                 ; 280 {
-0477   71C0                 ; 281 a += 1;
-0478   71C0 C6 01           add  1
-0479   71C2                 ; 282 if (flag_nc)
-0480   71C2                 ; 283 {
-0481   71C2 DA E6 71        jp   c, l2030
-0482   71C5                 ; 284 cityPlayerX = a;
-0483   71C5 32 03 70        ld   (cityPlayerX), a
-0484   71C8                 ; 286 // Прокрутка экрана
-0485   71C8                 ; 287 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; }  //! Почему нельзя без {} ?
-0486   71C8 D6 10           sub  16
-0487   71CA DA D5 71        jp   c, l2031
-0488   71CD FE E1           cp   225
-0489   71CF D2 D5 71        jp   nc, l2032
-0490   71D2 32 04 70        ld   (cityScrollX), a
-0491   71D5                 ; 289 hl = sprite_raistlin_right;
-0492   71D5             l2032: 
-0493   71D5             l2031: 
-0494   71D5 21 B7 AF        ld   hl, city1s_3
-0495   71D8                 ; 290 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_right_step;
-0496   71D8 3A 06 70        ld   a, (cityPlayerSprite)
-0497   71DB BD              cp   l
-0498   71DC C2 E2 71        jp   nz, l2033
-0499   71DF 21 00 B0        ld   hl, city1s_4
-0500   71E2                 ; 291 cityPlayerSprite = hl;
-0501   71E2             l2033: 
-0502   71E2 22 06 70        ld   (cityPlayerSprite), hl
-0503   71E5                 ; 292 return;
-0504   71E5 C9              ret
-0505   71E6                 ; 293 }
-0506   71E6                 ; 294 }
-0507   71E6             l2030: 
-0508   71E6             l2029: 
-0509   71E6                 ; 295 }
-0510   71E6                 ; 297 // Убираем анимацию шага, если ни одна клавиша не нажата
-0511   71E6                 ; 298 hl = sprite_raistlin_left;
-0512   71E6             l2027: 
-0513   71E6             l2026: 
-0514   71E6 21 00 AF        ld   hl, city1s_0
-0515   71E9                 ; 299 if (c & 1) hl = sprite_raistlin_right;
-0516   71E9 CB 41           bit  0, c
-0517   71EB CA F1 71        jp   z, l2034
-0518   71EE 21 B7 AF        ld   hl, city1s_3
-0519   71F1                 ; 300 cityPlayerSprite = hl;
-0520   71F1             l2034: 
-0521   71F1 22 06 70        ld   (cityPlayerSprite), hl
-0522   71F4                 ; 301 }
-0523   71F4 C9              ret
-0524   71F5                 ; 303 //----------------------------------------------------------------------------------------------------------------------
-0525   71F5                 ; 305 void cityRedraw()
-0526   71F5             cityRedraw: 
-0527   71F5                 ; 306 {
-0528   71F5                 ; 307 // Оценка времени
-0529   71F5                 ; 308 startFrame = a = frame;
-0530   71F5 3A 72 62        ld   a, (frame)
-0531   71F8 32 09 70        ld   (startFrame), a
-0532   71FB                 ; 310 // Ждем, если активная страница еще не стала видимой
-0533   71FB                 ; 311 while ((a = videoPage) & 1);
-0534   71FB             l2035: 
-0535   71FB 3A 73 62        ld   a, (videoPage)
-0536   71FE CB 47           bit  0, a
-0537   7200 CA 06 72        jp   z, l2036
-0538   7203 C3 FB 71        jp   l2035
-0539   7206             l2036: 
-0540   7206                 ; 313 // Адрес карты / источник
-0541   7206                 ; 314 d` = [&city1Map >> 8];
-0542   7206 16 7E           ld   d, (city1Map) >> (8)
-0543   7208                 ; 315 e` = a = cityScrollX;
-0544   7208 3A 04 70        ld   a, (cityScrollX)
-0545   720B 5F              ld   e, a
-0546   720C                 ; 316 b` = e`;
-0547   720C 43              ld   b, e
-0548   720D                 ; 318 // Адрес видеостраницы / назначение
-0549   720D                 ; 319 a = videoPage;
-0550   720D 3A 73 62        ld   a, (videoPage)
-0551   7210                 ; 320 if (a & 8)
-0552   7210 CB 5F           bit  3, a
-0553   7212                 ; 321 {
-0554   7212 CA 22 72        jp   z, l2038
-0555   7215                 ; 322 hl` = [cacheAddr1 - 1];
-0556   7215 21 FF 5A        ld   hl, 23295
-0557   7218                 ; 323 ex(bc, de, hl);
-0558   7218 D9              exx
-0559   7219                 ; 324 de = screenAddr1;
-0560   7219 11 00 40        ld   de, 16384
-0561   721C                 ; 325 bc = screenAttrAddr1;
-0562   721C 01 00 58        ld   bc, 22528
-0563   721F                 ; 326 }
-0564   721F                 ; 327 else
-0565   721F C3 2C 72        jp   l2039
-0566   7222             l2038: 
-0567   7222                 ; 328 {
-0568   7222                 ; 329 hl` = [cacheAddr2 - 1];
-0569   7222 21 FF DA        ld   hl, 56063
-0570   7225                 ; 330 ex(bc, de, hl);
-0571   7225 D9              exx
-0572   7226                 ; 331 de = screenAddr2;
-0573   7226 11 00 C0        ld   de, 49152
-0574   7229                 ; 332 bc = screenAttrAddr2;
-0575   7229 01 00 D8        ld   bc, 55296
-0576   722C                 ; 333 }
-0577   722C             l2039: 
-0578   722C                 ; 335 // Цикл строк
-0579   722C                 ; 336 ixh = viewHeight;
-0580   722C DD 26 14        ld   ixh, 20
-0581   722F                 ; 337 do
-0582   722F             l2040: 
-0583   722F                 ; 338 {
-0584   722F                 ; 339 // Сохранение адреса вывода
-0585   722F                 ; 340 iyl = e;
-0586   722F FD 6B           ld   iyl, e
-0587   7231                 ; 341 iyh = d;
-0588   7231 FD 62           ld   iyh, d
-0589   7233                 ; 343 // Цикл стобцов
-0590   7233                 ; 344 ixl = viewWidth;
-0591   7233 DD 2E 20        ld   ixl, 32
-0592   7236                 ; 345 do
-0593   7236             l2041: 
-0594   7236                 ; 346 {
-0595   7236                 ; 347 optimize0:  // Чтение номера тейла из карты уровня
-0596   7236             optimize0: 
-0597   7236                 ; 348 ex(bc, de, hl);
-0598   7236 D9              exx
-0599   7237                 ; 349 hl`++;
-0600   7237 23              inc  hl
-0601   7238                 ; 350 c` = *hl;
-0602   7238 4E              ld   c, (hl)
-0603   7239                 ; 351 a = *de`;
-0604   7239 1A              ld   a, (de)
-0605   723A                 ; 352 if (a == c`) goto optimize1;
-0606   723A B9              cp   c
-0607   723B CA A2 72        jp   z, optimize1
-0608   723E                 ; 353 if (flag_z c`++) goto optimize3;
-0609   723E 0C              inc  c
-0610   723F CA 9F 72        jp   z, optimize3
-0611   7242                 ; 354 e`++;
-0612   7242 1C              inc  e
-0613   7243                 ; 355 *hl` = a;
-0614   7243 77              ld   (hl), a
-0615   7244                 ; 356 ex(bc, de, hl);
-0616   7244 D9              exx
-0617   7245                 ; 358 // Вычисление адреса тейла
-0618   7245                 ; 359 h = [&city1Tails >> 8];
-0619   7245 26 75           ld   h, (city1Tails) >> (8)
-0620   7247                 ; 360 l = a;
-0621   7247 6F              ld   l, a
-0622   7248                 ; 362 // Вывод на экран
-0623   7248                 ; 363 a = *hl; h++; *de = a; d++;
-0624   7248 7E              ld   a, (hl)
-0625   7249 24              inc  h
-0626   724A 12              ld   (de), a
-0627   724B 14              inc  d
-0628   724C                 ; 364 a = *hl; h++; *de = a; d++;
-0629   724C 7E              ld   a, (hl)
-0630   724D 24              inc  h
-0631   724E 12              ld   (de), a
-0632   724F 14              inc  d
-0633   7250                 ; 365 a = *hl; h++; *de = a; d++;
-0634   7250 7E              ld   a, (hl)
-0635   7251 24              inc  h
-0636   7252 12              ld   (de), a
-0637   7253 14              inc  d
-0638   7254                 ; 366 a = *hl; h++; *de = a; d++;
-0639   7254 7E              ld   a, (hl)
-0640   7255 24              inc  h
-0641   7256 12              ld   (de), a
-0642   7257 14              inc  d
-0643   7258                 ; 367 a = *hl; h++; *de = a; d++;
-0644   7258 7E              ld   a, (hl)
-0645   7259 24              inc  h
-0646   725A 12              ld   (de), a
-0647   725B 14              inc  d
-0648   725C                 ; 368 a = *hl; h++; *de = a; d++;
-0649   725C 7E              ld   a, (hl)
-0650   725D 24              inc  h
-0651   725E 12              ld   (de), a
-0652   725F 14              inc  d
-0653   7260                 ; 369 a = *hl; h++; *de = a; d++;
-0654   7260 7E              ld   a, (hl)
-0655   7261 24              inc  h
-0656   7262 12              ld   (de), a
-0657   7263 14              inc  d
-0658   7264                 ; 370 a = *hl; h++; *de = a;
-0659   7264 7E              ld   a, (hl)
-0660   7265 24              inc  h
-0661   7266 12              ld   (de), a
-0662   7267                 ; 371 a = *hl;      *bc = a; bc++;
-0663   7267 7E              ld   a, (hl)
-0664   7268 02              ld   (bc), a
-0665   7269 03              inc  bc
-0666   726A                 ; 373 d = iyh;
-0667   726A FD 54           ld   d, iyh
-0668   726C                 ; 374 e++;
-0669   726C 1C              inc  e
-0670   726D                 ; 375 ixl--;
-0671   726D DD 2D           dec  ixl
-0672   726F                 ; 376 } while(flag_nz);
-0673   726F C2 36 72        jp   nz, l2041
-0674   7272                 ; 377 optimize2:
-0675   7272             optimize2: 
-0676   7272                 ; 379 // Следующая строка карты
-0677   7272                 ; 380 ex(bc, de, hl);
-0678   7272 D9              exx
-0679   7273                 ; 381 e` = b`;
-0680   7273 58              ld   e, b
-0681   7274                 ; 382 d`++;
-0682   7274 14              inc  d
-0683   7275                 ; 383 ex(bc, de, hl);
-0684   7275 D9              exx
-0685   7276                 ; 385 // Адрес следующей чб строки на экране
-0686   7276                 ; 386 e = ((a = iyl) += 0x20);
-0687   7276 FD 7D           ld   a, iyl
-0688   7278 C6 20           add  32
-0689   727A 5F              ld   e, a
-0690   727B                 ; 387 if (flag_c) d = ((a = d) += 0x08);
-0691   727B D2 82 72        jp   nc, l2042
-0692   727E 7A              ld   a, d
-0693   727F C6 08           add  8
-0694   7281 57              ld   d, a
-0695   7282                 ; 389 ixh--;
-0696   7282             l2042: 
-0697   7282 DD 25           dec  ixh
-0698   7284                 ; 390 } while(flag_nz);
-0699   7284 C2 2F 72        jp   nz, l2040
-0700   7287                 ; 392 drawSprites();
-0701   7287 CD AF 72        call drawSprites
-0702   728A                 ; 394 // Переключить видеостраницы во время следующего прерывания
-0703   728A                 ; 395 videoPage = ((a = videoPage) ^= 8 |= 1);
-0704   728A 3A 73 62        ld   a, (videoPage)
-0705   728D EE 08           xor  8
-0706   728F F6 01           or   1
-0707   7291 32 73 62        ld   (videoPage), a
-0708   7294                 ; 397 // Оценка времени
-0709   7294                 ; 398 printDelay((a = frame) -= *(hl = &startFrame));
-0710   7294 3A 72 62        ld   a, (frame)
-0711   7297 21 09 70        ld   hl, startFrame
-0712   729A 96              sub  (hl)
-0713   729B CD DB 73        call printDelay
-0714   729E                 ; 400 return;
-0715   729E C9              ret
-0716   729F                 ; 401 optimize3:
-0717   729F             optimize3: 
-0718   729F                 ; 402 *hl` = a = 254;
-0719   729F 3E FE           ld   a, 254
-0720   72A1 77              ld   (hl), a
-0721   72A2                 ; 403 optimize1:
-0722   72A2             optimize1: 
-0723   72A2                 ; 404 e`++;
-0724   72A2 1C              inc  e
-0725   72A3                 ; 405 ex(bc, de, hl);
-0726   72A3 D9              exx
-0727   72A4                 ; 406 bc++;
-0728   72A4 03              inc  bc
-0729   72A5                 ; 407 e++;
-0730   72A5 1C              inc  e
-0731   72A6                 ; 408 ixl--;
-0732   72A6 DD 2D           dec  ixl
-0733   72A8                 ; 409 if(flag_nz) goto optimize0;
-0734   72A8 C2 36 72        jp   nz, optimize0
-0735   72AB                 ; 410 goto optimize2;
-0736   72AB C3 72 72        jp   optimize2
-0737   72AE                 ; 411 }
-0738   72AE C9              ret
-0739   72AF                 ; 413 void drawSprites()
-0740   72AF             drawSprites: 
-0741   72AF                 ; 414 {
-0742   72AF                 ; 415 a = videoPage;
-0743   72AF 3A 73 62        ld   a, (videoPage)
-0744   72B2                 ; 416 if (a & 8) ixh = [screenAddr1 >> 8];
-0745   72B2 CB 5F           bit  3, a
-0746   72B4 CA BD 72        jp   z, l2043
-0747   72B7 DD 26 40        ld   ixh, 64
-0748   72BA                 ; 417 else ixh = [screenAddr2 >> 8];
-0749   72BA C3 C0 72        jp   l2044
-0750   72BD             l2043: 
-0751   72BD DD 26 C0        ld   ixh, 192
-0752   72C0             l2044: 
-0753   72C0                 ; 419 // const int npc_timer      = 0;
-0754   72C0                 ; 420 // const int npc_direction  = 1;
-0755   72C0                 ; 421 // const int npc_step       = 2;
-0756   72C0                 ; 422 // const int npc_position   = 3;
-0757   72C0                 ; 423 // const int npc_sprite_l   = 4;
-0758   72C0                 ; 424 // const int npc_sprite_h   = 5;
-0759   72C0                 ; 425 // const int npc_sizeof     = 6;
-0760   72C0                 ; 427 // Спрайты
-0761   72C0                 ; 428 hl = [&npc + npc_position];
-0762   72C0 21 0E 70        ld   hl, (npc) + (3)
-0763   72C3                 ; 429 b = a = npcCount;
-0764   72C3 3A 0A 70        ld   a, (npcCount)
-0765   72C6 47              ld   b, a
-0766   72C7                 ; 430 c = (a = cityScrollX); c--;
-0767   72C7 3A 04 70        ld   a, (cityScrollX)
-0768   72CA 4F              ld   c, a
-0769   72CB 0D              dec  c
-0770   72CC                 ; 431 de = npc_sizeof;
-0771   72CC 11 04 00        ld   de, 4
-0772   72CF                 ; 432 do
-0773   72CF             l2045: 
-0774   72CF                 ; 433 {
-0775   72CF                 ; 434 // Если спрайт за экраном, то не рисуем его
-0776   72CF                 ; 435 if (((a = *hl) -= c) < [viewWidth + 1]) //! для const int можно <=
-0777   72CF 7E              ld   a, (hl)
-0778   72D0 91              sub  c
-0779   72D1 FE 21           cp   33
-0780   72D3                 ; 436 {
-0781   72D3 D2 FB 72        jp   nc, l2046
-0782   72D6                 ; 437 push(bc, de, hl)
-0783   72D6                 ; 438 {
-0784   72D6 C5              push bc
-0785   72D7 D5              push de
-0786   72D8 E5              push hl
-0787   72D9                 ; 439 c = --a; // Для drawSprite
-0788   72D9 3D              dec  a
-0789   72DA 4F              ld   c, a
-0790   72DB                 ; 441 // Цвет {
-0791   72DB                 ; 442 a = b;
-0792   72DB 78              ld   a, b
-0793   72DC                 ; 443 while(a >= 14) a -= 14;
-0794   72DC             l2047: 
-0795   72DC FE 0E           cp   14
-0796   72DE DA E6 72        jp   c, l2048
-0797   72E1 D6 0E           sub  14
-0798   72E3 C3 DC 72        jp   l2047
-0799   72E6             l2048: 
-0800   72E6                 ; 444 if (a >= 7) a += [0x40 - 7]; a++;
-0801   72E6 FE 07           cp   7
-0802   72E8 DA ED 72        jp   c, l2050
-0803   72EB C6 39           add  57
-0804   72ED             l2050: 
-0805   72ED 3C              inc  a
-0806   72EE                 ; 445 iyh = a;
-0807   72EE FD 67           ld   iyh, a
-0808   72F0                 ; 446 // }
-0809   72F0                 ; 448 getNpcSprite(hl);
-0810   72F0 CD 33 71        call getNpcSprite
-0811   72F3                 ; 449 b = cityRoadY;
-0812   72F3 06 0D           ld   b, 13
-0813   72F5                 ; 450 drawSprite();
-0814   72F5 CD 17 73        call drawSprite
-0815   72F8                 ; 451 }
-0816   72F8 E1              pop  hl
-0817   72F9 D1              pop  de
-0818   72FA C1              pop  bc
-0819   72FB                 ; 452 }
-0820   72FB                 ; 453 hl += de;
-0821   72FB             l2046: 
-0822   72FB 19              add  hl, de
-0823   72FC                 ; 454 } while(--b);
-0824   72FC 10 D1           djnz l2045
-0825   72FE                 ; 456 // Рисование игрока
-0826   72FE                 ; 457 b = cityRoadY;
-0827   72FE 06 0D           ld   b, 13
-0828   7300                 ; 458 c++;
-0829   7300 0C              inc  c
-0830   7301                 ; 459 c = ((a = cityPlayerX) -= c);
-0831   7301 3A 03 70        ld   a, (cityPlayerX)
-0832   7304 91              sub  c
-0833   7305 4F              ld   c, a
-0834   7306                 ; 460 hl = cityPlayerSprite;
-0835   7306 2A 06 70        ld   hl, (cityPlayerSprite)
-0836   7309                 ; 461 if ((a = l) == &city1s_1) c--;
-0837   7309 7D              ld   a, l
-0838   730A FE 25           cp   city1s_1
-0839   730C C2 10 73        jp   nz, l2051
-0840   730F 0D              dec  c
-0841   7310                 ; 462 iyh = 0;
-0842   7310             l2051: 
-0843   7310 FD 26 00        ld   iyh, 0
-0844   7313                 ; 463 drawSprite(bc, de, hl);
-0845   7313 CD 17 73        call drawSprite
-0846   7316                 ; 464 }
-0847   7316 C9              ret
-0848   7317                 ; 466 // Вывод спрайта
-0849   7317                 ; 467 // c - координата X (от -1 до 31)
-0850   7317                 ; 468 // b - координата Y (от 0 до 23)
-0851   7317                 ; 469 // hl - спрайт
-0852   7317                 ; 471 void drawSprite(bc, hl, ixh, iyh)
-0853   7317             drawSprite: 
-0854   7317                 ; 472 {
-0855   7317                 ; 473 // Читаем ширину спрайта
-0856   7317                 ; 474 d = *hl; l++;
-0857   7317 56              ld   d, (hl)
-0858   7318 2C              inc  l
-0859   7319                 ; 476 // Если спрайт за левым краем экрана
-0860   7319                 ; 477 if (c & 0x80) //! Можно оптимизировать
-0861   7319 CB 79           bit  7, c
-0862   731B                 ; 478 do
-0863   731B CA 2A 73        jp   z, l2052
-0864   731E             l2053: 
-0865   731E                 ; 479 {
-0866   731E                 ; 480 l = ((a = l) += [4 * 9]);
-0867   731E 7D              ld   a, l
-0868   731F C6 24           add  36
-0869   7321 6F              ld   l, a
-0870   7322                 ; 481 c++;
-0871   7322 0C              inc  c
-0872   7323                 ; 482 d--;
-0873   7323 15              dec  d
-0874   7324                 ; 483 if (flag_z) return;
-0875   7324 C8              ret  z
-0876   7325                 ; 484 } while (c & 0x80);
-0877   7325 CB 79           bit  7, c
-0878   7327 C2 1E 73        jp   nz, l2053
-0879   732A                 ; 486 // Если спрайт за правым краем экрана
-0880   732A                 ; 487 (a = viewWidth) -= c;
-0881   732A             l2052: 
-0882   732A 3E 20           ld   a, 32
-0883   732C 91              sub  c
-0884   732D                 ; 488 if (flag_c) return;
-0885   732D D8              ret  c
-0886   732E                 ; 489 if (flag_z) return;
-0887   732E C8              ret  z
-0888   732F                 ; 490 if (a < d) d = a;
-0889   732F BA              cp   d
-0890   7330 D2 34 73        jp   nc, l2054
-0891   7333 57              ld   d, a
-0892   7334                 ; 491 iyl = d;
-0893   7334             l2054: 
-0894   7334 FD 6A           ld   iyl, d
-0895   7336                 ; 493 // Вычисление координаты
-0896   7336                 ; 494 //       43210    43210
-0897   7336                 ; 495 // de .1.43... 210.....
-0898   7336                 ; 496 // bc .1.11.43 210.....
-0899   7336                 ; 497 d = (((a = b) &= 0x18) |= ixh);
-0900   7336 78              ld   a, b
-0901   7337 E6 18           and  24
-0902   7339 DD B4           or   ixh
-0903   733B 57              ld   d, a
-0904   733C                 ; 498 a = b;
-0905   733C 78              ld   a, b
-0906   733D                 ; 499 a >>r= 3;
-0907   733D 0F              rrca
-0908   733E 0F              rrca
-0909   733F 0F              rrca
-0910   7340                 ; 500 b = a;
-0911   7340 47              ld   b, a
-0912   7341                 ; 501 c = e = ((a &= 0xE0) |= c);
-0913   7341 E6 E0           and  224
-0914   7343 B1              or   c
-0915   7344 5F              ld   e, a
-0916   7345 4B              ld   c, e
-0917   7346                 ; 502 b = ((((a = b) &= 0x03) |= 0x18) |= ixh);
-0918   7346 78              ld   a, b
-0919   7347 E6 03           and  3
-0920   7349 F6 18           or   24
-0921   734B DD B4           or   ixh
-0922   734D 47              ld   b, a
-0923   734E                 ; 504 while()
-0924   734E             l2055: 
-0925   734E                 ; 505 {
-0926   734E                 ; 506 push(bc, de)
-0927   734E                 ; 507 {
-0928   734E C5              push bc
-0929   734F D5              push de
-0930   7350                 ; 508 drawSprite1(bc, de, hl);
-0931   7350 CD 9D 73        call drawSprite1
-0932   7353                 ; 509 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-0933   7353 79              ld   a, c
-0934   7354 C6 20           add  32
-0935   7356 4F              ld   c, a
-0936   7357 88              adc  b
-0937   7358 91              sub  c
-0938   7359 47              ld   b, a
-0939   735A                 ; 510 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-0940   735A 7B              ld   a, e
-0941   735B C6 20           add  32
-0942   735D 5F              ld   e, a
-0943   735E D2 65 73        jp   nc, l2057
-0944   7361 7A              ld   a, d
-0945   7362 C6 08           add  8
-0946   7364 57              ld   d, a
-0947   7365                 ; 511 drawSprite1(bc, de, hl);
-0948   7365             l2057: 
-0949   7365 CD 9D 73        call drawSprite1
-0950   7368                 ; 512 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-0951   7368 79              ld   a, c
-0952   7369 C6 20           add  32
-0953   736B 4F              ld   c, a
-0954   736C 88              adc  b
-0955   736D 91              sub  c
-0956   736E 47              ld   b, a
-0957   736F                 ; 513 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-0958   736F 7B              ld   a, e
-0959   7370 C6 20           add  32
-0960   7372 5F              ld   e, a
-0961   7373 D2 7A 73        jp   nc, l2058
-0962   7376 7A              ld   a, d
-0963   7377 C6 08           add  8
-0964   7379 57              ld   d, a
-0965   737A                 ; 514 drawSprite1(bc, de, hl);
-0966   737A             l2058: 
-0967   737A CD 9D 73        call drawSprite1
-0968   737D                 ; 515 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
-0969   737D 79              ld   a, c
-0970   737E C6 20           add  32
-0971   7380 4F              ld   c, a
-0972   7381 88              adc  b
-0973   7382 91              sub  c
-0974   7383 47              ld   b, a
-0975   7384                 ; 516 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
-0976   7384 7B              ld   a, e
-0977   7385 C6 20           add  32
-0978   7387 5F              ld   e, a
-0979   7388 D2 8F 73        jp   nc, l2059
-0980   738B 7A              ld   a, d
-0981   738C C6 08           add  8
-0982   738E 57              ld   d, a
-0983   738F                 ; 517 drawSprite1(bc, de, hl);
-0984   738F             l2059: 
-0985   738F CD 9D 73        call drawSprite1
-0986   7392                 ; 518 }
-0987   7392 D1              pop  de
-0988   7393 C1              pop  bc
-0989   7394                 ; 519 iyl--;
-0990   7394 FD 2D           dec  iyl
-0991   7396                 ; 520 if (flag_z) return;
-0992   7396 C8              ret  z
-0993   7397                 ; 521 c++;
-0994   7397 0C              inc  c
-0995   7398                 ; 522 e++;
-0996   7398 1C              inc  e
-0997   7399                 ; 523 };
-0998   7399 C3 4E 73        jp   l2055
-0999   739C                 ; 524 }
-1000   739C C9              ret
-1001   739D                 ; 526 void drawSprite1(de, bc, hl)
-1002   739D             drawSprite1: 
-1003   739D                 ; 527 {
-1004   739D                 ; 528 ixl = d;
-1005   739D DD 6A           ld   ixl, d
-1006   739F                 ; 529 *de = ((a = *de) |= *hl); l++; d++;
-1007   739F 1A              ld   a, (de)
-1008   73A0 B6              or   (hl)
-1009   73A1 12              ld   (de), a
-1010   73A2 2C              inc  l
-1011   73A3 14              inc  d
-1012   73A4                 ; 530 *de = ((a = *de) |= *hl); l++; d++;
-1013   73A4 1A              ld   a, (de)
-1014   73A5 B6              or   (hl)
-1015   73A6 12              ld   (de), a
-1016   73A7 2C              inc  l
-1017   73A8 14              inc  d
-1018   73A9                 ; 531 *de = ((a = *de) |= *hl); l++; d++;
-1019   73A9 1A              ld   a, (de)
-1020   73AA B6              or   (hl)
-1021   73AB 12              ld   (de), a
-1022   73AC 2C              inc  l
-1023   73AD 14              inc  d
-1024   73AE                 ; 532 *de = ((a = *de) |= *hl); l++; d++;
-1025   73AE 1A              ld   a, (de)
-1026   73AF B6              or   (hl)
-1027   73B0 12              ld   (de), a
-1028   73B1 2C              inc  l
-1029   73B2 14              inc  d
-1030   73B3                 ; 533 *de = ((a = *de) |= *hl); l++; d++;
-1031   73B3 1A              ld   a, (de)
-1032   73B4 B6              or   (hl)
-1033   73B5 12              ld   (de), a
-1034   73B6 2C              inc  l
-1035   73B7 14              inc  d
-1036   73B8                 ; 534 *de = ((a = *de) |= *hl); l++; d++;
-1037   73B8 1A              ld   a, (de)
-1038   73B9 B6              or   (hl)
-1039   73BA 12              ld   (de), a
-1040   73BB 2C              inc  l
-1041   73BC 14              inc  d
-1042   73BD                 ; 535 *de = ((a = *de) |= *hl); l++; d++;
-1043   73BD 1A              ld   a, (de)
-1044   73BE B6              or   (hl)
-1045   73BF 12              ld   (de), a
-1046   73C0 2C              inc  l
-1047   73C1 14              inc  d
-1048   73C2                 ; 536 *de = ((a = *de) |= *hl); l++;
-1049   73C2 1A              ld   a, (de)
-1050   73C3 B6              or   (hl)
-1051   73C4 12              ld   (de), a
-1052   73C5 2C              inc  l
-1053   73C6                 ; 537 a = *hl; if (a == 0x45) a = iyh; *bc = a; l++;
-1054   73C6 7E              ld   a, (hl)
-1055   73C7 FE 45           cp   69
-1056   73C9 C2 CE 73        jp   nz, l2060
-1057   73CC FD 7C           ld   a, iyh
-1058   73CE             l2060: 
-1059   73CE 02              ld   (bc), a
-1060   73CF 2C              inc  l
-1061   73D0                 ; 538 d = b; b++; b++; b++; *bc = a = 0xFE; b = d;
-1062   73D0 50              ld   d, b
-1063   73D1 04              inc  b
-1064   73D2 04              inc  b
-1065   73D3 04              inc  b
-1066   73D4 3E FE           ld   a, 254
-1067   73D6 02              ld   (bc), a
-1068   73D7 42              ld   b, d
-1069   73D8                 ; 540 // *de = a = *hl; l++; d++;
-1070   73D8                 ; 541 // *de = a = *hl; l++; d++;
-1071   73D8                 ; 542 // *de = a = *hl; l++; d++;
-1072   73D8                 ; 543 // *de = a = *hl; l++; d++;
-1073   73D8                 ; 544 // *de = a = *hl; l++; d++;
-1074   73D8                 ; 545 // *de = a = *hl; l++; d++;
-1075   73D8                 ; 546 // *de = a = *hl; l++; d++;
-1076   73D8                 ; 547 // *de = a = *hl; l++;
-1077   73D8                 ; 548 // *bc = a = *hl; l++;
-1078   73D8                 ; 549 // d = b; b++; b++; b++; *bc = a = 0xFF; b = d;
-1079   73D8                 ; 551 d = ixl;
-1080   73D8 DD 55           ld   d, ixl
-1081   73DA                 ; 552 }
-1082   73DA C9              ret
-1083   73DB                 ; 554 void printDelay(a)
-1084   73DB             printDelay: 
-1085   73DB                 ; 555 {
-1086   73DB                 ; 556 push(a)
-1087   73DB                 ; 557 {
-1088   73DB F5              push af
-1089   73DC                 ; 558 // Активная видеостраница
-1090   73DC                 ; 559 a = videoPage;
-1091   73DC 3A 73 62        ld   a, (videoPage)
-1092   73DF                 ; 560 hl = [screenAddr1 + 0x10E0];
-1093   73DF 21 E0 50        ld   hl, 20704
-1094   73E2                 ; 561 if (a & PORT_7FFD_SECOND_VIDEO_PAGE)
-1095   73E2 CB 5F           bit  3, a
-1096   73E4                 ; 562 hl = [screenAddr2 + 0x10E0];
-1097   73E4 CA EA 73        jp   z, l2061
-1098   73E7 21 E0 D0        ld   hl, 53472
-1099   73EA                 ; 564 // Очиска
-1100   73EA                 ; 565 push (hl)
-1101   73EA             l2061: 
-1102   73EA                 ; 566 {
-1103   73EA E5              push hl
-1104   73EB                 ; 567 fillRect(hl, bc = 0x0101);
-1105   73EB 01 01 01        ld   bc, 257
-1106   73EE CD B7 B5        call fillRect
-1107   73F1                 ; 568 }
-1108   73F1 E1              pop  hl
-1109   73F2                 ; 569 }
-1110   73F2 F1              pop  af
-1111   73F3                 ; 570 a += '0';
-1112   73F3 C6 30           add  48
-1113   73F5                 ; 571 drawCharSub(hl, a);
-1114   73F5 CD 8C 62        call drawCharSub
-1115   73F8                 ; 572 }
-1116   73F8 C9              ret
-1117   73F9                 ; 574 void fillRectAddLine()
-1118   73F9             fillRectAddLine: 
-1119   73F9                 ; 575 {
-1120   73F9                 ; 576 hl += (de = [0x800 - 0x100]);
-1121   73F9 11 00 07        ld   de, 1792
-1122   73FC 19              add  hl, de
-1123   73FD                 ; 577 return;
-1124   73FD C9              ret
-1125   73FE                 ; 578 }
-1126   73FE C9              ret
-1127   73FF             
-0001   73FF ED 5F       rand:    LD    A, R
-0002   7401 C6 00       rand_1:  ADD   0
-0003   7403 32 09 74            LD    (rand_2 + 1), A
-0004   7406 87                  ADD   A
-0005   7407 87                  ADD   A
-0006   7408 C6 00       rand_2:  ADD   0
-0007   740A 3C                  INC   A
-0008   740B 32 02 74            LD    (rand_1 + 1), A
-0009   740E C9                  RET
-0010   740F             
-0001   740F 00             ds (10000h - $) & 0FFh
+0043   7009                 ; 45 //uint8_t startFrame;
+0044   7009                 ; 46 uint8_t npcCount = npc_maxCount;
+0045   7009 10          npcCount db 16
+0046   700A                 ; 47 uint8_t npc[npc_sizeof * npc_maxCount];
+0047   700A 00          npc ds 64
+0048   704A                 ; 49 void swapMaps()
+0049   704A             swapMaps: 
+0050   704A                 ; 50 {
+0051   704A                 ; 51 // Загрузка города
+0052   704A                 ; 52 hl = &city1Tails;
+0053   704A 21 00 75        ld   hl, city1Tails
+0054   704D                 ; 53 de = &city1bTails;
+0055   704D 11 00 92        ld   de, city1bTails
+0056   7050                 ; 54 bc = [9 * 256 + 256 * 20];
+0057   7050 01 00 1D        ld   bc, 7424
+0058   7053                 ; 55 do
+0059   7053             l2000: 
+0060   7053                 ; 56 {
+0061   7053                 ; 57 a = *de;
+0062   7053 1A              ld   a, (de)
+0063   7054                 ; 58 ex(a, a);
+0064   7054 08              ex   af, af
+0065   7055                 ; 59 a = *hl;
+0066   7055 7E              ld   a, (hl)
+0067   7056                 ; 60 *de = a;
+0068   7056 12              ld   (de), a
+0069   7057                 ; 61 ex(a, a);
+0070   7057 08              ex   af, af
+0071   7058                 ; 62 *hl = a;
+0072   7058 77              ld   (hl), a
+0073   7059                 ; 63 hl++;
+0074   7059 23              inc  hl
+0075   705A                 ; 64 de++;
+0076   705A 13              inc  de
+0077   705B                 ; 65 bc--;
+0078   705B 0B              dec  bc
+0079   705C                 ; 66 } while(flag_nz (a = b) |= c);
+0080   705C 78              ld   a, b
+0081   705D B1              or   c
+0082   705E C2 53 70        jp   nz, l2000
+0083   7061                 ; 67 }
+0084   7061 C9              ret
+0085   7062                 ; 69 void cityFullRedraw()
+0086   7062             cityFullRedraw: 
+0087   7062                 ; 70 {
+0088   7062                 ; 71 cityInvalidate(hl = cacheAddr1);
+0089   7062 21 00 5B        ld   hl, 23296
+0090   7065 CD BF 70        call cityInvalidate
+0091   7068                 ; 72 *[cacheAddr1 + screenAttrSize] = a = 0;
+0092   7068 3E 00           ld   a, 0
+0093   706A 32 00 5E        ld   (24064), a
+0094   706D                 ; 73 cityInvalidate(hl = cacheAddr2);
+0095   706D 21 00 DB        ld   hl, 56064
+0096   7070 CD BF 70        call cityInvalidate
+0097   7073                 ; 74 *[cacheAddr2 + screenAttrSize] = a = 0;
+0098   7073 3E 00           ld   a, 0
+0099   7075 32 00 DE        ld   (56832), a
+0100   7078                 ; 75 }
+0101   7078 C9              ret
+0102   7079                 ; 77 void main()
+0103   7079             main: 
+0104   7079                 ; 78 {
+0105   7079                 ; 79 gPanelChanged1 = a = 0xFF;
+0106   7079 3E FF           ld   a, 255
+0107   707B 32 80 5D        ld   (gPanelChanged1), a
+0108   707E                 ; 80 gPanelChanged2 = a = 0xFF;
+0109   707E 3E FF           ld   a, 255
+0110   7080 32 80 DD        ld   (gPanelChanged2), a
+0111   7083                 ; 81 gPlayerMoney = hl = 10;
+0112   7083 21 0A 00        ld   hl, 10
+0113   7086 22 89 60        ld   (gPlayerMoney), hl
+0114   7089                 ; 83 cityPlayerX = a = [mapWidth / 2];
+0115   7089 3E 80           ld   a, 128
+0116   708B 32 03 70        ld   (cityPlayerX), a
+0117   708E                 ; 84 cityScrollX = (a -= [viewWidth / 2]);
+0118   708E D6 10           sub  16
+0119   7090 32 04 70        ld   (cityScrollX), a
+0120   7093                 ; 86 // Перерисовать панель
+0121   7093                 ; 87 gDrawPanel();
+0122   7093 CD 81 60        call gDrawPanel
+0123   7096                 ; 89 // Инициализация NPC
+0124   7096                 ; 90 initNpc();
+0125   7096 CD CA 70        call initNpc
+0126   7099                 ; 92 //swapMaps();
+0127   7099                 ; 94 // Инициализация кеша
+0128   7099                 ; 95 cityFullRedraw();
+0129   7099 CD 62 70        call cityFullRedraw
+0130   709C                 ; 97 // Перерисовать
+0131   709C                 ; 98 while()
+0132   709C             l2001: 
+0133   709C                 ; 99 {
+0134   709C                 ; 100 beginDraw();
+0135   709C CD 32 72        call beginDraw
+0136   709F                 ; 101 cityDraw();
+0137   709F CD 54 72        call cityDraw
+0138   70A2                 ; 102 endDraw();
+0139   70A2 CD 49 72        call endDraw
+0140   70A5                 ; 104 while ((a = gFrame) != *(hl = &processedFrames))
+0141   70A5             l2003: 
+0142   70A5 3A 84 60        ld   a, (gFrame)
+0143   70A8 21 08 70        ld   hl, processedFrames
+0144   70AB BE              cp   (hl)
+0145   70AC CA BB 70        jp   z, l2004
+0146   70AF                 ; 105 {
+0147   70AF                 ; 106 *hl = a;
+0148   70AF 77              ld   (hl), a
+0149   70B0                 ; 107 a &= 3;
+0150   70B0 E6 03           and  3
+0151   70B2                 ; 108 if (flag_z) processPlayer();
+0152   70B2 CC 8A 71        call z, processPlayer
+0153   70B5                 ; 109 processNpc();
+0154   70B5 CD F9 70        call processNpc
+0155   70B8                 ; 110 }
+0156   70B8 C3 A5 70        jp   l2003
+0157   70BB             l2004: 
+0158   70BB                 ; 111 }
+0159   70BB C3 9C 70        jp   l2001
+0160   70BE                 ; 112 }
+0161   70BE C9              ret
+0162   70BF                 ; 114 void cityInvalidate(hl)
+0163   70BF             cityInvalidate: 
+0164   70BF                 ; 115 {
+0165   70BF                 ; 116 d = h; e = l; de++;
+0166   70BF 54              ld   d, h
+0167   70C0 5D              ld   e, l
+0168   70C1 13              inc  de
+0169   70C2                 ; 117 *hl = unusedTailCode;
+0170   70C2 36 FE           ld   (hl), 254
+0171   70C4                 ; 118 bc = [viewWidth * viewHeight - 1];
+0172   70C4 01 7F 02        ld   bc, 639
+0173   70C7                 ; 119 ldir();
+0174   70C7 ED B0           ldir
+0175   70C9                 ; 120 }
+0176   70C9 C9              ret
+0177   70CA                 ; 122 //----------------------------------------------------------------------------------------------------------------------
+0178   70CA                 ; 123 // Инициализация жителей
+0179   70CA                 ; 125 void initNpc()
+0180   70CA             initNpc: 
+0181   70CA                 ; 126 {
+0182   70CA                 ; 127 ix = &npc;
+0183   70CA DD 21 0A 70     ld   ix, npc
+0184   70CE                 ; 128 de = npc_sizeof;
+0185   70CE 11 04 00        ld   de, 4
+0186   70D1                 ; 129 b = a = npcCount; // Счетчик цикла
+0187   70D1 3A 09 70        ld   a, (npcCount)
+0188   70D4 47              ld   b, a
+0189   70D5                 ; 130 do
+0190   70D5             l2006: 
+0191   70D5                 ; 131 {
+0192   70D5                 ; 132 a = b;
+0193   70D5 78              ld   a, b
+0194   70D6                 ; 133 while (a >= npc_defaultSpeed) a -= npc_defaultSpeed;
+0195   70D6             l2007: 
+0196   70D6 FE 07           cp   7
+0197   70D8 DA E0 70        jp   c, l2008
+0198   70DB D6 07           sub  7
+0199   70DD C3 D6 70        jp   l2007
+0200   70E0             l2008: 
+0201   70E0                 ; 134 a += 1;
+0202   70E0 C6 01           add  1
+0203   70E2                 ; 135 ix[npc_timer] = a; // Фаза таймера
+0204   70E2 DD 77 00        ld   (ix + 0), a
+0205   70E5                 ; 137 ix[npc_step] = 0;
+0206   70E5 DD 36 02 00     ld   (ix + 2), 0
+0207   70E9                 ; 138 rand();
+0208   70E9 CD 18 74        call rand
+0209   70EC                 ; 139 ix[npc_position] = a;
+0210   70EC DD 77 03        ld   (ix + 3), a
+0211   70EF                 ; 140 ix[npc_flags] = (a &= [npc_flags_direction | npc_flags_type]);
+0212   70EF E6 03           and  3
+0213   70F1 DD 77 01        ld   (ix + 1), a
+0214   70F4                 ; 141 ix += de;
+0215   70F4 DD 19           add  ix, de
+0216   70F6                 ; 142 } while(--b);
+0217   70F6 10 DD           djnz l2006
+0218   70F8                 ; 143 }
+0219   70F8 C9              ret
+0220   70F9                 ; 145 //----------------------------------------------------------------------------------------------------------------------
+0221   70F9                 ; 146 // Перемещение и анимация жителей.
+0222   70F9                 ; 148 void processNpc()
+0223   70F9             processNpc: 
+0224   70F9                 ; 149 {
+0225   70F9                 ; 150 de = npc_sizeof;
+0226   70F9 11 04 00        ld   de, 4
+0227   70FC                 ; 151 hl = &npc;
+0228   70FC 21 0A 70        ld   hl, npc
+0229   70FF                 ; 152 b = a = npcCount;
+0230   70FF 3A 09 70        ld   a, (npcCount)
+0231   7102 47              ld   b, a
+0232   7103                 ; 153 do
+0233   7103             l2010: 
+0234   7103                 ; 154 {
+0235   7103                 ; 155 if (flag_z --*hl) // Скорость
+0236   7103 35              dec  (hl)
+0237   7104                 ; 156 {
+0238   7104 C2 50 71        jp   nz, l2011
+0239   7107                 ; 157 rand();
+0240   7107 CD 18 74        call rand
+0241   710A                 ; 158 if (flag_z a--) // Внезапная остановка
+0242   710A 3D              dec  a
+0243   710B                 ; 159 {
+0244   710B C2 16 71        jp   nz, l2012
+0245   710E                 ; 160 //! Не полушаге не останавливать
+0246   710E                 ; 161 push(hl);
+0247   710E E5              push hl
+0248   710F                 ; 162 pop(ix);
+0249   710F DD E1           pop  ix
+0250   7111                 ; 163 //a = ix[npc_spriteType];
+0251   7111                 ; 164 //if (a == 1)
+0252   7111                 ; 165 //{
+0253   7111                 ; 166 *hl = 255;
+0254   7111 36 FF           ld   (hl), 255
+0255   7113                 ; 167 goto continue1;
+0256   7113 C3 50 71        jp   continue1
+0257   7116                 ; 168 //}
+0258   7116                 ; 169 }
+0259   7116                 ; 171 // У всех разная скорость
+0260   7116                 ; 172 *hl = (((a = b) &= 7) += npc_defaultSpeed);
+0261   7116             l2012: 
+0262   7116 78              ld   a, b
+0263   7117 E6 07           and  7
+0264   7119 C6 07           add  7
+0265   711B 77              ld   (hl), a
+0266   711C                 ; 174 if (flag_z a--) // Внезапный поворот
+0267   711C 3D              dec  a
+0268   711D                 ; 175 {
+0269   711D C2 26 71        jp   nz, l2013
+0270   7120                 ; 176 hl++;
+0271   7120 23              inc  hl
+0272   7121                 ; 177 a = *hl;
+0273   7121 7E              ld   a, (hl)
+0274   7122                 ; 178 a ^= npc_flags_direction;
+0275   7122 EE 01           xor  1
+0276   7124                 ; 179 *hl = a;
+0277   7124 77              ld   (hl), a
+0278   7125                 ; 180 hl--;
+0279   7125 2B              dec  hl
+0280   7126                 ; 181 }
+0281   7126                 ; 183 hl++;
+0282   7126             l2013: 
+0283   7126 23              inc  hl
+0284   7127                 ; 184 if (*hl & npc_flags_direction) // Направление
+0285   7127 CB 46           bit  0, (hl)
+0286   7129                 ; 185 {
+0287   7129 CA 3D 71        jp   z, l2014
+0288   712C                 ; 186 hl++;
+0289   712C 23              inc  hl
+0290   712D                 ; 187 a = *hl;
+0291   712D 7E              ld   a, (hl)
+0292   712E                 ; 188 a++;
+0293   712E 3C              inc  a
+0294   712F                 ; 189 if (a >= 4) { a = 0; hl++; ++*hl; hl--; }
+0295   712F FE 04           cp   4
+0296   7131 DA 39 71        jp   c, l2015
+0297   7134 3E 00           ld   a, 0
+0298   7136 23              inc  hl
+0299   7137 34              inc  (hl)
+0300   7138 2B              dec  hl
+0301   7139                 ; 190 *hl = a;
+0302   7139             l2015: 
+0303   7139 77              ld   (hl), a
+0304   713A                 ; 191 }
+0305   713A                 ; 192 else
+0306   713A C3 4B 71        jp   l2016
+0307   713D             l2014: 
+0308   713D                 ; 193 {
+0309   713D                 ; 194 hl++;
+0310   713D 23              inc  hl
+0311   713E                 ; 195 a = *hl;
+0312   713E 7E              ld   a, (hl)
+0313   713F                 ; 196 a++;
+0314   713F 3C              inc  a
+0315   7140                 ; 197 if (a >= 4) { a = 0; hl++; --*hl; hl--; }
+0316   7140 FE 04           cp   4
+0317   7142 DA 4A 71        jp   c, l2017
+0318   7145 3E 00           ld   a, 0
+0319   7147 23              inc  hl
+0320   7148 35              dec  (hl)
+0321   7149 2B              dec  hl
+0322   714A                 ; 198 *hl = a;
+0323   714A             l2017: 
+0324   714A 77              ld   (hl), a
+0325   714B                 ; 199 }
+0326   714B             l2016: 
+0327   714B                 ; 200 hl++; hl++;
+0328   714B 23              inc  hl
+0329   714C 23              inc  hl
+0330   714D                 ; 201 }
+0331   714D                 ; 202 else
+0332   714D C3 51 71        jp   l2018
+0333   7150             l2011: 
+0334   7150                 ; 203 {
+0335   7150                 ; 204 continue1:
+0336   7150             continue1: 
+0337   7150                 ; 205 hl += de; // Следующий NPC
+0338   7150 19              add  hl, de
+0339   7151                 ; 206 }
+0340   7151             l2018: 
+0341   7151                 ; 207 } while(flag_nz --b);
+0342   7151 05              dec  b
+0343   7152 C2 03 71        jp   nz, l2010
+0344   7155                 ; 208 }
+0345   7155 C9              ret
+0346   7156                 ; 210 //----------------------------------------------------------------------------------------------------------------------
+0347   7156                 ; 211 // Вход: hl - должно указывать на npc_position
+0348   7156                 ; 212 // Выход: hl - адрес спрайта
+0349   7156                 ; 213 // Портит: a
+0350   7156                 ; 215 // const int npc_timer      = 0;
+0351   7156                 ; 216 // const int npc_direction  = 1;
+0352   7156                 ; 217 // const int npc_step       = 2;
+0353   7156                 ; 218 // const int npc_position   = 3;
+0354   7156                 ; 219 // const int npc_sprite_l   = 4;
+0355   7156                 ; 220 // const int npc_sprite_h   = 5;
+0356   7156                 ; 221 // const int npc_sizeof     = 6;
+0357   7156                 ; 223 void getNpcSprite(hl)
+0358   7156             getNpcSprite: 
+0359   7156                 ; 224 {
+0360   7156                 ; 225 // Вычисление номера спрайта
+0361   7156                 ; 226 hl--;
+0362   7156 2B              dec  hl
+0363   7157                 ; 227 hl--;
+0364   7157 2B              dec  hl
+0365   7158                 ; 228 a = *hl; // npc_direction + npc_type
+0366   7158 7E              ld   a, (hl)
+0367   7159                 ; 229 a += a;
+0368   7159 87              add  a
+0369   715A                 ; 230 a += a;
+0370   715A 87              add  a
+0371   715B                 ; 231 hl++;
+0372   715B 23              inc  hl
+0373   715C                 ; 232 a += *hl; // npc_step
+0374   715C 86              add  (hl)
+0375   715D                 ; 234 // Получение элемента массива
+0376   715D                 ; 235 l = ((a += a) += &sprite_citizen);
+0377   715D 87              add  a
+0378   715E C6 6A           add  sprite_citizen
+0379   7160 6F              ld   l, a
+0380   7161                 ; 236 h = ((a +@= [&sprite_citizen >> 8]) -= l);
+0381   7161 CE 71           adc  (sprite_citizen) >> (8)
+0382   7163 95              sub  l
+0383   7164 67              ld   h, a
+0384   7165                 ; 237 a = *hl; hl++; h = *hl; l = a;
+0385   7165 7E              ld   a, (hl)
+0386   7166 23              inc  hl
+0387   7167 66              ld   h, (hl)
+0388   7168 6F              ld   l, a
+0389   7169                 ; 238 }
+0390   7169 C9              ret
+0391   716A                 ; 240 uint16_t sprite_citizen[16] =
+0392   716A                 ; 241 {
+0393   716A                 ; 242 &city1s_15, &city1s_16, &city1s_17, &city1s_14,
+0394   716A                 ; 243 &city1s_21, &city1s_20, &city1s_19, &city1s_18,
+0395   716A                 ; 245 &city1s_9,  &city1s_8,  &city1s_7,  &city1s_6,
+0396   716A                 ; 246 &city1s_10, &city1s_11, &city1s_12, &city1s_13
+0397   716A                 ; 247 };
+0398   716A             sprite_citizen: 
+0399   716A 6E B3           dw city1s_15
+0400   716C 00 B4           dw city1s_16
+0401   716E 49 B4           dw city1s_17
+0402   7170 49 B3           dw city1s_14
+0403   7172 92 B5           dw city1s_21
+0404   7174 49 B5           dw city1s_20
+0405   7176 00 B5           dw city1s_19
+0406   7178 92 B4           dw city1s_18
+0407   717A 92 B1           dw city1s_9
+0408   717C 49 B1           dw city1s_8
+0409   717E 00 B1           dw city1s_7
+0410   7180 92 B0           dw city1s_6
+0411   7182 00 B2           dw city1s_10
+0412   7184 25 B2           dw city1s_11
+0413   7186 6E B2           dw city1s_12
+0414   7188 00 B3           dw city1s_13
+0415   718A                 ; 249 //----------------------------------------------------------------------------------------------------------------------
+0416   718A                 ; 250 // Управление игроком и анимация игрока.
+0417   718A                 ; 252 const int sprite_raistlin_left       = &city1s_0;
+0418   718A                 ; 253 const int sprite_raistlin_left_step  = &city1s_1;
+0419   718A                 ; 254 const int sprite_raistlin_right      = &city1s_3;
+0420   718A                 ; 255 const int sprite_raistlin_right_step = &city1s_4;
+0421   718A                 ; 257 void processPlayer()
+0422   718A             processPlayer: 
+0423   718A                 ; 258 {
+0424   718A                 ; 259 if (*(hl = &gKeyTrigger) & KEY_FIRE)
+0425   718A 21 87 60        ld   hl, gKeyTrigger
+0426   718D CB 66           bit  4, (hl)
+0427   718F                 ; 260 {
+0428   718F CA A4 71        jp   z, l2019
+0429   7192                 ; 261 *hl = 0;
+0430   7192 36 00           ld   (hl), 0
+0431   7194                 ; 262 shopMain();
+0432   7194 CD 19 B9        call shopMain
+0433   7197                 ; 263 // Перерисовать всё
+0434   7197                 ; 264 cityInvalidate(hl = cacheAddr1);
+0435   7197 21 00 5B        ld   hl, 23296
+0436   719A CD BF 70        call cityInvalidate
+0437   719D                 ; 265 cityInvalidate(hl = cacheAddr2);
+0438   719D 21 00 DB        ld   hl, 56064
+0439   71A0 CD BF 70        call cityInvalidate
+0440   71A3                 ; 266 return;
+0441   71A3 C9              ret
+0442   71A4                 ; 267 }
+0443   71A4                 ; 269 b = a = gKeyPressed;
+0444   71A4             l2019: 
+0445   71A4 3A 88 60        ld   a, (gKeyPressed)
+0446   71A7 47              ld   b, a
+0447   71A8                 ; 270 c = a = cityPlayerDirection;
+0448   71A8 3A 05 70        ld   a, (cityPlayerDirection)
+0449   71AB 4F              ld   c, a
+0450   71AC                 ; 271 a = cityPlayerX;
+0451   71AC 3A 03 70        ld   a, (cityPlayerX)
+0452   71AF                 ; 272 if (b & KEY_LEFT)
+0453   71AF CB 50           bit  2, b
+0454   71B1                 ; 273 {
+0455   71B1 CA EA 71        jp   z, l2020
+0456   71B4                 ; 274 if (c & 1)
+0457   71B4 CB 41           bit  0, c
+0458   71B6                 ; 275 {            
+0459   71B6 CA C1 71        jp   z, l2021
+0460   71B9                 ; 276 cityPlayerDirection = (a ^= a);
+0461   71B9 AF              xor  a
+0462   71BA 32 05 70        ld   (cityPlayerDirection), a
+0463   71BD                 ; 277 c = a;
+0464   71BD 4F              ld   c, a
+0465   71BE                 ; 278 }
+0466   71BE                 ; 279 else
+0467   71BE C3 E7 71        jp   l2022
+0468   71C1             l2021: 
+0469   71C1                 ; 280 {
+0470   71C1                 ; 281 a -= 1;
+0471   71C1 D6 01           sub  1
+0472   71C3                 ; 282 if (flag_nc)
+0473   71C3                 ; 283 {
+0474   71C3 DA E7 71        jp   c, l2023
+0475   71C6                 ; 284 cityPlayerX = a;
+0476   71C6 32 03 70        ld   (cityPlayerX), a
+0477   71C9                 ; 286 // Прокрутка экрана
+0478   71C9                 ; 287 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; } //! Почему нельзя без {} ?
+0479   71C9 D6 10           sub  16
+0480   71CB DA D6 71        jp   c, l2024
+0481   71CE FE E1           cp   225
+0482   71D0 D2 D6 71        jp   nc, l2025
+0483   71D3 32 04 70        ld   (cityScrollX), a
+0484   71D6                 ; 289 hl = sprite_raistlin_left;
+0485   71D6             l2025: 
+0486   71D6             l2024: 
+0487   71D6 21 00 AF        ld   hl, city1s_0
+0488   71D9                 ; 290 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_left_step;
+0489   71D9 3A 06 70        ld   a, (cityPlayerSprite)
+0490   71DC BD              cp   l
+0491   71DD C2 E3 71        jp   nz, l2026
+0492   71E0 21 25 AF        ld   hl, city1s_1
+0493   71E3                 ; 291 cityPlayerSprite = hl;
+0494   71E3             l2026: 
+0495   71E3 22 06 70        ld   (cityPlayerSprite), hl
+0496   71E6                 ; 292 return;
+0497   71E6 C9              ret
+0498   71E7                 ; 293 }
+0499   71E7                 ; 294 }
+0500   71E7             l2023: 
+0501   71E7             l2022: 
+0502   71E7                 ; 295 }
+0503   71E7                 ; 296 else if (b & KEY_RIGHT)
+0504   71E7 C3 23 72        jp   l2027
+0505   71EA             l2020: 
+0506   71EA CB 58           bit  3, b
+0507   71EC                 ; 297 {
+0508   71EC CA 23 72        jp   z, l2028
+0509   71EF                 ; 298 if (flag_z c & 1)
+0510   71EF CB 41           bit  0, c
+0511   71F1                 ; 299 {
+0512   71F1 C2 FD 71        jp   nz, l2029
+0513   71F4                 ; 300 cityPlayerDirection = (a = 1);
+0514   71F4 3E 01           ld   a, 1
+0515   71F6 32 05 70        ld   (cityPlayerDirection), a
+0516   71F9                 ; 301 c = a;
+0517   71F9 4F              ld   c, a
+0518   71FA                 ; 302 }
+0519   71FA                 ; 303 else
+0520   71FA C3 23 72        jp   l2030
+0521   71FD             l2029: 
+0522   71FD                 ; 304 {
+0523   71FD                 ; 305 a += 1;
+0524   71FD C6 01           add  1
+0525   71FF                 ; 306 if (flag_nc)
+0526   71FF                 ; 307 {
+0527   71FF DA 23 72        jp   c, l2031
+0528   7202                 ; 308 cityPlayerX = a;
+0529   7202 32 03 70        ld   (cityPlayerX), a
+0530   7205                 ; 310 // Прокрутка экрана
+0531   7205                 ; 311 a -= [viewWidth / 2]; if (flag_nc) if (a < [mapWidth - viewWidth / 2 * 2 + 1]) { cityScrollX = a; }  //! Почему нельзя без {} ?
+0532   7205 D6 10           sub  16
+0533   7207 DA 12 72        jp   c, l2032
+0534   720A FE E1           cp   225
+0535   720C D2 12 72        jp   nc, l2033
+0536   720F 32 04 70        ld   (cityScrollX), a
+0537   7212                 ; 313 hl = sprite_raistlin_right;
+0538   7212             l2033: 
+0539   7212             l2032: 
+0540   7212 21 B7 AF        ld   hl, city1s_3
+0541   7215                 ; 314 if ((a = cityPlayerSprite) == l) hl = sprite_raistlin_right_step;
+0542   7215 3A 06 70        ld   a, (cityPlayerSprite)
+0543   7218 BD              cp   l
+0544   7219 C2 1F 72        jp   nz, l2034
+0545   721C 21 00 B0        ld   hl, city1s_4
+0546   721F                 ; 315 cityPlayerSprite = hl;
+0547   721F             l2034: 
+0548   721F 22 06 70        ld   (cityPlayerSprite), hl
+0549   7222                 ; 316 return;
+0550   7222 C9              ret
+0551   7223                 ; 317 }
+0552   7223                 ; 318 }
+0553   7223             l2031: 
+0554   7223             l2030: 
+0555   7223                 ; 319 }
+0556   7223                 ; 321 // Убираем анимацию шага, если ни одна клавиша не нажата
+0557   7223                 ; 322 hl = sprite_raistlin_left;
+0558   7223             l2028: 
+0559   7223             l2027: 
+0560   7223 21 00 AF        ld   hl, city1s_0
+0561   7226                 ; 323 if (c & 1) hl = sprite_raistlin_right;
+0562   7226 CB 41           bit  0, c
+0563   7228 CA 2E 72        jp   z, l2035
+0564   722B 21 B7 AF        ld   hl, city1s_3
+0565   722E                 ; 324 cityPlayerSprite = hl;
+0566   722E             l2035: 
+0567   722E 22 06 70        ld   (cityPlayerSprite), hl
+0568   7231                 ; 325 }
+0569   7231 C9              ret
+0570   7232                 ; 327 //----------------------------------------------------------------------------------------------------------------------
+0571   7232                 ; 329 void beginDraw()
+0572   7232             beginDraw: 
+0573   7232                 ; 330 {
+0574   7232                 ; 331 hl = &gVideoPage;
+0575   7232 21 85 60        ld   hl, gVideoPage
+0576   7235                 ; 332 while ((a = *hl) & 1);
+0577   7235             l2036: 
+0578   7235 7E              ld   a, (hl)
+0579   7236 CB 47           bit  0, a
+0580   7238 CA 3E 72        jp   z, l2037
+0581   723B C3 35 72        jp   l2036
+0582   723E             l2037: 
+0583   723E                 ; 333 a &= 0x7F;
+0584   723E E6 7F           and  127
+0585   7240                 ; 334 if (flag_z a & 8) a |= 0x80;
+0586   7240 CB 5F           bit  3, a
+0587   7242 C2 47 72        jp   nz, l2039
+0588   7245 F6 80           or   128
+0589   7247                 ; 335 *hl = a;
+0590   7247             l2039: 
+0591   7247 77              ld   (hl), a
+0592   7248                 ; 336 }
+0593   7248 C9              ret
+0594   7249                 ; 338 //----------------------------------------------------------------------------------------------------------------------
+0595   7249                 ; 340 void endDraw()
+0596   7249             endDraw: 
+0597   7249                 ; 341 {
+0598   7249                 ; 342 gVideoPage = ((a = gVideoPage) ^= 8 |= 1);
+0599   7249 3A 85 60        ld   a, (gVideoPage)
+0600   724C EE 08           xor  8
+0601   724E F6 01           or   1
+0602   7250 32 85 60        ld   (gVideoPage), a
+0603   7253                 ; 343 }
+0604   7253 C9              ret
+0605   7254                 ; 345 //----------------------------------------------------------------------------------------------------------------------
+0606   7254                 ; 347 void cityDraw()
+0607   7254             cityDraw: 
+0608   7254                 ; 348 {
+0609   7254                 ; 349 // Оценка времени
+0610   7254                 ; 350 //startFrame = a = gFrame;
+0611   7254                 ; 352 // Обновить панель
+0612   7254                 ; 353 playerMoneyRedraw();
+0613   7254 CD 32 BE        call playerMoneyRedraw
+0614   7257                 ; 355 // Адрес карты / и сточник
+0615   7257                 ; 356 d` = [&city1Map >> 8];
+0616   7257 16 7E           ld   d, (city1Map) >> (8)
+0617   7259                 ; 357 e` = a = cityScrollX;
+0618   7259 3A 04 70        ld   a, (cityScrollX)
+0619   725C 5F              ld   e, a
+0620   725D                 ; 358 b` = e`;
+0621   725D 43              ld   b, e
+0622   725E                 ; 360 // Адрес видеостраницы / назначение
+0623   725E                 ; 361 if (flag_z (a = gVideoPage) &= 0x80)
+0624   725E 3A 85 60        ld   a, (gVideoPage)
+0625   7261 E6 80           and  128
+0626   7263                 ; 362 {
+0627   7263 C2 73 72        jp   nz, l2040
+0628   7266                 ; 363 hl` = [cacheAddr1 - 1];
+0629   7266 21 FF 5A        ld   hl, 23295
+0630   7269                 ; 364 ex(bc, de, hl);
+0631   7269 D9              exx
+0632   726A                 ; 365 de = screenAddr1;
+0633   726A 11 00 40        ld   de, 16384
+0634   726D                 ; 366 bc = screenAttrAddr1;
+0635   726D 01 00 58        ld   bc, 22528
+0636   7270                 ; 367 }
+0637   7270                 ; 368 else
+0638   7270 C3 7D 72        jp   l2041
+0639   7273             l2040: 
+0640   7273                 ; 369 {
+0641   7273                 ; 370 hl` = [cacheAddr2 - 1];
+0642   7273 21 FF DA        ld   hl, 56063
+0643   7276                 ; 371 ex(bc, de, hl);
+0644   7276 D9              exx
+0645   7277                 ; 372 de = screenAddr2;
+0646   7277 11 00 C0        ld   de, 49152
+0647   727A                 ; 373 bc = screenAttrAddr2;
+0648   727A 01 00 D8        ld   bc, 55296
+0649   727D                 ; 374 }
+0650   727D             l2041: 
+0651   727D                 ; 376 // Цикл строк
+0652   727D                 ; 377 ixh = viewHeight;
+0653   727D DD 26 14        ld   ixh, 20
+0654   7280                 ; 378 do
+0655   7280             l2042: 
+0656   7280                 ; 379 {
+0657   7280                 ; 380 // Сохранение адреса вывода
+0658   7280                 ; 381 iyl = e;
+0659   7280 FD 6B           ld   iyl, e
+0660   7282                 ; 382 iyh = d;
+0661   7282 FD 62           ld   iyh, d
+0662   7284                 ; 384 // Цикл стобцов
+0663   7284                 ; 385 ixl = viewWidth;
+0664   7284 DD 2E 20        ld   ixl, 32
+0665   7287                 ; 386 do
+0666   7287             l2043: 
+0667   7287                 ; 387 {
+0668   7287                 ; 388 optimize0:  // Чтение номера тейла из карты уровня
+0669   7287             optimize0: 
+0670   7287                 ; 389 ex(bc, de, hl);
+0671   7287 D9              exx
+0672   7288                 ; 390 hl`++;
+0673   7288 23              inc  hl
+0674   7289                 ; 391 c` = *hl;
+0675   7289 4E              ld   c, (hl)
+0676   728A                 ; 392 a = *de`;
+0677   728A 1A              ld   a, (de)
+0678   728B                 ; 393 if (a == c`) goto optimize1;
+0679   728B B9              cp   c
+0680   728C CA DF 72        jp   z, optimize1
+0681   728F                 ; 394 if (flag_z c`++) goto optimize3;
+0682   728F 0C              inc  c
+0683   7290 CA DC 72        jp   z, optimize3
+0684   7293                 ; 395 e`++;
+0685   7293 1C              inc  e
+0686   7294                 ; 396 *hl` = a;
+0687   7294 77              ld   (hl), a
+0688   7295                 ; 397 ex(bc, de, hl);
+0689   7295 D9              exx
+0690   7296                 ; 399 // Вычисление адреса тейла
+0691   7296                 ; 400 h = [&city1Tails >> 8];
+0692   7296 26 75           ld   h, (city1Tails) >> (8)
+0693   7298                 ; 401 l = a;
+0694   7298 6F              ld   l, a
+0695   7299                 ; 403 // Вывод на экран
+0696   7299                 ; 404 a = *hl; h++; *de = a; d++;
+0697   7299 7E              ld   a, (hl)
+0698   729A 24              inc  h
+0699   729B 12              ld   (de), a
+0700   729C 14              inc  d
+0701   729D                 ; 405 a = *hl; h++; *de = a; d++;
+0702   729D 7E              ld   a, (hl)
+0703   729E 24              inc  h
+0704   729F 12              ld   (de), a
+0705   72A0 14              inc  d
+0706   72A1                 ; 406 a = *hl; h++; *de = a; d++;
+0707   72A1 7E              ld   a, (hl)
+0708   72A2 24              inc  h
+0709   72A3 12              ld   (de), a
+0710   72A4 14              inc  d
+0711   72A5                 ; 407 a = *hl; h++; *de = a; d++;
+0712   72A5 7E              ld   a, (hl)
+0713   72A6 24              inc  h
+0714   72A7 12              ld   (de), a
+0715   72A8 14              inc  d
+0716   72A9                 ; 408 a = *hl; h++; *de = a; d++;
+0717   72A9 7E              ld   a, (hl)
+0718   72AA 24              inc  h
+0719   72AB 12              ld   (de), a
+0720   72AC 14              inc  d
+0721   72AD                 ; 409 a = *hl; h++; *de = a; d++;
+0722   72AD 7E              ld   a, (hl)
+0723   72AE 24              inc  h
+0724   72AF 12              ld   (de), a
+0725   72B0 14              inc  d
+0726   72B1                 ; 410 a = *hl; h++; *de = a; d++;
+0727   72B1 7E              ld   a, (hl)
+0728   72B2 24              inc  h
+0729   72B3 12              ld   (de), a
+0730   72B4 14              inc  d
+0731   72B5                 ; 411 a = *hl; h++; *de = a;
+0732   72B5 7E              ld   a, (hl)
+0733   72B6 24              inc  h
+0734   72B7 12              ld   (de), a
+0735   72B8                 ; 412 a = *hl;      *bc = a; bc++;
+0736   72B8 7E              ld   a, (hl)
+0737   72B9 02              ld   (bc), a
+0738   72BA 03              inc  bc
+0739   72BB                 ; 414 d = iyh;
+0740   72BB FD 54           ld   d, iyh
+0741   72BD                 ; 415 e++;
+0742   72BD 1C              inc  e
+0743   72BE                 ; 416 ixl--;
+0744   72BE DD 2D           dec  ixl
+0745   72C0                 ; 417 } while(flag_nz);
+0746   72C0 C2 87 72        jp   nz, l2043
+0747   72C3                 ; 418 optimize2:
+0748   72C3             optimize2: 
+0749   72C3                 ; 420 // Следующая строка карты
+0750   72C3                 ; 421 ex(bc, de, hl);
+0751   72C3 D9              exx
+0752   72C4                 ; 422 e` = b`;
+0753   72C4 58              ld   e, b
+0754   72C5                 ; 423 d`++;
+0755   72C5 14              inc  d
+0756   72C6                 ; 424 ex(bc, de, hl);
+0757   72C6 D9              exx
+0758   72C7                 ; 426 // Адрес следующей чб строки на экране
+0759   72C7                 ; 427 e = ((a = iyl) += 0x20);
+0760   72C7 FD 7D           ld   a, iyl
+0761   72C9 C6 20           add  32
+0762   72CB 5F              ld   e, a
+0763   72CC                 ; 428 if (flag_c) d = ((a = d) += 0x08);
+0764   72CC D2 D3 72        jp   nc, l2044
+0765   72CF 7A              ld   a, d
+0766   72D0 C6 08           add  8
+0767   72D2 57              ld   d, a
+0768   72D3                 ; 430 ixh--;
+0769   72D3             l2044: 
+0770   72D3 DD 25           dec  ixh
+0771   72D5                 ; 431 } while(flag_nz);
+0772   72D5 C2 80 72        jp   nz, l2042
+0773   72D8                 ; 433 drawSprites();
+0774   72D8 CD EC 72        call drawSprites
+0775   72DB                 ; 435 // Оценка времени
+0776   72DB                 ; 436 //printDelay((a = gFrame) -= *(hl = &startFrame));
+0777   72DB                 ; 438 return;
+0778   72DB C9              ret
+0779   72DC                 ; 439 optimize3:
+0780   72DC             optimize3: 
+0781   72DC                 ; 440 *hl` = a = 254;
+0782   72DC 3E FE           ld   a, 254
+0783   72DE 77              ld   (hl), a
+0784   72DF                 ; 441 optimize1:
+0785   72DF             optimize1: 
+0786   72DF                 ; 442 e`++;
+0787   72DF 1C              inc  e
+0788   72E0                 ; 443 ex(bc, de, hl);
+0789   72E0 D9              exx
+0790   72E1                 ; 444 bc++;
+0791   72E1 03              inc  bc
+0792   72E2                 ; 445 e++;
+0793   72E2 1C              inc  e
+0794   72E3                 ; 446 ixl--;
+0795   72E3 DD 2D           dec  ixl
+0796   72E5                 ; 447 if(flag_nz) goto optimize0;
+0797   72E5 C2 87 72        jp   nz, optimize0
+0798   72E8                 ; 448 goto optimize2;
+0799   72E8 C3 C3 72        jp   optimize2
+0800   72EB                 ; 449 }
+0801   72EB C9              ret
+0802   72EC                 ; 451 void drawSprites()
+0803   72EC             drawSprites: 
+0804   72EC                 ; 452 {
+0805   72EC                 ; 453 a = gVideoPage;
+0806   72EC 3A 85 60        ld   a, (gVideoPage)
+0807   72EF                 ; 454 if (a & 8) ixh = [screenAddr1 >> 8];
+0808   72EF CB 5F           bit  3, a
+0809   72F1 CA FA 72        jp   z, l2045
+0810   72F4 DD 26 40        ld   ixh, 64
+0811   72F7                 ; 455 else ixh = [screenAddr2 >> 8];
+0812   72F7 C3 FD 72        jp   l2046
+0813   72FA             l2045: 
+0814   72FA DD 26 C0        ld   ixh, 192
+0815   72FD             l2046: 
+0816   72FD                 ; 457 // const int npc_timer      = 0;
+0817   72FD                 ; 458 // const int npc_direction  = 1;
+0818   72FD                 ; 459 // const int npc_step       = 2;
+0819   72FD                 ; 460 // const int npc_position   = 3;
+0820   72FD                 ; 461 // const int npc_sprite_l   = 4;
+0821   72FD                 ; 462 // const int npc_sprite_h   = 5;
+0822   72FD                 ; 463 // const int npc_sizeof     = 6;
+0823   72FD                 ; 465 // Спрайты
+0824   72FD                 ; 466 hl = [&npc + npc_position];
+0825   72FD 21 0D 70        ld   hl, (npc) + (3)
+0826   7300                 ; 467 b = a = npcCount;
+0827   7300 3A 09 70        ld   a, (npcCount)
+0828   7303 47              ld   b, a
+0829   7304                 ; 468 c = (a = cityScrollX); c--;
+0830   7304 3A 04 70        ld   a, (cityScrollX)
+0831   7307 4F              ld   c, a
+0832   7308 0D              dec  c
+0833   7309                 ; 469 de = npc_sizeof;
+0834   7309 11 04 00        ld   de, 4
+0835   730C                 ; 470 do
+0836   730C             l2047: 
+0837   730C                 ; 471 {
+0838   730C                 ; 472 // Если спрайт за экраном, то не рисуем его
+0839   730C                 ; 473 if (((a = *hl) -= c) < [viewWidth + 1]) //! для const int можно <=
+0840   730C 7E              ld   a, (hl)
+0841   730D 91              sub  c
+0842   730E FE 21           cp   33
+0843   7310                 ; 474 {
+0844   7310 D2 38 73        jp   nc, l2048
+0845   7313                 ; 475 push(bc, de, hl)
+0846   7313                 ; 476 {
+0847   7313 C5              push bc
+0848   7314 D5              push de
+0849   7315 E5              push hl
+0850   7316                 ; 477 c = --a; // Для drawSprite
+0851   7316 3D              dec  a
+0852   7317 4F              ld   c, a
+0853   7318                 ; 479 // Цвет {
+0854   7318                 ; 480 a = b;
+0855   7318 78              ld   a, b
+0856   7319                 ; 481 while(a >= 14) a -= 14;
+0857   7319             l2049: 
+0858   7319 FE 0E           cp   14
+0859   731B DA 23 73        jp   c, l2050
+0860   731E D6 0E           sub  14
+0861   7320 C3 19 73        jp   l2049
+0862   7323             l2050: 
+0863   7323                 ; 482 if (a >= 7) a += [0x40 - 7]; a++;
+0864   7323 FE 07           cp   7
+0865   7325 DA 2A 73        jp   c, l2052
+0866   7328 C6 39           add  57
+0867   732A             l2052: 
+0868   732A 3C              inc  a
+0869   732B                 ; 483 iyh = a;
+0870   732B FD 67           ld   iyh, a
+0871   732D                 ; 484 // }
+0872   732D                 ; 486 getNpcSprite(hl);
+0873   732D CD 56 71        call getNpcSprite
+0874   7330                 ; 487 b = cityRoadY;
+0875   7330 06 0D           ld   b, 13
+0876   7332                 ; 488 drawSprite();
+0877   7332 CD 54 73        call drawSprite
+0878   7335                 ; 489 }
+0879   7335 E1              pop  hl
+0880   7336 D1              pop  de
+0881   7337 C1              pop  bc
+0882   7338                 ; 490 }
+0883   7338                 ; 491 hl += de;
+0884   7338             l2048: 
+0885   7338 19              add  hl, de
+0886   7339                 ; 492 } while(--b);
+0887   7339 10 D1           djnz l2047
+0888   733B                 ; 494 // Рисование игрока
+0889   733B                 ; 495 b = cityRoadY;
+0890   733B 06 0D           ld   b, 13
+0891   733D                 ; 496 c++;
+0892   733D 0C              inc  c
+0893   733E                 ; 497 c = ((a = cityPlayerX) -= c);
+0894   733E 3A 03 70        ld   a, (cityPlayerX)
+0895   7341 91              sub  c
+0896   7342 4F              ld   c, a
+0897   7343                 ; 498 hl = cityPlayerSprite;
+0898   7343 2A 06 70        ld   hl, (cityPlayerSprite)
+0899   7346                 ; 499 if ((a = l) == &city1s_1) c--;
+0900   7346 7D              ld   a, l
+0901   7347 FE 25           cp   city1s_1
+0902   7349 C2 4D 73        jp   nz, l2053
+0903   734C 0D              dec  c
+0904   734D                 ; 500 iyh = 0;
+0905   734D             l2053: 
+0906   734D FD 26 00        ld   iyh, 0
+0907   7350                 ; 501 drawSprite(bc, de, hl);
+0908   7350 CD 54 73        call drawSprite
+0909   7353                 ; 502 }
+0910   7353 C9              ret
+0911   7354                 ; 504 // Вывод спрайта
+0912   7354                 ; 505 // c - координата X (от -1 до 31)
+0913   7354                 ; 506 // b - координата Y (от 0 до 23)
+0914   7354                 ; 507 // hl - спрайт
+0915   7354                 ; 509 void drawSprite(bc, hl, ixh, iyh)
+0916   7354             drawSprite: 
+0917   7354                 ; 510 {
+0918   7354                 ; 511 // Читаем ширину спрайта
+0919   7354                 ; 512 d = *hl; l++;
+0920   7354 56              ld   d, (hl)
+0921   7355 2C              inc  l
+0922   7356                 ; 514 // Если спрайт за левым краем экрана
+0923   7356                 ; 515 if (c & 0x80) //! Можно оптимизировать
+0924   7356 CB 79           bit  7, c
+0925   7358                 ; 516 do
+0926   7358 CA 67 73        jp   z, l2054
+0927   735B             l2055: 
+0928   735B                 ; 517 {
+0929   735B                 ; 518 l = ((a = l) += [4 * 9]);
+0930   735B 7D              ld   a, l
+0931   735C C6 24           add  36
+0932   735E 6F              ld   l, a
+0933   735F                 ; 519 c++;
+0934   735F 0C              inc  c
+0935   7360                 ; 520 d--;
+0936   7360 15              dec  d
+0937   7361                 ; 521 if (flag_z) return;
+0938   7361 C8              ret  z
+0939   7362                 ; 522 } while (c & 0x80);
+0940   7362 CB 79           bit  7, c
+0941   7364 C2 5B 73        jp   nz, l2055
+0942   7367                 ; 524 // Если спрайт за правым краем экрана
+0943   7367                 ; 525 (a = viewWidth) -= c;
+0944   7367             l2054: 
+0945   7367 3E 20           ld   a, 32
+0946   7369 91              sub  c
+0947   736A                 ; 526 if (flag_c) return;
+0948   736A D8              ret  c
+0949   736B                 ; 527 if (flag_z) return;
+0950   736B C8              ret  z
+0951   736C                 ; 528 if (a < d) d = a;
+0952   736C BA              cp   d
+0953   736D D2 71 73        jp   nc, l2056
+0954   7370 57              ld   d, a
+0955   7371                 ; 529 iyl = d;
+0956   7371             l2056: 
+0957   7371 FD 6A           ld   iyl, d
+0958   7373                 ; 531 // Вычисление координаты
+0959   7373                 ; 532 //       43210    43210
+0960   7373                 ; 533 // de .1.43... 210.....
+0961   7373                 ; 534 // bc .1.11.43 210.....
+0962   7373                 ; 535 d = (((a = b) &= 0x18) |= ixh);
+0963   7373 78              ld   a, b
+0964   7374 E6 18           and  24
+0965   7376 DD B4           or   ixh
+0966   7378 57              ld   d, a
+0967   7379                 ; 536 a = b;
+0968   7379 78              ld   a, b
+0969   737A                 ; 537 a >>r= 3;
+0970   737A 0F              rrca
+0971   737B 0F              rrca
+0972   737C 0F              rrca
+0973   737D                 ; 538 b = a;
+0974   737D 47              ld   b, a
+0975   737E                 ; 539 c = e = ((a &= 0xE0) |= c);
+0976   737E E6 E0           and  224
+0977   7380 B1              or   c
+0978   7381 5F              ld   e, a
+0979   7382 4B              ld   c, e
+0980   7383                 ; 540 b = ((((a = b) &= 0x03) |= 0x18) |= ixh);
+0981   7383 78              ld   a, b
+0982   7384 E6 03           and  3
+0983   7386 F6 18           or   24
+0984   7388 DD B4           or   ixh
+0985   738A 47              ld   b, a
+0986   738B                 ; 542 while()
+0987   738B             l2057: 
+0988   738B                 ; 543 {
+0989   738B                 ; 544 push(bc, de)
+0990   738B                 ; 545 {
+0991   738B C5              push bc
+0992   738C D5              push de
+0993   738D                 ; 546 drawSprite1(bc, de, hl);
+0994   738D CD DA 73        call drawSprite1
+0995   7390                 ; 547 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+0996   7390 79              ld   a, c
+0997   7391 C6 20           add  32
+0998   7393 4F              ld   c, a
+0999   7394 88              adc  b
+1000   7395 91              sub  c
+1001   7396 47              ld   b, a
+1002   7397                 ; 548 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+1003   7397 7B              ld   a, e
+1004   7398 C6 20           add  32
+1005   739A 5F              ld   e, a
+1006   739B D2 A2 73        jp   nc, l2059
+1007   739E 7A              ld   a, d
+1008   739F C6 08           add  8
+1009   73A1 57              ld   d, a
+1010   73A2                 ; 549 drawSprite1(bc, de, hl);
+1011   73A2             l2059: 
+1012   73A2 CD DA 73        call drawSprite1
+1013   73A5                 ; 550 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+1014   73A5 79              ld   a, c
+1015   73A6 C6 20           add  32
+1016   73A8 4F              ld   c, a
+1017   73A9 88              adc  b
+1018   73AA 91              sub  c
+1019   73AB 47              ld   b, a
+1020   73AC                 ; 551 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+1021   73AC 7B              ld   a, e
+1022   73AD C6 20           add  32
+1023   73AF 5F              ld   e, a
+1024   73B0 D2 B7 73        jp   nc, l2060
+1025   73B3 7A              ld   a, d
+1026   73B4 C6 08           add  8
+1027   73B6 57              ld   d, a
+1028   73B7                 ; 552 drawSprite1(bc, de, hl);
+1029   73B7             l2060: 
+1030   73B7 CD DA 73        call drawSprite1
+1031   73BA                 ; 553 c = ((a = c) += 32); b = ((a +@= b) -= c); // 27
+1032   73BA 79              ld   a, c
+1033   73BB C6 20           add  32
+1034   73BD 4F              ld   c, a
+1035   73BE 88              adc  b
+1036   73BF 91              sub  c
+1037   73C0 47              ld   b, a
+1038   73C1                 ; 554 e = ((a = e) += 32); if (flag_c) d = ((a = d) += 0x08); // 25
+1039   73C1 7B              ld   a, e
+1040   73C2 C6 20           add  32
+1041   73C4 5F              ld   e, a
+1042   73C5 D2 CC 73        jp   nc, l2061
+1043   73C8 7A              ld   a, d
+1044   73C9 C6 08           add  8
+1045   73CB 57              ld   d, a
+1046   73CC                 ; 555 drawSprite1(bc, de, hl);
+1047   73CC             l2061: 
+1048   73CC CD DA 73        call drawSprite1
+1049   73CF                 ; 556 }
+1050   73CF D1              pop  de
+1051   73D0 C1              pop  bc
+1052   73D1                 ; 557 iyl--;
+1053   73D1 FD 2D           dec  iyl
+1054   73D3                 ; 558 if (flag_z) return;
+1055   73D3 C8              ret  z
+1056   73D4                 ; 559 c++;
+1057   73D4 0C              inc  c
+1058   73D5                 ; 560 e++;
+1059   73D5 1C              inc  e
+1060   73D6                 ; 561 };
+1061   73D6 C3 8B 73        jp   l2057
+1062   73D9                 ; 562 }
+1063   73D9 C9              ret
+1064   73DA                 ; 564 void drawSprite1(de, bc, hl)
+1065   73DA             drawSprite1: 
+1066   73DA                 ; 565 {
+1067   73DA                 ; 566 ixl = d;
+1068   73DA DD 6A           ld   ixl, d
+1069   73DC                 ; 567 *de = ((a = *de) |= *hl); l++; d++;
+1070   73DC 1A              ld   a, (de)
+1071   73DD B6              or   (hl)
+1072   73DE 12              ld   (de), a
+1073   73DF 2C              inc  l
+1074   73E0 14              inc  d
+1075   73E1                 ; 568 *de = ((a = *de) |= *hl); l++; d++;
+1076   73E1 1A              ld   a, (de)
+1077   73E2 B6              or   (hl)
+1078   73E3 12              ld   (de), a
+1079   73E4 2C              inc  l
+1080   73E5 14              inc  d
+1081   73E6                 ; 569 *de = ((a = *de) |= *hl); l++; d++;
+1082   73E6 1A              ld   a, (de)
+1083   73E7 B6              or   (hl)
+1084   73E8 12              ld   (de), a
+1085   73E9 2C              inc  l
+1086   73EA 14              inc  d
+1087   73EB                 ; 570 *de = ((a = *de) |= *hl); l++; d++;
+1088   73EB 1A              ld   a, (de)
+1089   73EC B6              or   (hl)
+1090   73ED 12              ld   (de), a
+1091   73EE 2C              inc  l
+1092   73EF 14              inc  d
+1093   73F0                 ; 571 *de = ((a = *de) |= *hl); l++; d++;
+1094   73F0 1A              ld   a, (de)
+1095   73F1 B6              or   (hl)
+1096   73F2 12              ld   (de), a
+1097   73F3 2C              inc  l
+1098   73F4 14              inc  d
+1099   73F5                 ; 572 *de = ((a = *de) |= *hl); l++; d++;
+1100   73F5 1A              ld   a, (de)
+1101   73F6 B6              or   (hl)
+1102   73F7 12              ld   (de), a
+1103   73F8 2C              inc  l
+1104   73F9 14              inc  d
+1105   73FA                 ; 573 *de = ((a = *de) |= *hl); l++; d++;
+1106   73FA 1A              ld   a, (de)
+1107   73FB B6              or   (hl)
+1108   73FC 12              ld   (de), a
+1109   73FD 2C              inc  l
+1110   73FE 14              inc  d
+1111   73FF                 ; 574 *de = ((a = *de) |= *hl); l++;
+1112   73FF 1A              ld   a, (de)
+1113   7400 B6              or   (hl)
+1114   7401 12              ld   (de), a
+1115   7402 2C              inc  l
+1116   7403                 ; 575 a = *hl; if (a == 0x45) a = iyh; *bc = a; l++;
+1117   7403 7E              ld   a, (hl)
+1118   7404 FE 45           cp   69
+1119   7406 C2 0B 74        jp   nz, l2062
+1120   7409 FD 7C           ld   a, iyh
+1121   740B             l2062: 
+1122   740B 02              ld   (bc), a
+1123   740C 2C              inc  l
+1124   740D                 ; 576 d = b; b++; b++; b++; *bc = a = 0xFE; b = d;
+1125   740D 50              ld   d, b
+1126   740E 04              inc  b
+1127   740F 04              inc  b
+1128   7410 04              inc  b
+1129   7411 3E FE           ld   a, 254
+1130   7413 02              ld   (bc), a
+1131   7414 42              ld   b, d
+1132   7415                 ; 578 // *de = a = *hl; l++; d++;
+1133   7415                 ; 579 // *de = a = *hl; l++; d++;
+1134   7415                 ; 580 // *de = a = *hl; l++; d++;
+1135   7415                 ; 581 // *de = a = *hl; l++; d++;
+1136   7415                 ; 582 // *de = a = *hl; l++; d++;
+1137   7415                 ; 583 // *de = a = *hl; l++; d++;
+1138   7415                 ; 584 // *de = a = *hl; l++; d++;
+1139   7415                 ; 585 // *de = a = *hl; l++;
+1140   7415                 ; 586 // *bc = a = *hl; l++;
+1141   7415                 ; 587 // d = b; b++; b++; b++; *bc = a = 0xFF; b = d;
+1142   7415                 ; 589 d = ixl;
+1143   7415 DD 55           ld   d, ixl
+1144   7417                 ; 590 }
+1145   7417 C9              ret
+1146   7418                 ; 592 /*
+1147   7418             
+0001   7418 ED 5F       rand:    LD    A, R
+0002   741A C6 00       rand_1:  ADD   0
+0003   741C 32 22 74            LD    (rand_2 + 1), A
+0004   741F 87                  ADD   A
+0005   7420 87                  ADD   A
+0006   7421 C6 00       rand_2:  ADD   0
+0007   7423 3C                  INC   A
+0008   7424 32 1B 74            LD    (rand_1 + 1), A
+0009   7427 C9                  RET
+0010   7428             
+0011   7428             callIx: 
+0012   7428 DD E9               jp    (ix)
+0013   742A             
+0014   742A             subHlDe: 
+0015   742A B7 ED 52            SUB HL, DE
+0016   742D C9                  RET
+0017   742E             
+0001   742E 00             ds (10000h - $) & 0FFh
 0002   7500             
 0003   7500             city1Tails:  ; count 255
 0004   7500                 db 000h, 0ECh, 0ECh, 0ECh, 0ECh, 0ECh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0ECh, 000h, 0FCh
@@ -2680,53 +2749,1751 @@
 0001   B5B7                 ; 3 void fillRect(hl, bc)
 0002   B5B7             fillRect: 
 0003   B5B7                 ; 4 {
-0004   B5B7                 ; 5 do
-0005   B5B7             l3000: 
-0006   B5B7                 ; 6 {
-0007   B5B7                 ; 7 push(bc)
-0008   B5B7                 ; 8 {
-0009   B5B7 C5              push bc
-0010   B5B8                 ; 9 a ^= a;
-0011   B5B8 AF              xor  a
-0012   B5B9                 ; 10 d = 8;
-0013   B5B9 16 08           ld   d, 8
-0014   B5BB                 ; 11 e = l;
-0015   B5BB 5D              ld   e, l
-0016   B5BC                 ; 12 do
-0017   B5BC             l3001: 
-0018   B5BC                 ; 13 {
-0019   B5BC                 ; 14 b = c;
-0020   B5BC 41              ld   b, c
-0021   B5BD                 ; 15 do
-0022   B5BD             l3002: 
-0023   B5BD                 ; 16 {
-0024   B5BD                 ; 17 *hl = a; l++;
-0025   B5BD 77              ld   (hl), a
-0026   B5BE 2C              inc  l
-0027   B5BF                 ; 18 } while(--b);
-0028   B5BF 10 FC           djnz l3002
-0029   B5C1                 ; 19 l = e;
-0030   B5C1 6B              ld   l, e
-0031   B5C2                 ; 20 h++;
-0032   B5C2 24              inc  h
-0033   B5C3                 ; 21 d--;
-0034   B5C3 15              dec  d
-0035   B5C4                 ; 22 } while(flag_nz);
-0036   B5C4 C2 BC B5        jp   nz, l3001
-0037   B5C7                 ; 24 // Адрес следующей строки
-0038   B5C7                 ; 25 hl += (de = [0x20 - 0x800]);
-0039   B5C7 11 20 F8        ld   de, -2016
-0040   B5CA 19              add  hl, de
-0041   B5CB                 ; 26 a = h;
-0042   B5CB 7C              ld   a, h
-0043   B5CC                 ; 27 a &= 7;
-0044   B5CC E6 07           and  7
-0045   B5CE                 ; 28 if (flag_nz) fillRectAddLine();
-0046   B5CE C4 F9 73        call nz, fillRectAddLine
-0047   B5D1                 ; 29 }
-0048   B5D1 C1              pop  bc
-0049   B5D2                 ; 30 } while(--b);
-0050   B5D2 10 E3           djnz l3000
-0051   B5D4                 ; 31 }
-0052   B5D4 C9              ret
-0053   B5D5             
+0004   B5B7                 ; 5 ixl = b;
+0005   B5B7 DD 68           ld   ixl, b
+0006   B5B9                 ; 6 do
+0007   B5B9             l3000: 
+0008   B5B9                 ; 7 {
+0009   B5B9                 ; 8 a ^= a;
+0010   B5B9 AF              xor  a
+0011   B5BA                 ; 9 d = h; e = l;
+0012   B5BA 54              ld   d, h
+0013   B5BB 5D              ld   e, l
+0014   B5BC                 ; 10 b = c;
+0015   B5BC 41              ld   b, c
+0016   B5BD                 ; 11 do
+0017   B5BD             l3001: 
+0018   B5BD                 ; 12 {
+0019   B5BD                 ; 13 *hl = a; h++;
+0020   B5BD 77              ld   (hl), a
+0021   B5BE 24              inc  h
+0022   B5BF                 ; 14 *hl = a; h++;
+0023   B5BF 77              ld   (hl), a
+0024   B5C0 24              inc  h
+0025   B5C1                 ; 15 *hl = a; h++;
+0026   B5C1 77              ld   (hl), a
+0027   B5C2 24              inc  h
+0028   B5C3                 ; 16 *hl = a; h++;
+0029   B5C3 77              ld   (hl), a
+0030   B5C4 24              inc  h
+0031   B5C5                 ; 17 *hl = a; h++;
+0032   B5C5 77              ld   (hl), a
+0033   B5C6 24              inc  h
+0034   B5C7                 ; 18 *hl = a; h++;
+0035   B5C7 77              ld   (hl), a
+0036   B5C8 24              inc  h
+0037   B5C9                 ; 19 *hl = a; h++;
+0038   B5C9 77              ld   (hl), a
+0039   B5CA 24              inc  h
+0040   B5CB                 ; 20 *hl = a; h = d;
+0041   B5CB 77              ld   (hl), a
+0042   B5CC 62              ld   h, d
+0043   B5CD                 ; 21 l++;
+0044   B5CD 2C              inc  l
+0045   B5CE                 ; 22 } while(--b);
+0046   B5CE 10 ED           djnz l3001
+0047   B5D0                 ; 24 // Адрес следующей строки
+0048   B5D0                 ; 25 l = ((a = e) += 32);
+0049   B5D0 7B              ld   a, e
+0050   B5D1 C6 20           add  32
+0051   B5D3 6F              ld   l, a
+0052   B5D4                 ; 26 if (flag_c) h = ((a = h) += 8);
+0053   B5D4 D2 DB B5        jp   nc, l3002
+0054   B5D7 7C              ld   a, h
+0055   B5D8 C6 08           add  8
+0056   B5DA 67              ld   h, a
+0057   B5DB                 ; 27 } while(flag_nz --ixl);
+0058   B5DB             l3002: 
+0059   B5DB DD 2D           dec  ixl
+0060   B5DD C2 B9 B5        jp   nz, l3000
+0061   B5E0                 ; 28 }
+0062   B5E0 C9              ret
+0063   B5E1             
+0001   B5E1             dialog_0  db 0FFh, 0FFh, 0E0h, 0CFh, 0DCh, 0D8h, 0D0h, 0D0h, 046h
+0001   B5E1 FFFFE0CFDCD8D0D046
+0002   B5EA             dialog_1  db 0FFh, 0FFh, 000h, 000h, 000h, 000h, 000h, 000h, 046h
+0002   B5EA FFFF00000000000046
+0003   B5F3             dialog_2  db 0FFh, 0FFh, 007h, 0F3h, 03Bh, 01Bh, 00Bh, 00Bh, 046h
+0003   B5F3 FFFF07F33B1B0B0B46
+0004   B5FC             dialog_3  db 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 0C0h, 046h
+0004   B5FC C0C0C0C0C0C0C0C046
+0005   B605             dialog_4  db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 047h
+0005   B605 000000000000000047
+0006   B60E             dialog_5  db 003h, 003h, 003h, 003h, 003h, 003h, 003h, 003h, 046h
+0006   B60E 030303030303030346
+0007   B617             dialog_6  db 0D0h, 0D0h, 0D8h, 0DCh, 0CFh, 0E0h, 0FFh, 0FFh, 046h
+0007   B617 D0D0D8DCCFE0FFFF46
+0008   B620             dialog_7  db 000h, 000h, 000h, 000h, 000h, 000h, 0FFh, 0FFh, 046h
+0008   B620 000000000000FFFF46
+0009   B629             dialog_8  db 00Bh, 00Bh, 01Bh, 03Bh, 0F3h, 007h, 0FFh, 0FFh, 046h
+0009   B629 0B0B1B3BF307FFFF46
+0010   B632             dialog_9  db 0FEh, 0FEh, 07Ch, 038h, 038h, 010h, 010h, 000h, 046h
+0010   B632 FEFE7C383810100046
+0011   B63B             
+0001   B63B                 ; 2 const int KEY_DOWN = 2;
+0002   B63B                 ; 3 const int KEY_LEFT = 4;
+0003   B63B                 ; 4 const int KEY_RIGHT = 8;
+0004   B63B                 ; 5 const int KEY_FIRE = 16;
+0005   B63B                 ; 7 // 3 - фиолетовый
+0006   B63B                 ; 9 const int colorCursor = 0x43;
+0007   B63B                 ; 10 const int colorText   = 0x47;
+0008   B63B                 ; 11 const int colorItem   = 0x45;
+0009   B63B                 ; 12 const int colorPrice  = 0x44;
+0010   B63B                 ; 14 uint16_t shopText;
+0011   B63B 00 00       shopText dw 0
+0012   B63D                 ; 15 uint16_t shopGetLine;
+0013   B63D 00 00       shopGetLine dw 0
+0014   B63F                 ; 16 uint8_t shopX;
+0015   B63F 00          shopX db 0
+0016   B640                 ; 17 uint8_t shopY;
+0017   B640 00          shopY db 0
+0018   B641                 ; 18 uint8_t shopW;
+0019   B641 00          shopW db 0
+0020   B642                 ; 19 uint8_t shopH;
+0021   B642 00          shopH db 0
+0022   B643                 ; 20 const int shopLineHeight = 10;
+0023   B643                 ; 21 uint16_t dialogCursor;
+0024   B643 00 00       dialogCursor dw 0
+0025   B645                 ; 22 uint8_t dialogX;
+0026   B645 00          dialogX db 0
+0027   B646                 ; 23 uint8_t dialogX1;
+0028   B646 00          dialogX1 db 0
+0029   B647                 ; 25 //---------------------------------------------------------------------------------------------------------------------
+0030   B647                 ; 26 // Вход: ix - функция динамического текста, iyh - режим, de - указатель на текст
+0031   B647                 ; 27 // Вход: de - указатель на следующий текст, iyh - новый режим
+0032   B647                 ; 28 // Сохраняет: hl, ix, iyl
+0033   B647                 ; 30 void shopNextLine()
+0034   B647             shopNextLine: 
+0035   B647                 ; 31 {
+0036   B647                 ; 32 // Вывод статического текста
+0037   B647                 ; 33 if (flag_z (a = iyh) & 0x80)
+0038   B647 FD 7C           ld   a, iyh
+0039   B649 CB 7F           bit  7, a
+0040   B64B                 ; 34 {
+0041   B64B C2 5A B6        jp   nz, l0
+0042   B64E                 ; 35 do { a = *de; de++; } while(a >= 32);
+0043   B64E             l1: 
+0044   B64E 1A              ld   a, (de)
+0045   B64F 13              inc  de
+0046   B650 FE 20           cp   32
+0047   B652 D2 4E B6        jp   nc, l1
+0048   B655                 ; 36 if (flag_nz a |= a) return; // nz
+0049   B655 B7              or   a
+0050   B656 C0              ret  nz
+0051   B657                 ; 37 // Переход к динамическому тексту
+0052   B657                 ; 38 iyh = 0x80;
+0053   B657 FD 26 80        ld   iyh, 128
+0054   B65A                 ; 39 }
+0055   B65A                 ; 40 // Вывод динамического текста
+0056   B65A                 ; 41 if (flag_z a |= ixl) return; // z
+0057   B65A             l0: 
+0058   B65A DD B5           or   ixl
+0059   B65C C8              ret  z
+0060   B65D                 ; 42 (a = iyh) &= 0x7F; iyh++;
+0061   B65D FD 7C           ld   a, iyh
+0062   B65F E6 7F           and  127
+0063   B661 FD 24           inc  iyh
+0064   B663                 ; 43 push(hl)
+0065   B663                 ; 44 {
+0066   B663 E5              push hl
+0067   B664                 ; 45 callIx(); // Вход: a - номер. Выход: hl - текст. Портит: a, bc, de
+0068   B664 CD 28 74        call callIx
+0069   B667                 ; 46 ex(hl, de);
+0070   B667 EB              ex de, hl
+0071   B668                 ; 47 }
+0072   B668 E1              pop  hl
+0073   B669                 ; 48 (a = d) |= e; // return z/nz
+0074   B669 7A              ld   a, d
+0075   B66A B3              or   e
+0076   B66B                 ; 49 }
+0077   B66B C9              ret
+0078   B66C                 ; 51 //---------------------------------------------------------------------------------------------------------------------
+0079   B66C                 ; 52 // Алгоритм диалога
+0080   B66C                 ; 54 const int tailSize = 8;
+0081   B66C                 ; 55 const int shopTopPadding = 4;
+0082   B66C                 ; 56 const int shopAnswerSeparatorHeight = 4;
+0083   B66C                 ; 58 void shopStart(de, ix)
+0084   B66C             shopStart: 
+0085   B66C                 ; 59 {
+0086   B66C                 ; 60 shopText = de;
+0087   B66C ED 53 3B B6     ld   (shopText), de
+0088   B670                 ; 61 shopGetLine = ix;
+0089   B670 DD 22 3D B6     ld   (shopGetLine), ix
+0090   B674                 ; 63 // ВЫЧИСЛЕНИЕ РАЗМЕРА
+0091   B674                 ; 65 ex(bc, de, hl);
+0092   B674 D9              exx
+0093   B675                 ; 66 hl` = 0; // h` - ширина цен, l` - ширина товаров
+0094   B675 21 00 00        ld   hl, 0
+0095   B678                 ; 67 ex(bc, de, hl);
+0096   B678 D9              exx
+0097   B679                 ; 68 hl = shopTopPadding; // h - ширина назчаний, l - высота всех элементов
+0098   B679 21 04 00        ld   hl, 4
+0099   B67C                 ; 69 iy = 0; // iyl - режим ответов, iyh - режим динамического текста
+0100   B67C FD 21 00 00     ld   iy, 0
+0101   B680                 ; 70 // de - указатель на текст
+0102   B680                 ; 71 do
+0103   B680             l2: 
+0104   B680                 ; 72 {
+0105   B680                 ; 73 push(de)
+0106   B680                 ; 74 {
+0107   B680 D5              push de
+0108   B681                 ; 75 push(hl)
+0109   B681                 ; 76 {
+0110   B681 E5              push hl
+0111   B682                 ; 77 gMeasureText(); // Вход: de - текст. Выход: de - текст, a - терминатор, c - ширина в пикселях. Портит: b, hl.
+0112   B682 CD 72 60        call gMeasureText
+0113   B685                 ; 78 }
+0114   B685 E1              pop  hl
+0115   B686                 ; 80 ex(a); // Сохраняем термиатор
+0116   B686 08              ex   af, af
+0117   B687                 ; 81 a = c;
+0118   B687 79              ld   a, c
+0119   B688                 ; 82 if (flag_nz (a |= a))
+0120   B688 B7              or   a
+0121   B689                 ; 83 {
+0122   B689 CA B7 B6        jp   z, l3
+0123   B68C                 ; 84 a += iyl; // Добавляем отступ ответов
+0124   B68C FD 85           add  iyl
+0125   B68E                 ; 85 ex(a);
+0126   B68E 08              ex   af, af
+0127   B68F                 ; 86 if (a == 9) // Если есть цена
+0128   B68F FE 09           cp   9
+0129   B691                 ; 87 {
+0130   B691 C2 AD B6        jp   nz, l4
+0131   B694                 ; 88 ex(bc, de, hl);
+0132   B694 D9              exx
+0133   B695                 ; 89 ex(a);
+0134   B695 08              ex   af, af
+0135   B696                 ; 90 if (a >= l`) l` = a;  // Вычисляем максимальную ширину
+0136   B696 BD              cp   l
+0137   B697 DA 9B B6        jp   c, l5
+0138   B69A 6F              ld   l, a
+0139   B69B                 ; 91 ex(bc, de, hl);
+0140   B69B             l5: 
+0141   B69B D9              exx
+0142   B69C                 ; 93 push(hl)
+0143   B69C                 ; 94 {
+0144   B69C E5              push hl
+0145   B69D                 ; 95 gMeasureText();
+0146   B69D CD 72 60        call gMeasureText
+0147   B6A0                 ; 96 }
+0148   B6A0 E1              pop  hl
+0149   B6A1                 ; 97 // Учет ширины и высоты
+0150   B6A1                 ; 99 ex(a); // Сохраняем термиатор
+0151   B6A1 08              ex   af, af
+0152   B6A2                 ; 100 a = c;
+0153   B6A2 79              ld   a, c
+0154   B6A3                 ; 101 ex(bc, de, hl);
+0155   B6A3 D9              exx
+0156   B6A4                 ; 102 if (a >= h`) h` = a;  // Вычисляем максимальную ширину
+0157   B6A4 BC              cp   h
+0158   B6A5 DA A9 B6        jp   c, l6
+0159   B6A8 67              ld   h, a
+0160   B6A9                 ; 103 ex(bc, de, hl);
+0161   B6A9             l6: 
+0162   B6A9 D9              exx
+0163   B6AA                 ; 104 }
+0164   B6AA                 ; 105 else
+0165   B6AA C3 B3 B6        jp   l7
+0166   B6AD             l4: 
+0167   B6AD                 ; 106 {
+0168   B6AD                 ; 107 ex(a);
+0169   B6AD 08              ex   af, af
+0170   B6AE                 ; 108 if (a >= h) h = a; // Вычисляем максимальную ширину
+0171   B6AE BC              cp   h
+0172   B6AF DA B3 B6        jp   c, l8
+0173   B6B2 67              ld   h, a
+0174   B6B3                 ; 109 }
+0175   B6B3             l8: 
+0176   B6B3             l7: 
+0177   B6B3                 ; 110 l = ((a = l) += shopLineHeight); // Вычисляем высоту
+0178   B6B3 7D              ld   a, l
+0179   B6B4 C6 0A           add  10
+0180   B6B6 6F              ld   l, a
+0181   B6B7                 ; 111 }
+0182   B6B7                 ; 112 ex(a);
+0183   B6B7             l3: 
+0184   B6B7 08              ex   af, af
+0185   B6B8                 ; 114 // Если строка оканчивается кодом 13, то далее идут ответы
+0186   B6B8                 ; 115 if (a == 13)
+0187   B6B8 FE 0D           cp   13
+0188   B6BA                 ; 116 {
+0189   B6BA C2 C4 B6        jp   nz, l9
+0190   B6BD                 ; 117 iyl = tailSize; // Отступ для ответов
+0191   B6BD FD 2E 08        ld   iyl, 8
+0192   B6C0                 ; 118 l = ((a = l) += [shopAnswerSeparatorHeight]); // Отступ ответов. Это примерно половина высота строки. Это гарантирует отсутсвтие клешинга.
+0193   B6C0 7D              ld   a, l
+0194   B6C1 C6 04           add  4
+0195   B6C3 6F              ld   l, a
+0196   B6C4                 ; 119 }
+0197   B6C4                 ; 120 }
+0198   B6C4             l9: 
+0199   B6C4 D1              pop  de
+0200   B6C5                 ; 122 // Следующая строка
+0201   B6C5                 ; 123 shopNextLine();
+0202   B6C5 CD 47 B6        call shopNextLine
+0203   B6C8                 ; 124 } while(flag_nz);
+0204   B6C8 C2 80 B6        jp   nz, l2
+0205   B6CB                 ; 126 // Преобразование пикселей в знакоместа
+0206   B6CB                 ; 127 ex(bc, de, hl);
+0207   B6CB D9              exx
+0208   B6CC                 ; 128 a = h`;
+0209   B6CC 7C              ld   a, h
+0210   B6CD                 ; 129 if (flag_nz a |= a) a += tailSize; // Если есть цена, то добавляем разделитель в одно знакоместо между наименованием и ценой.
+0211   B6CD B7              or   a
+0212   B6CE CA D3 B6        jp   z, l10
+0213   B6D1 C6 08           add  8
+0214   B6D3                 ; 130 a += l`; // Суммируем ширину наименований и цен
+0215   B6D3             l10: 
+0216   B6D3 85              add  l
+0217   B6D4                 ; 131 ex(bc, de, hl);
+0218   B6D4 D9              exx
+0219   B6D5                 ; 132 if (a < h) a = h;
+0220   B6D5 BC              cp   h
+0221   B6D6 D2 DA B6        jp   nc, l11
+0222   B6D9 7C              ld   a, h
+0223   B6DA                 ; 134 h = ((a += 7) >>= 3); shopW = a; // Преобразуем в знакоместа
+0224   B6DA             l11: 
+0225   B6DA C6 07           add  7
+0226   B6DC CB 3F           srl  a
+0227   B6DE CB 3F           srl  a
+0228   B6E0 CB 3F           srl  a
+0229   B6E2 67              ld   h, a
+0230   B6E3 32 41 B6        ld   (shopW), a
+0231   B6E6                 ; 135 l = (((a = l) += 7) >>= 3); shopH = a; // Преобразуем в знакоместа
+0232   B6E6 7D              ld   a, l
+0233   B6E7 C6 07           add  7
+0234   B6E9 CB 3F           srl  a
+0235   B6EB CB 3F           srl  a
+0236   B6ED CB 3F           srl  a
+0237   B6EF 6F              ld   l, a
+0238   B6F0 32 42 B6        ld   (shopH), a
+0239   B6F3                 ; 136 shopX = (((a = [32 - 2]) -= h) >>= 1); // Вычисляем положение диалога
+0240   B6F3 3E 1E           ld   a, 30
+0241   B6F5 94              sub  h
+0242   B6F6 CB 3F           srl  a
+0243   B6F8 32 3F B6        ld   (shopX), a
+0244   B6FB                 ; 137 shopY = (((a = [20 - 3]) -= l) >>= 1);
+0245   B6FB 3E 11           ld   a, 17
+0246   B6FD 95              sub  l
+0247   B6FE CB 3F           srl  a
+0248   B700 32 40 B6        ld   (shopY), a
+0249   B703                 ; 139 // РИСОВАНИЕ
+0250   B703                 ; 141 // Выбираем активной видеостраницей невидимую и очищаем экран.
+0251   B703                 ; 142 beginDraw();
+0252   B703 CD 32 72        call beginDraw
+0253   B706                 ; 143 cityDraw();
+0254   B706 CD 54 72        call cityDraw
+0255   B709                 ; 145 // Рисуем рамку
+0256   B709                 ; 146 hl = shopX; // И за одно shopY
+0257   B709 2A 3F B6        ld   hl, (shopX)
+0258   B70C                 ; 147 calcAddr(); // bc - чб, hl = цвет
+0259   B70C CD 7C B8        call calcAddr
+0260   B70F                 ; 148 iy = shopW; // И за одно shopH
+0261   B70F FD 2A 41 B6     ld   iy, (shopW)
+0262   B713                 ; 149 drawDialog2(de = &dialog_0, bc, hl, iyl);
+0263   B713 11 E1 B5        ld   de, dialog_0
+0264   B716 CD 23 B8        call drawDialog2
+0265   B719                 ; 150 do
+0266   B719             l12: 
+0267   B719                 ; 151 {
+0268   B719                 ; 152 drawDialog2(de = &dialog_3, bc, hl, iyl);
+0269   B719 11 FC B5        ld   de, dialog_3
+0270   B71C CD 23 B8        call drawDialog2
+0271   B71F                 ; 153 } while(flag_nz --iyh);
+0272   B71F FD 25           dec  iyh
+0273   B721 C2 19 B7        jp   nz, l12
+0274   B724                 ; 154 drawDialog2(de = &dialog_6, bc, hl, iyl);
+0275   B724 11 17 B6        ld   de, dialog_6
+0276   B727 CD 23 B8        call drawDialog2
+0277   B72A                 ; 155 drawSprite2(bc, de, hl);
+0278   B72A CD 53 B8        call drawSprite2
+0279   B72D                 ; 157 *[&shopStartColor + 1] = a = colorText;
+0280   B72D 3E 47           ld   a, 71
+0281   B72F 32 54 B7        ld   ((shopStartColor) + (1)), a
+0282   B732                 ; 158 // Рисуем текст
+0283   B732                 ; 159 ix = shopGetLine;  // ix - функция динамического текста
+0284   B732 DD 2A 3D B6     ld   ix, (shopGetLine)
+0285   B736                 ; 160 de = shopText;     // de - статический текст
+0286   B736 ED 5B 3B B6     ld   de, (shopText)
+0287   B73A                 ; 161 hl = shopX;        // hl - Координаты для вывода текста в знакоместах
+0288   B73A 2A 3F B6        ld   hl, (shopX)
+0289   B73D                 ; 162 (((hl += hl) += hl) += hl) += (bc = [(tailSize + shopTopPadding) * 256 + tailSize]); // Вычисляем координаты в внутри рамки в пикселях
+0290   B73D 29              add  hl, hl
+0291   B73E 29              add  hl, hl
+0292   B73F 29              add  hl, hl
+0293   B740 01 08 0C        ld   bc, 3080
+0294   B743 09              add  hl, bc
+0295   B744                 ; 163 dialogCursor = hl; // hl - координаты первого ответа (что бы не было глюка, если программист забудет в диалоге описать варианты ответов)
+0296   B744 22 43 B6        ld   (dialogCursor), hl
+0297   B747                 ; 164 iy = 0;            // iyl - кол-во ответов, iyh - режим динамического текста
+0298   B747 FD 21 00 00     ld   iy, 0
+0299   B74B                 ; 165 do
+0300   B74B             l13: 
+0301   B74B                 ; 166 {
+0302   B74B                 ; 167 a = *de;
+0303   B74B 1A              ld   a, (de)
+0304   B74C                 ; 168 if (a >= ' ')
+0305   B74C FE 20           cp   32
+0306   B74E                 ; 169 {
+0307   B74E DA 82 B7        jp   c, l14
+0308   B751                 ; 170 push(de)
+0309   B751                 ; 171 {
+0310   B751 D5              push de
+0311   B752                 ; 172 push(hl)
+0312   B752                 ; 173 {
+0313   B752 E5              push hl
+0314   B753                 ; 174 shopStartColor: a = colorText;
+0315   B753             shopStartColor: 
+0316   B753 3E 47           ld   a, 71
+0317   B755                 ; 175 gDrawTextEx(hl, de, a); // Выводим наименование
+0318   B755 CD 69 60        call gDrawTextEx
+0319   B758                 ; 176 }
+0320   B758 E1              pop  hl
+0321   B759                 ; 177 if (a == 9)
+0322   B759 FE 09           cp   9
+0323   B75B                 ; 178 {
+0324   B75B C2 7D B7        jp   nz, l15
+0325   B75E                 ; 179 push(hl)
+0326   B75E                 ; 180 {
+0327   B75E E5              push hl
+0328   B75F                 ; 181 push(de, hl)
+0329   B75F                 ; 182 {
+0330   B75F D5              push de
+0331   B760 E5              push hl
+0332   B761                 ; 183 gMeasureText(); // Вычисляем ширину цены, что бы прижать её к правому краю
+0333   B761 CD 72 60        call gMeasureText
+0334   B764                 ; 184 }
+0335   B764 E1              pop  hl
+0336   B765 D1              pop  de
+0337   B766                 ; 185 l = a = shopW;
+0338   B766 3A 41 B6        ld   a, (shopW)
+0339   B769 6F              ld   l, a
+0340   B76A                 ; 186 (a = shopX) += l;
+0341   B76A 3A 3F B6        ld   a, (shopX)
+0342   B76D 85              add  l
+0343   B76E                 ; 187 a++;
+0344   B76E 3C              inc  a
+0345   B76F                 ; 188 a <<= 3;
+0346   B76F CB 27           sla  a
+0347   B771 CB 27           sla  a
+0348   B773 CB 27           sla  a
+0349   B775                 ; 189 l = (a -= c);
+0350   B775 91              sub  c
+0351   B776 6F              ld   l, a
+0352   B777                 ; 190 gDrawTextEx(hl, de, a = colorPrice); // Выводим цену
+0353   B777 3E 44           ld   a, 68
+0354   B779 CD 69 60        call gDrawTextEx
+0355   B77C                 ; 191 }
+0356   B77C E1              pop  hl
+0357   B77D                 ; 192 }
+0358   B77D                 ; 193 }
+0359   B77D             l15: 
+0360   B77D D1              pop  de
+0361   B77E                 ; 194 hl += (bc = [shopLineHeight * 256]);
+0362   B77E 01 00 0A        ld   bc, 2560
+0363   B781 09              add  hl, bc
+0364   B782                 ; 195 }
+0365   B782                 ; 196 if (a == 13)
+0366   B782             l14: 
+0367   B782 FE 0D           cp   13
+0368   B784                 ; 197 {
+0369   B784 C2 9A B7        jp   nz, l16
+0370   B787                 ; 198 h = ((a = h) += shopAnswerSeparatorHeight); // Если есть цена, то добавляем разделитель в одно знакоместо между наименованием и ценой.
+0371   B787 7C              ld   a, h
+0372   B788 C6 04           add  4
+0373   B78A 67              ld   h, a
+0374   B78B                 ; 199 dialogCursor = hl; // Координаты первого ответа
+0375   B78B 22 43 B6        ld   (dialogCursor), hl
+0376   B78E                 ; 200 l = ((a = l) += tailSize); // Отступ для ответов
+0377   B78E 7D              ld   a, l
+0378   B78F C6 08           add  8
+0379   B791 6F              ld   l, a
+0380   B792                 ; 201 iyl = -1; // Сброс счетчика кол-ва ответов
+0381   B792 FD 2E FF        ld   iyl, -1
+0382   B795                 ; 202 *[&shopStartColor + 1] = a = colorItem;
+0383   B795 3E 45           ld   a, 69
+0384   B797 32 54 B7        ld   ((shopStartColor) + (1)), a
+0385   B79A                 ; 203 }
+0386   B79A                 ; 204 iyl++; // Счетчик кол-ва ответов
+0387   B79A             l16: 
+0388   B79A FD 2C           inc  iyl
+0389   B79C                 ; 205 shopNextLine();
+0390   B79C CD 47 B6        call shopNextLine
+0391   B79F                 ; 206 } while(flag_nz);
+0392   B79F C2 4B B7        jp   nz, l13
+0393   B7A2                 ; 208 // Начальное положение курсора
+0394   B7A2                 ; 209 dialogX = (a ^= a);
+0395   B7A2 AF              xor  a
+0396   B7A3 32 45 B6        ld   (dialogX), a
+0397   B7A6                 ; 210 dialogX1 = a;
+0398   B7A6 32 46 B6        ld   (dialogX1), a
+0399   B7A9                 ; 212 // Рисуем курсор
+0400   B7A9                 ; 213 dialogDrawCursor();
+0401   B7A9 CD 12 B8        call dialogDrawCursor
+0402   B7AC                 ; 215 // Выводим на экран
+0403   B7AC                 ; 216 endDraw();
+0404   B7AC CD 49 72        call endDraw
+0405   B7AF                 ; 218 // Клавиатура
+0406   B7AF                 ; 219 while()
+0407   B7AF             l17: 
+0408   B7AF                 ; 220 {
+0409   B7AF                 ; 221 continue:
+0410   B7AF             continue: 
+0411   B7AF                 ; 222 // Ждем, если прошло меньше 1/50 сек с прошлого цикла.
+0412   B7AF                 ; 223 while ((a = gVideoPage) & 1);
+0413   B7AF             l19: 
+0414   B7AF 3A 85 60        ld   a, (gVideoPage)
+0415   B7B2 CB 47           bit  0, a
+0416   B7B4 CA BA B7        jp   z, l20
+0417   B7B7 C3 AF B7        jp   l19
+0418   B7BA             l20: 
+0419   B7BA                 ; 224 gVideoPage = (a |= 1);
+0420   B7BA F6 01           or   1
+0421   B7BC 32 85 60        ld   (gVideoPage), a
+0422   B7BF                 ; 226 // Получить нажатую клавишу
+0423   B7BF                 ; 227 hl = &gKeyTrigger;
+0424   B7BF 21 87 60        ld   hl, gKeyTrigger
+0425   B7C2                 ; 228 b = *hl;
+0426   B7C2 46              ld   b, (hl)
+0427   B7C3                 ; 229 *hl = 0;
+0428   B7C3 36 00           ld   (hl), 0
+0429   B7C5                 ; 231 // Нажат выстрел
+0430   B7C5                 ; 232 if (b & KEY_FIRE)
+0431   B7C5 CB 60           bit  4, b
+0432   B7C7                 ; 233 {
+0433   B7C7 CA D1 B7        jp   z, l22
+0434   B7CA                 ; 234 // Отмечаем, что весь экран нужно перерисовать и выходим
+0435   B7CA                 ; 235 cityFullRedraw();
+0436   B7CA CD 62 70        call cityFullRedraw
+0437   B7CD                 ; 236 a = dialogX;
+0438   B7CD 3A 45 B6        ld   a, (dialogX)
+0439   B7D0                 ; 237 return;
+0440   B7D0 C9              ret
+0441   B7D1                 ; 238 }
+0442   B7D1                 ; 240 // Перемещение курсора
+0443   B7D1                 ; 241 a = dialogX;
+0444   B7D1             l22: 
+0445   B7D1 3A 45 B6        ld   a, (dialogX)
+0446   B7D4                 ; 242 if (b & KEY_UP)
+0447   B7D4 CB 40           bit  0, b
+0448   B7D6                 ; 243 {
+0449   B7D6 CA E1 B7        jp   z, l23
+0450   B7D9                 ; 244 a -= 1;
+0451   B7D9 D6 01           sub  1
+0452   B7DB                 ; 245 if (flag_c) goto continue;
+0453   B7DB DA AF B7        jp   c, continue
+0454   B7DE                 ; 246 }
+0455   B7DE                 ; 247 else if (b & KEY_DOWN)
+0456   B7DE C3 EC B7        jp   l24
+0457   B7E1             l23: 
+0458   B7E1 CB 48           bit  1, b
+0459   B7E3                 ; 248 {
+0460   B7E3 CA EC B7        jp   z, l25
+0461   B7E6                 ; 249 a++;
+0462   B7E6 3C              inc  a
+0463   B7E7                 ; 250 if (a >= iyl) goto continue;
+0464   B7E7 FD BD           cp   iyl
+0465   B7E9 D2 AF B7        jp   nc, continue
+0466   B7EC                 ; 251 }
+0467   B7EC                 ; 252 dialogX = a;
+0468   B7EC             l25: 
+0469   B7EC             l24: 
+0470   B7EC 32 45 B6        ld   (dialogX), a
+0471   B7EF                 ; 254 // Умножение на 10
+0472   B7EF                 ; 255 c = (a += a);
+0473   B7EF 87              add  a
+0474   B7F0 4F              ld   c, a
+0475   B7F1                 ; 256 ((a += a) += a) += c;
+0476   B7F1 87              add  a
+0477   B7F2 87              add  a
+0478   B7F3 81              add  c
+0479   B7F4                 ; 258 // Плавное перемещение курсора
+0480   B7F4                 ; 259 hl = &dialogX1;
+0481   B7F4 21 46 B6        ld   hl, dialogX1
+0482   B7F7                 ; 260 b = *hl;
+0483   B7F7 46              ld   b, (hl)
+0484   B7F8                 ; 261 if (a == b) goto continue; // Оставит флаг CF при выполнении dialogX1 - menuX
+0485   B7F8 B8              cp   b
+0486   B7F9 CA AF B7        jp   z, continue
+0487   B7FC                 ; 262 b++; // Не изменяет CF
+0488   B7FC 04              inc  b
+0489   B7FD                 ; 263 if (flag_c) ----b;
+0490   B7FD D2 02 B8        jp   nc, l26
+0491   B800 05              dec  b
+0492   B801 05              dec  b
+0493   B802                 ; 265 // Стираем прошлый курсор
+0494   B802                 ; 266 push(bc);
+0495   B802             l26: 
+0496   B802 C5              push bc
+0497   B803                 ; 267 dialogDrawCursor();
+0498   B803 CD 12 B8        call dialogDrawCursor
+0499   B806                 ; 268 pop(bc);
+0500   B806 C1              pop  bc
+0501   B807                 ; 270 // Сохраняем новые координаты курсора
+0502   B807                 ; 271 *(hl = &dialogX1) = b;
+0503   B807 21 46 B6        ld   hl, dialogX1
+0504   B80A 70              ld   (hl), b
+0505   B80B                 ; 273 // Рисуем курсор
+0506   B80B                 ; 274 dialogDrawCursor();
+0507   B80B CD 12 B8        call dialogDrawCursor
+0508   B80E                 ; 275 }
+0509   B80E C3 AF B7        jp   l17
+0510   B811                 ; 276 }
+0511   B811 C9              ret
+0512   B812                 ; 278 void dialogDrawCursor()
+0513   B812             dialogDrawCursor: 
+0514   B812                 ; 279 {
+0515   B812                 ; 280 hl = dialogCursor;
+0516   B812 2A 43 B6        ld   hl, (dialogCursor)
+0517   B815                 ; 281 h = ((a = dialogX1) += h);
+0518   B815 3A 46 B6        ld   a, (dialogX1)
+0519   B818 84              add  h
+0520   B819 67              ld   h, a
+0521   B81A                 ; 282 gDrawTextEx(hl, de = "@", a = colorCursor);
+0522   B81A 11 9D B8        ld   de, s0
+0523   B81D 3E 43           ld   a, 67
+0524   B81F CD 69 60        call gDrawTextEx
+0525   B822                 ; 283 }
+0526   B822 C9              ret
+0527   B823                 ; 285 void drawDialog2()
+0528   B823             drawDialog2: 
+0529   B823                 ; 286 {
+0530   B823                 ; 287 push(bc, hl)
+0531   B823                 ; 288 {
+0532   B823 C5              push bc
+0533   B824 E5              push hl
+0534   B825                 ; 289 drawSprite2();
+0535   B825 CD 53 B8        call drawSprite2
+0536   B828                 ; 290 a = iyl;
+0537   B828 FD 7D           ld   a, iyl
+0538   B82A                 ; 291 ixh = d; ixl = e;
+0539   B82A DD 62           ld   ixh, d
+0540   B82C DD 6B           ld   ixl, e
+0541   B82E                 ; 292 do
+0542   B82E             l27: 
+0543   B82E                 ; 293 {
+0544   B82E                 ; 294 ex(a);
+0545   B82E 08              ex   af, af
+0546   B82F                 ; 295 d = ixh; e = ixl;
+0547   B82F DD 54           ld   d, ixh
+0548   B831 DD 5D           ld   e, ixl
+0549   B833                 ; 296 drawSprite2();
+0550   B833 CD 53 B8        call drawSprite2
+0551   B836                 ; 297 ex(a);
+0552   B836 08              ex   af, af
+0553   B837                 ; 298 } while(flag_nz --a);
+0554   B837 3D              dec  a
+0555   B838 C2 2E B8        jp   nz, l27
+0556   B83B                 ; 299 drawSprite2();
+0557   B83B CD 53 B8        call drawSprite2
+0558   B83E                 ; 300 }
+0559   B83E E1              pop  hl
+0560   B83F C1              pop  bc
+0561   B840                 ; 301 // Следующая строка
+0562   B840                 ; 302 l = ((a = l) += 32); h = ((a +@= h) -= l);
+0563   B840 7D              ld   a, l
+0564   B841 C6 20           add  32
+0565   B843 6F              ld   l, a
+0566   B844 8C              adc  h
+0567   B845 95              sub  l
+0568   B846 67              ld   h, a
+0569   B847                 ; 303 c = ((a = c) += 32); if (flag_c) b = ((a = b) += 8);
+0570   B847 79              ld   a, c
+0571   B848 C6 20           add  32
+0572   B84A 4F              ld   c, a
+0573   B84B D2 52 B8        jp   nc, l28
+0574   B84E 78              ld   a, b
+0575   B84F C6 08           add  8
+0576   B851 47              ld   b, a
+0577   B852                 ; 304 }
+0578   B852             l28: 
+0579   B852 C9              ret
+0580   B853                 ; 306 void drawSprite2(de, bc, hl)
+0581   B853             drawSprite2: 
+0582   B853                 ; 307 {
+0583   B853                 ; 308 *bc = a = *de; de++; b++;
+0584   B853 1A              ld   a, (de)
+0585   B854 02              ld   (bc), a
+0586   B855 13              inc  de
+0587   B856 04              inc  b
+0588   B857                 ; 309 *bc = a = *de; de++; b++;
+0589   B857 1A              ld   a, (de)
+0590   B858 02              ld   (bc), a
+0591   B859 13              inc  de
+0592   B85A 04              inc  b
+0593   B85B                 ; 310 *bc = a = *de; de++; b++;
+0594   B85B 1A              ld   a, (de)
+0595   B85C 02              ld   (bc), a
+0596   B85D 13              inc  de
+0597   B85E 04              inc  b
+0598   B85F                 ; 311 *bc = a = *de; de++; b++;
+0599   B85F 1A              ld   a, (de)
+0600   B860 02              ld   (bc), a
+0601   B861 13              inc  de
+0602   B862 04              inc  b
+0603   B863                 ; 312 *bc = a = *de; de++; b++;
+0604   B863 1A              ld   a, (de)
+0605   B864 02              ld   (bc), a
+0606   B865 13              inc  de
+0607   B866 04              inc  b
+0608   B867                 ; 313 *bc = a = *de; de++; b++;
+0609   B867 1A              ld   a, (de)
+0610   B868 02              ld   (bc), a
+0611   B869 13              inc  de
+0612   B86A 04              inc  b
+0613   B86B                 ; 314 *bc = a = *de; de++; b++;
+0614   B86B 1A              ld   a, (de)
+0615   B86C 02              ld   (bc), a
+0616   B86D 13              inc  de
+0617   B86E 04              inc  b
+0618   B86F                 ; 315 *bc = a = *de; de++;
+0619   B86F 1A              ld   a, (de)
+0620   B870 02              ld   (bc), a
+0621   B871 13              inc  de
+0622   B872                 ; 316 *hl = a = *de; de++;
+0623   B872 1A              ld   a, (de)
+0624   B873 77              ld   (hl), a
+0625   B874 13              inc  de
+0626   B875                 ; 317 b = ((a = b) -= 7);
+0627   B875 78              ld   a, b
+0628   B876 D6 07           sub  7
+0629   B878 47              ld   b, a
+0630   B879                 ; 318 hl++;
+0631   B879 23              inc  hl
+0632   B87A                 ; 319 c++;
+0633   B87A 0C              inc  c
+0634   B87B                 ; 320 }
+0635   B87B C9              ret
+0636   B87C                 ; 322 // Вход:
+0637   B87C                 ; 323 //   l - x
+0638   B87C                 ; 324 //   h - y
+0639   B87C                 ; 325 //   hl - цветной адрес
+0640   B87C                 ; 326 //   bc - чб адрес
+0641   B87C                 ; 328 void calcAddr()
+0642   B87C             calcAddr: 
+0643   B87C                 ; 329 {
+0644   B87C                 ; 330 //        43210     43210
+0645   B87C                 ; 331 // bc  .1.43...  210.....
+0646   B87C                 ; 332 // hl  .1.11.43  210.....
+0647   B87C                 ; 333 b = (((a = h) &= 0x18) |= 0x40);
+0648   B87C 7C              ld   a, h
+0649   B87D E6 18           and  24
+0650   B87F F6 40           or   64
+0651   B881 47              ld   b, a
+0652   B882                 ; 334 h = ((a = h) >>r= 3);
+0653   B882 7C              ld   a, h
+0654   B883 0F              rrca
+0655   B884 0F              rrca
+0656   B885 0F              rrca
+0657   B886 67              ld   h, a
+0658   B887                 ; 335 c = l = ((a &= 0xE0) |= l);
+0659   B887 E6 E0           and  224
+0660   B889 B5              or   l
+0661   B88A 6F              ld   l, a
+0662   B88B 4D              ld   c, l
+0663   B88C                 ; 336 h = (((a = h) &= 0x03) |= 0x58);
+0664   B88C 7C              ld   a, h
+0665   B88D E6 03           and  3
+0666   B88F F6 58           or   88
+0667   B891 67              ld   h, a
+0668   B892                 ; 338 if (flag_z (a = gVideoPage) & 0x80) return;
+0669   B892 3A 85 60        ld   a, (gVideoPage)
+0670   B895 CB 7F           bit  7, a
+0671   B897 C8              ret  z
+0672   B898                 ; 339 h |= 0x80;
+0673   B898 CB FC           set  7, h
+0674   B89A                 ; 340 b |= 0x80;
+0675   B89A CB F8           set  7, b
+0676   B89C                 ; 341 }
+0677   B89C C9              ret
+0678   B89D                 ; strings
+0679   B89D 40 00       s0 db "@",0
+0680   B89F             
+0001   B89F                 ; 3 const int numberToString16max = 5;
+0002   B89F                 ; 4 const int playerItemsMax = 5;
+0003   B89F                 ; 6 //+ Добавить магазин амулетов
+0004   B89F                 ; 8 //----------------------------------------------------------------------------------------------------------------------
+0005   B89F                 ; 9 // Названия всех заклинаний
+0006   B89F                 ; 11 const int itemsCount = 8;
+0007   B89F                 ; 13 uint16_t itemNames[itemsCount] = {
+0008   B89F                 ; 14 "Отвар листьев",
+0009   B89F                 ; 15 "Полное исцеление",
+0010   B89F                 ; 16 "Заклинание 1",
+0011   B89F                 ; 17 "Магические силы",
+0012   B89F                 ; 18 "Каменная кожа",
+0013   B89F                 ; 19 "Огонь бездны",
+0014   B89F                 ; 20 "Порча",
+0015   B89F                 ; 21 "Телепортация"
+0016   B89F                 ; 22 };
+0017   B89F             itemNames: 
+0018   B89F 2A BC           dw s4000
+0019   B8A1 38 BC           dw s4001
+0020   B8A3 EB BB           dw s4002
+0021   B8A5 06 BC           dw s4003
+0022   B8A7 F8 BB           dw s4004
+0023   B8A9 1A BC           dw s4005
+0024   B8AB 49 BC           dw s4006
+0025   B8AD 4F BC           dw s4007
+0026   B8AF                 ; 24 uint16_t itemInfo[itemsCount] = {    
+0027   B8AF                 ; 25 "*", //"Восстанавливает 10 единиц здоровья\r",
+0028   B8AF                 ; 27 "*", //"Полностью восстанавливает здоровье\r",
+0029   B8AF                 ; 29 "*", //"Полностью восстанавливает\n"
+0030   B8AF                 ; 30 //"заклинание 1\r",
+0031   B8AF                 ; 32 "*", //"Полностью восстанавливает\n"
+0032   B8AF                 ; 33 //"все заклинания\r",
+0033   B8AF                 ; 35 "Это заклинание делает вашу\n"
+0034   B8AF                 ; 36 "плоть твердой как камень.\n"
+0035   B8AF                 ; 37 "Пока заклинание активно,\n"
+0036   B8AF                 ; 38 "урон уменьшается вдвое.",
+0037   B8AF                 ; 40 "*", //"Полностью восстанавливает амулет\r",
+0038   B8AF                 ; 42 "*", //"Пока заклинание активно,\n"
+0039   B8AF                 ; 43 //"каждая ваша атака наноит в\n"
+0040   B8AF                 ; 44 //"два раза больше урона врагу.\r",
+0041   B8AF                 ; 46 "*" //"Это заклинание возращает\n"
+0042   B8AF                 ; 47 //"Вас в последний посещенный\n"
+0043   B8AF                 ; 48 //"вами город.\r"
+0044   B8AF                 ; 49 };
+0045   B8AF             itemInfo: 
+0046   B8AF D1 BA           dw s4008
+0047   B8B1 D1 BA           dw s4008
+0048   B8B3 D1 BA           dw s4008
+0049   B8B5 D1 BA           dw s4008
+0050   B8B7 5D BD           dw s4009
+0051   B8B9 D1 BA           dw s4008
+0052   B8BB D1 BA           dw s4008
+0053   B8BD D1 BA           dw s4008
+0054   B8BF                 ; 51 uint16_t itemPrices[itemsCount] = {
+0055   B8BF                 ; 52 10,
+0056   B8BF                 ; 53 20,
+0057   B8BF                 ; 54 30,
+0058   B8BF                 ; 55 40,
+0059   B8BF                 ; 56 50,
+0060   B8BF                 ; 57 60,
+0061   B8BF                 ; 58 70,
+0062   B8BF                 ; 59 80
+0063   B8BF                 ; 60 };
+0064   B8BF             itemPrices: 
+0065   B8BF 0A 00           dw 10
+0066   B8C1 14 00           dw 20
+0067   B8C3 1E 00           dw 30
+0068   B8C5 28 00           dw 40
+0069   B8C7 32 00           dw 50
+0070   B8C9 3C 00           dw 60
+0071   B8CB 46 00           dw 70
+0072   B8CD 50 00           dw 80
+0073   B8CF                 ; 62 //----------------------------------------------------------------------------------------------------------------------
+0074   B8CF                 ; 63 // Временный буфер для формирвоания строки с вопросом
+0075   B8CF                 ; 65 const int tmpStringSize = 32;
+0076   B8CF                 ; 66 uint8_t tmpString[tmpStringSize];
+0077   B8CF 00          tmpString ds 32
+0078   B8EF                 ; 68 //----------------------------------------------------------------------------------------------------------------------
+0079   B8EF                 ; 69 // Сформировать строку во временном буфере с наименованием и ценой.
+0080   B8EF                 ; 70 // de - имя
+0081   B8EF                 ; 71 // hl - цена
+0082   B8EF                 ; 72 // bc - разделитель
+0083   B8EF                 ; 74 void shopMakeNamePrice(bc, de, hl)
+0084   B8EF             shopMakeNamePrice: 
+0085   B8EF                 ; 75 {
+0086   B8EF                 ; 76 push(hl);
+0087   B8EF E5              push hl
+0088   B8F0                 ; 77 push(bc);
+0089   B8F0 C5              push bc
+0090   B8F1                 ; 78 hl = &tmpString;
+0091   B8F1 21 CF B8        ld   hl, tmpString
+0092   B8F4                 ; 79 strcpyn(hl, b = [tmpStringSize - 7 - numberToString16max - 1], de); // Запас для " за  ?\r" или "\t"
+0093   B8F4 06 13           ld   b, 19
+0094   B8F6 CD A4 BE        call strcpyn
+0095   B8F9                 ; 80 pop(de);
+0096   B8F9 D1              pop  de
+0097   B8FA                 ; 81 strcpyn(hl, b = 4, de);
+0098   B8FA 06 04           ld   b, 4
+0099   B8FC CD A4 BE        call strcpyn
+0100   B8FF                 ; 82 pop(de);
+0101   B8FF D1              pop  de
+0102   B900                 ; 83 numberToString16(hl, de);
+0103   B900 CD B1 BE        call numberToString16
+0104   B903                 ; 84 hl = &tmpString;
+0105   B903 21 CF B8        ld   hl, tmpString
+0106   B906                 ; 85 }
+0107   B906 C9              ret
+0108   B907                 ; 87 //----------------------------------------------------------------------------------------------------------------------
+0109   B907                 ; 88 // Сформировать строку во временном буфере с наименованием и ценой.
+0110   B907                 ; 89 // de - имя
+0111   B907                 ; 90 // hl - цена
+0112   B907                 ; 92 void shopMakeNamePrice2()
+0113   B907             shopMakeNamePrice2: 
+0114   B907                 ; 93 {
+0115   B907                 ; 94 shopMakeNamePrice(bc = " за ");
+0116   B907 01 CC BA        ld   bc, s4010
+0117   B90A CD EF B8        call shopMakeNamePrice
+0118   B90D                 ; 95 // hl - указатель на начало строки, de - указатель на терминатор строки
+0119   B90D                 ; 96 // Добавляем строку
+0120   B90D                 ; 97 push (hl)
+0121   B90D                 ; 98 {
+0122   B90D E5              push hl
+0123   B90E                 ; 99 ex(hl, de);
+0124   B90E EB              ex de, hl
+0125   B90F                 ; 100 strcpyn(hl, b = 3, de = " ?\r");
+0126   B90F 06 03           ld   b, 3
+0127   B911 11 C8 BA        ld   de, s4011
+0128   B914 CD A4 BE        call strcpyn
+0129   B917                 ; 101 }
+0130   B917 E1              pop  hl
+0131   B918                 ; 102 }
+0132   B918 C9              ret
+0133   B919                 ; 104 //----------------------------------------------------------------------------------------------------------------------
+0134   B919                 ; 105 // Главная страница магазина
+0135   B919                 ; 107 void shopMain()
+0136   B919             shopMain: 
+0137   B919                 ; 108 {
+0138   B919                 ; 109 shopStart(de =
+0139   B919                 ; 110 "Добрый день, чем я\n"
+0140   B919                 ; 111 "могу Вам помочь?"
+0141   B919                 ; 112 "\r"
+0142   B919                 ; 113 "Мне пора идти\n"
+0143   B919                 ; 114 "Я хочу купить\n"
+0144   B919                 ; 115 "Я хочу продать",
+0145   B919 11 9C BB        ld   de, s4012
+0146   B91C                 ; 116 ix = 0
+0147   B91C DD 21 00 00     ld   ix, 0
+0148   B920                 ; 117 );
+0149   B920 CD 6C B6        call shopStart
+0150   B923                 ; 118 if (flag_z a |= a) return; // Выход из магазина
+0151   B923 B7              or   a
+0152   B924 C8              ret  z
+0153   B925                 ; 119 if (flag_z a--) return shopBuy();
+0154   B925 3D              dec  a
+0155   B926 CA 2D B9        jp   z, shopBuy
+0156   B929                 ; 120 return shopTrade();
+0157   B929 C3 EB B9        jp   shopTrade
+0158   B92C                 ; 121 }
+0159   B92C C9              ret
+0160   B92D                 ; 123 //----------------------------------------------------------------------------------------------------------------------
+0161   B92D                 ; 124 // Страница с товарами для покупки
+0162   B92D                 ; 126 void shopBuy()
+0163   B92D             shopBuy: 
+0164   B92D                 ; 127 {
+0165   B92D                 ; 128 shopStart(de =
+0166   B92D                 ; 129 "Что вы хотите купить?"
+0167   B92D                 ; 130 "\r"
+0168   B92D                 ; 131 "Ничего",
+0169   B92D 11 13 BD        ld   de, s4013
+0170   B930                 ; 132 ix = &shopBuyGetText
+0171   B930 DD 21 5A B9     ld   ix, shopBuyGetText
+0172   B934                 ; 133 );
+0173   B934 CD 6C B6        call shopStart
+0174   B937                 ; 134 if (flag_z a |= a) return shopMain();
+0175   B937 B7              or   a
+0176   B938 CA 19 B9        jp   z, shopMain
+0177   B93B                 ; 135 shopSel = (--a);
+0178   B93B 3D              dec  a
+0179   B93C 32 EA B9        ld   (shopSel), a
+0180   B93F                 ; 136 return shopBuyItem();
+0181   B93F C3 67 B9        jp   shopBuyItem
+0182   B942                 ; 137 }
+0183   B942 C9              ret
+0184   B943                 ; 139 // Вход: a - порядковый номер
+0185   B943                 ; 140 // Выход: de - наименование, hl - цена продажи. Если нет предмета, то de = 0
+0186   B943                 ; 142 void shopBuyGetNamePrice(a)
+0187   B943             shopBuyGetNamePrice: 
+0188   B943                 ; 143 {
+0189   B943                 ; 144 hl = 0;
+0190   B943 21 00 00        ld   hl, 0
+0191   B946                 ; 145 de = 0;
+0192   B946 11 00 00        ld   de, 0
+0193   B949                 ; 146 if (a >= itemsCount) return;
+0194   B949 FE 08           cp   8
+0195   B94B D0              ret  nc
+0196   B94C                 ; 147 getItemOfArray16(hl = &itemNames, a);
+0197   B94C 21 9F B8        ld   hl, itemNames
+0198   B94F CD 97 BE        call getItemOfArray16
+0199   B952                 ; 148 ex(hl, de);
+0200   B952 EB              ex de, hl
+0201   B953                 ; 149 getItemOfArray16(hl = &itemPrices, a);
+0202   B953 21 BF B8        ld   hl, itemPrices
+0203   B956 CD 97 BE        call getItemOfArray16
+0204   B959                 ; 150 }
+0205   B959 C9              ret
+0206   B95A                 ; 152 void shopBuyGetText(a)
+0207   B95A             shopBuyGetText: 
+0208   B95A                 ; 153 {
+0209   B95A                 ; 154 shopBuyGetNamePrice(a);    
+0210   B95A CD 43 B9        call shopBuyGetNamePrice
+0211   B95D                 ; 155 if (flag_z (a ^= a) |= d) return;
+0212   B95D AF              xor  a
+0213   B95E B2              or   d
+0214   B95F C8              ret  z
+0215   B960                 ; 156 shopMakeNamePrice(bc = "\x09", hl, de);
+0216   B960 01 C4 BA        ld   bc, s4014
+0217   B963 CD EF B8        call shopMakeNamePrice
+0218   B966                 ; 157 }
+0219   B966 C9              ret
+0220   B967                 ; 159 //----------------------------------------------------------------------------------------------------------------------
+0221   B967                 ; 160 // Страница с подтверждением покупки
+0222   B967                 ; 162 void shopBuyItem()
+0223   B967             shopBuyItem: 
+0224   B967                 ; 163 {
+0225   B967                 ; 164 shopStart(de =
+0226   B967                 ; 165 "Вы уверены, что хотите\n"
+0227   B967                 ; 166 "купить заклинание",
+0228   B967 11 46 BB        ld   de, s4015
+0229   B96A                 ; 167 ix = &shopBuyItemGetText
+0230   B96A DD 21 A6 B9     ld   ix, shopBuyItemGetText
+0231   B96E                 ; 168 );
+0232   B96E CD 6C B6        call shopStart
+0233   B971                 ; 170 if (flag_z a |= a) return shopBuy();
+0234   B971 B7              or   a
+0235   B972 CA 2D B9        jp   z, shopBuy
+0236   B975                 ; 171 if (flag_nz a--) return shopBuyInfo();
+0237   B975 3D              dec  a
+0238   B976 C2 C7 B9        jp   nz, shopBuyInfo
+0239   B979                 ; 173 // Вычисление цены
+0240   B979                 ; 174 shopBuyGetNamePrice(a = shopSel);
+0241   B979 3A EA B9        ld   a, (shopSel)
+0242   B97C CD 43 B9        call shopBuyGetNamePrice
+0243   B97F                 ; 175 // hl - цена
+0244   B97F                 ; 177 // Хватит ли денег?
+0245   B97F                 ; 178 ex(hl, de);
+0246   B97F EB              ex de, hl
+0247   B980                 ; 179 subHlDe(hl = gPlayerMoney); //! Доработать компилятор
+0248   B980 2A 89 60        ld   hl, (gPlayerMoney)
+0249   B983 CD 2A 74        call subHlDe
+0250   B986                 ; 180 if (flag_c) return shopBuyNoMoney();
+0251   B986 DA 84 BA        jp   c, shopBuyNoMoney
+0252   B989                 ; 182 // Добавляем в карман
+0253   B989                 ; 183 playerAddItem(a = shopSel);
+0254   B989 3A EA B9        ld   a, (shopSel)
+0255   B98C CD C8 BD        call playerAddItem
+0256   B98F                 ; 184 if (flag_nz) return shopBuyNoSpace();
+0257   B98F C2 92 BA        jp   nz, shopBuyNoSpace
+0258   B992                 ; 186 // Уменьшаем деньги
+0259   B992                 ; 187 shopBuyGetNamePrice(a = shopSel);
+0260   B992 3A EA B9        ld   a, (shopSel)
+0261   B995 CD 43 B9        call shopBuyGetNamePrice
+0262   B998                 ; 188 // hl - цена
+0263   B998                 ; 189 ex(hl, de);
+0264   B998 EB              ex de, hl
+0265   B999                 ; 190 subHlDe(hl = gPlayerMoney);
+0266   B999 2A 89 60        ld   hl, (gPlayerMoney)
+0267   B99C CD 2A 74        call subHlDe
+0268   B99F                 ; 191 setPlayerMoney(hl);
+0269   B99F CD 24 BE        call setPlayerMoney
+0270   B9A2                 ; 193 // Переход на главную страницу
+0271   B9A2                 ; 194 return shopAnyElseBuy();
+0272   B9A2 C3 A0 BA        jp   shopAnyElseBuy
+0273   B9A5                 ; 195 }
+0274   B9A5 C9              ret
+0275   B9A6                 ; 197 void shopBuyItemGetText()
+0276   B9A6             shopBuyItemGetText: 
+0277   B9A6                 ; 198 {
+0278   B9A6                 ; 199 if (flag_z a |= a)
+0279   B9A6 B7              or   a
+0280   B9A7                 ; 200 {
+0281   B9A7 C2 B4 B9        jp   nz, l4000
+0282   B9AA                 ; 201 shopBuyGetNamePrice(a = shopSel, de, hl);
+0283   B9AA 3A EA B9        ld   a, (shopSel)
+0284   B9AD CD 43 B9        call shopBuyGetNamePrice
+0285   B9B0                 ; 202 // de - наимерование, hl - цена
+0286   B9B0                 ; 203 shopMakeNamePrice2(hl, de); // Сформировать строку de + " за " + numberToString(hl) + " ?"
+0287   B9B0 CD 07 B9        call shopMakeNamePrice2
+0288   B9B3                 ; 204 return;
+0289   B9B3 C9              ret
+0290   B9B4                 ; 205 }
+0291   B9B4                 ; 206 hl = "Нет";            if (flag_z a--) return;
+0292   B9B4             l4000: 
+0293   B9B4 21 16 BC        ld   hl, s4016
+0294   B9B7 3D              dec  a
+0295   B9B8 C8              ret  z
+0296   B9B9                 ; 207 hl = "Да";             if (flag_z a--) return;
+0297   B9B9 21 99 BB        ld   hl, s4017
+0298   B9BC 3D              dec  a
+0299   B9BD C8              ret  z
+0300   B9BE                 ; 208 hl = "Что это такое?"; if (flag_z a--) return;
+0301   B9BE 21 4E BD        ld   hl, s4018
+0302   B9C1 3D              dec  a
+0303   B9C2 C8              ret  z
+0304   B9C3                 ; 209 hl = 0;
+0305   B9C3 21 00 00        ld   hl, 0
+0306   B9C6                 ; 210 }
+0307   B9C6 C9              ret
+0308   B9C7                 ; 212 //----------------------------------------------------------------------------------------------------------------------
+0309   B9C7                 ; 213 // Страница с информацией о товаре
+0310   B9C7                 ; 215 void shopBuyInfo()
+0311   B9C7             shopBuyInfo: 
+0312   B9C7                 ; 216 {
+0313   B9C7                 ; 217 getItemOfArray16(hl = &itemInfo, a = shopSel);
+0314   B9C7 21 AF B8        ld   hl, itemInfo
+0315   B9CA 3A EA B9        ld   a, (shopSel)
+0316   B9CD CD 97 BE        call getItemOfArray16
+0317   B9D0                 ; 218 ex(hl, de);
+0318   B9D0 EB              ex de, hl
+0319   B9D1                 ; 219 shopStart(de, ix = &shopBuyInfoGetText);
+0320   B9D1 DD 21 DC B9     ld   ix, shopBuyInfoGetText
+0321   B9D5 CD 6C B6        call shopStart
+0322   B9D8                 ; 220 return shopBuyItem();
+0323   B9D8 C3 67 B9        jp   shopBuyItem
+0324   B9DB                 ; 221 }
+0325   B9DB C9              ret
+0326   B9DC                 ; 223 void shopBuyInfoGetText(a)
+0327   B9DC             shopBuyInfoGetText: 
+0328   B9DC                 ; 224 {
+0329   B9DC                 ; 225 hl = "\r"; if (flag_z a |= a) return;
+0330   B9DC 21 C6 BA        ld   hl, s4019
+0331   B9DF B7              or   a
+0332   B9E0 C8              ret  z
+0333   B9E1                 ; 226 hl = "Ок"; if (flag_z a--) return;
+0334   B9E1 21 27 BC        ld   hl, s4020
+0335   B9E4 3D              dec  a
+0336   B9E5 C8              ret  z
+0337   B9E6                 ; 227 hl = 0;
+0338   B9E6 21 00 00        ld   hl, 0
+0339   B9E9                 ; 228 }
+0340   B9E9 C9              ret
+0341   B9EA                 ; 230 //----------------------------------------------------------------------------------------------------------------------
+0342   B9EA                 ; 231 // Страница с товарами для продажи
+0343   B9EA                 ; 233 uint8_t shopSel = 0;
+0344   B9EA 00          shopSel db 0
+0345   B9EB                 ; 235 void shopTrade()
+0346   B9EB             shopTrade: 
+0347   B9EB                 ; 236 {
+0348   B9EB                 ; 237 shopStart(de =
+0349   B9EB                 ; 238 "Что вы хотите продать?"
+0350   B9EB                 ; 239 "\r"
+0351   B9EB                 ; 240 "Ничего",
+0352   B9EB 11 30 BD        ld   de, s4021
+0353   B9EE                 ; 241 ix = &stopTradeGetText
+0354   B9EE DD 21 20 BA     ld   ix, stopTradeGetText
+0355   B9F2                 ; 242 );
+0356   B9F2 CD 6C B6        call shopStart
+0357   B9F5                 ; 243 if (flag_z a |= a) return shopMain();
+0358   B9F5 B7              or   a
+0359   B9F6 CA 19 B9        jp   z, shopMain
+0360   B9F9                 ; 244 shopSel = --a;
+0361   B9F9 3D              dec  a
+0362   B9FA 32 EA B9        ld   (shopSel), a
+0363   B9FD                 ; 245 return shopTradeItem();
+0364   B9FD C3 31 BA        jp   shopTradeItem
+0365   BA00                 ; 246 }
+0366   BA00 C9              ret
+0367   BA01                 ; 248 // Вход: a - порядковый номер
+0368   BA01                 ; 249 // Выход: z - нет предмена, de - наименование, hl - цена продажи
+0369   BA01                 ; 251 void stopTradeGetNamePrice(a)
+0370   BA01             stopTradeGetNamePrice: 
+0371   BA01                 ; 252 {
+0372   BA01                 ; 253 getItemOfArray8(hl = &playerItems, a);
+0373   BA01 21 C3 BD        ld   hl, playerItems
+0374   BA04 CD 90 BE        call getItemOfArray8
+0375   BA07                 ; 254 hl = 0;
+0376   BA07 21 00 00        ld   hl, 0
+0377   BA0A                 ; 255 if (a == 0xFF) return; // return z
+0378   BA0A FE FF           cp   255
+0379   BA0C C8              ret  z
+0380   BA0D                 ; 256 getItemOfArray16(hl = &itemNames, a);
+0381   BA0D 21 9F B8        ld   hl, itemNames
+0382   BA10 CD 97 BE        call getItemOfArray16
+0383   BA13                 ; 257 ex(hl, de);
+0384   BA13 EB              ex de, hl
+0385   BA14                 ; 258 // de - наименование
+0386   BA14                 ; 259 getItemOfArray16(hl = &itemPrices, a);
+0387   BA14 21 BF B8        ld   hl, itemPrices
+0388   BA17 CD 97 BE        call getItemOfArray16
+0389   BA1A                 ; 260 // hl - цена
+0390   BA1A                 ; 261 h >>= 1; l >>c= 1; // Делим цену на 2
+0391   BA1A CB 3C           srl  h
+0392   BA1C CB 1D           rr   l
+0393   BA1E                 ; 262 a |= d; // return nz
+0394   BA1E B2              or   d
+0395   BA1F                 ; 263 }
+0396   BA1F C9              ret
+0397   BA20                 ; 265 void stopTradeGetText(a)
+0398   BA20             stopTradeGetText: 
+0399   BA20                 ; 266 {
+0400   BA20                 ; 267 hl = 0;
+0401   BA20 21 00 00        ld   hl, 0
+0402   BA23                 ; 268 if (a >= playerItemsMax) return; // return hl = 0
+0403   BA23 FE 05           cp   5
+0404   BA25 D0              ret  nc
+0405   BA26                 ; 269 stopTradeGetNamePrice(a);
+0406   BA26 CD 01 BA        call stopTradeGetNamePrice
+0407   BA29                 ; 270 if (flag_z) return; // В этой функции hl = 0, поэтому return hl = 0
+0408   BA29 C8              ret  z
+0409   BA2A                 ; 271 // de - наимерование, hl - цена
+0410   BA2A                 ; 272 shopMakeNamePrice(bc = "\x09", hl, de); // Сформировать строку de + "\x09" + numberToString(hl)
+0411   BA2A 01 C4 BA        ld   bc, s4014
+0412   BA2D CD EF B8        call shopMakeNamePrice
+0413   BA30                 ; 273 // hl - указатель на временную строку
+0414   BA30                 ; 274 }
+0415   BA30 C9              ret
+0416   BA31                 ; 276 //----------------------------------------------------------------------------------------------------------------------
+0417   BA31                 ; 277 // Страница с подтверждением продажи
+0418   BA31                 ; 279 void shopTradeItem()
+0419   BA31             shopTradeItem: 
+0420   BA31                 ; 280 {
+0421   BA31                 ; 281 shopStart(de =
+0422   BA31                 ; 282 "Вы уверены, что хотите\n"
+0423   BA31                 ; 283 "продать заклинание",
+0424   BA31 11 6F BB        ld   de, s4022
+0425   BA34                 ; 284 ix = &shopTradeItemGetText
+0426   BA34 DD 21 5A BA     ld   ix, shopTradeItemGetText
+0427   BA38                 ; 285 );
+0428   BA38 CD 6C B6        call shopStart
+0429   BA3B                 ; 286 if (flag_z a |= a) return shopTrade();
+0430   BA3B B7              or   a
+0431   BA3C CA EB B9        jp   z, shopTrade
+0432   BA3F                 ; 288 // Узнаем цену
+0433   BA3F                 ; 289 stopTradeGetNamePrice(a = shopSel);
+0434   BA3F 3A EA B9        ld   a, (shopSel)
+0435   BA42 CD 01 BA        call stopTradeGetNamePrice
+0436   BA45                 ; 290 // hl - цена
+0437   BA45                 ; 291 // Увеличиваем деньги игрока
+0438   BA45                 ; 292 hl += (de = gPlayerMoney);
+0439   BA45 ED 5B 89 60     ld   de, (gPlayerMoney)
+0440   BA49 19              add  hl, de
+0441   BA4A                 ; 293 if (flag_c) return shopTradeOverflow(); // Денег больше, чем 65536 быть не может
+0442   BA4A DA 76 BA        jp   c, shopTradeOverflow
+0443   BA4D                 ; 294 setPlayerMoney(hl);
+0444   BA4D CD 24 BE        call setPlayerMoney
+0445   BA50                 ; 295 // Удаляем предмет из кармана
+0446   BA50                 ; 296 playerRemoveItem(a = shopSel);  
+0447   BA50 3A EA B9        ld   a, (shopSel)
+0448   BA53 CD DB BD        call playerRemoveItem
+0449   BA56                 ; 297 // Возвращаемся в меню
+0450   BA56                 ; 298 return shopAnyElseTrade();
+0451   BA56 C3 B2 BA        jp   shopAnyElseTrade
+0452   BA59                 ; 299 }
+0453   BA59 C9              ret
+0454   BA5A                 ; 301 void shopTradeItemGetText(a)
+0455   BA5A             shopTradeItemGetText: 
+0456   BA5A                 ; 302 {
+0457   BA5A                 ; 303 if (flag_z a |= a)
+0458   BA5A B7              or   a
+0459   BA5B                 ; 304 {
+0460   BA5B C2 68 BA        jp   nz, l4001
+0461   BA5E                 ; 305 stopTradeGetNamePrice(a = shopSel);
+0462   BA5E 3A EA B9        ld   a, (shopSel)
+0463   BA61 CD 01 BA        call stopTradeGetNamePrice
+0464   BA64                 ; 306 // de - наименование, hl - цена
+0465   BA64                 ; 307 shopMakeNamePrice2(hl, de); // Сформировать строку: de + " за " + numberToString(hl) + " ?"
+0466   BA64 CD 07 B9        call shopMakeNamePrice2
+0467   BA67                 ; 308 // hl - указатель на временную строку
+0468   BA67                 ; 309 return;
+0469   BA67 C9              ret
+0470   BA68                 ; 310 }
+0471   BA68                 ; 311 hl = "Нет"; if (flag_z a--) return;
+0472   BA68             l4001: 
+0473   BA68 21 16 BC        ld   hl, s4016
+0474   BA6B 3D              dec  a
+0475   BA6C C8              ret  z
+0476   BA6D                 ; 312 hl = "Да";  if (flag_z a--) return;
+0477   BA6D 21 99 BB        ld   hl, s4017
+0478   BA70 3D              dec  a
+0479   BA71 C8              ret  z
+0480   BA72                 ; 313 hl = 0;
+0481   BA72 21 00 00        ld   hl, 0
+0482   BA75                 ; 314 }
+0483   BA75 C9              ret
+0484   BA76                 ; 316 //----------------------------------------------------------------------------------------------------------------------
+0485   BA76                 ; 317 // Страница с ошибкой
+0486   BA76                 ; 319 void shopTradeOverflow()
+0487   BA76             shopTradeOverflow: 
+0488   BA76                 ; 320 {
+0489   BA76                 ; 321 shopStart(de =
+0490   BA76                 ; 322 "Вам не унести\n"
+0491   BA76                 ; 323 "столько денег!"
+0492   BA76                 ; 324 "\r"
+0493   BA76                 ; 325 "Ок",
+0494   BA76 11 D3 BA        ld   de, s4023
+0495   BA79                 ; 326 ix = 0
+0496   BA79 DD 21 00 00     ld   ix, 0
+0497   BA7D                 ; 327 );
+0498   BA7D CD 6C B6        call shopStart
+0499   BA80                 ; 328 return shopTrade();
+0500   BA80 C3 EB B9        jp   shopTrade
+0501   BA83                 ; 329 }
+0502   BA83 C9              ret
+0503   BA84                 ; 331 //----------------------------------------------------------------------------------------------------------------------
+0504   BA84                 ; 332 // Страница с ошибкой
+0505   BA84                 ; 334 void shopBuyNoMoney()
+0506   BA84             shopBuyNoMoney: 
+0507   BA84                 ; 335 {
+0508   BA84                 ; 336 shopStart(de =
+0509   BA84                 ; 337 "У вас не хватает денег.\n"
+0510   BA84                 ; 338 "Я не могу продать вам это\n"
+0511   BA84                 ; 339 "в кредит. Может быть у вас\n"
+0512   BA84                 ; 340 "есть что-нибудь на продажу?"
+0513   BA84                 ; 341 "\r"
+0514   BA84                 ; 342 "Ок",
+0515   BA84 11 5C BC        ld   de, s4024
+0516   BA87                 ; 343 ix = 0
+0517   BA87 DD 21 00 00     ld   ix, 0
+0518   BA8B                 ; 344 );
+0519   BA8B CD 6C B6        call shopStart
+0520   BA8E                 ; 345 return shopBuy();
+0521   BA8E C3 2D B9        jp   shopBuy
+0522   BA91                 ; 346 }
+0523   BA91 C9              ret
+0524   BA92                 ; 348 //----------------------------------------------------------------------------------------------------------------------
+0525   BA92                 ; 349 // Страница с ошибкой
+0526   BA92                 ; 351 void shopBuyNoSpace()
+0527   BA92             shopBuyNoSpace: 
+0528   BA92                 ; 352 {
+0529   BA92                 ; 353 shopStart(de =
+0530   BA92                 ; 354 "Вам не унести сколько\n"
+0531   BA92                 ; 355 "предметов с собой.\n"
+0532   BA92                 ; 356 "Я могу у вас купить\n"
+0533   BA92                 ; 357 "что-нибудь лишнее."
+0534   BA92                 ; 358 "\r"
+0535   BA92                 ; 359 "Ок",
+0536   BA92 11 F3 BA        ld   de, s4025
+0537   BA95                 ; 360 ix = 0
+0538   BA95 DD 21 00 00     ld   ix, 0
+0539   BA99                 ; 361 );
+0540   BA99 CD 6C B6        call shopStart
+0541   BA9C                 ; 362 return shopBuy();
+0542   BA9C C3 2D B9        jp   shopBuy
+0543   BA9F                 ; 363 }
+0544   BA9F C9              ret
+0545   BAA0                 ; 365 //----------------------------------------------------------------------------------------------------------------------
+0546   BAA0                 ; 366 // Страница с продолжением покупки
+0547   BAA0                 ; 368 void shopAnyElseBuy()
+0548   BAA0             shopAnyElseBuy: 
+0549   BAA0                 ; 369 {
+0550   BAA0                 ; 370 shopStart(de =
+0551   BAA0                 ; 371 "Хотите купить\n"
+0552   BAA0                 ; 372 "что нибудь еще?"
+0553   BAA0                 ; 373 "\r"
+0554   BAA0                 ; 374 "Нет\n"
+0555   BAA0                 ; 375 "Да",
+0556   BAA0 11 C8 BC        ld   de, s4026
+0557   BAA3                 ; 376 ix = 0
+0558   BAA3 DD 21 00 00     ld   ix, 0
+0559   BAA7                 ; 377 );
+0560   BAA7 CD 6C B6        call shopStart
+0561   BAAA                 ; 378 if(flag_z a |= a) return shopMain();
+0562   BAAA B7              or   a
+0563   BAAB CA 19 B9        jp   z, shopMain
+0564   BAAE                 ; 379 return shopBuy();
+0565   BAAE C3 2D B9        jp   shopBuy
+0566   BAB1                 ; 380 }
+0567   BAB1 C9              ret
+0568   BAB2                 ; 382 //----------------------------------------------------------------------------------------------------------------------
+0569   BAB2                 ; 383 // Страница с продолжением покупки
+0570   BAB2                 ; 385 void shopAnyElseTrade()
+0571   BAB2             shopAnyElseTrade: 
+0572   BAB2                 ; 386 {
+0573   BAB2                 ; 387 shopStart(de =
+0574   BAB2                 ; 388 "Хотите продать\n"
+0575   BAB2                 ; 389 "что нибудь еще?"
+0576   BAB2                 ; 390 "\r"
+0577   BAB2                 ; 391 "Нет\n"
+0578   BAB2                 ; 392 "Да",
+0579   BAB2 11 ED BC        ld   de, s4027
+0580   BAB5                 ; 393 ix = 0
+0581   BAB5 DD 21 00 00     ld   ix, 0
+0582   BAB9                 ; 394 );
+0583   BAB9 CD 6C B6        call shopStart
+0584   BABC                 ; 395 if(flag_z a |= a) return shopMain();
+0585   BABC B7              or   a
+0586   BABD CA 19 B9        jp   z, shopMain
+0587   BAC0                 ; 396 return shopTrade();
+0588   BAC0 C3 EB B9        jp   shopTrade
+0589   BAC3                 ; 397 }
+0590   BAC3 C9              ret
+0591   BAC4                 ; strings
+0592   BAC4 09 00       s4014 db 9,0
+0593   BAC6 0D 00       s4019 db 13,0
+0594   BAC8 20 3F 0D 00 s4011 db " ?",13,0
+0595   BACC 20E7E02000  s4010 db " за ",0
+0596   BAD1 2A 00       s4008 db "*",0
+0597   BAD3             s4023 db "Вам не унести",10,"столько денег!",13,"Ок",0
+0597   BAD3 C2E0EC20EDE520F3EDE5F1F2E80AF1F2EEEBFCEAEE20E4E5EDE5E3210DCEEA00
+0598   BAF3             s4025 db "Вам не унести сколько",10,"предметов с собой.",10,"Я могу у вас купить",10,"что-нибудь лишнее.",13,"Ок",0
+0598   BAF3 C2E0EC20EDE520F3EDE5F1F2E820F1EAEEEBFCEAEE0AEFF0E5E4ECE5F2EEE220
+0598   BB13 F120F1EEE1EEE92E0ADF20ECEEE3F320F320E2E0F120EAF3EFE8F2FC0AF7F2EE
+0598   BB33 2DEDE8E1F3E4FC20EBE8F8EDE5E52E0DCEEA00
+0599   BB46             s4015 db "Вы уверены, что хотите",10,"купить заклинание",0
+0599   BB46 C2FB20F3E2E5F0E5EDFB2C20F7F2EE20F5EEF2E8F2E50AEAF3EFE8F2FC20E7E0
+0599   BB66 EAEBE8EDE0EDE8E500
+0600   BB6F             s4022 db "Вы уверены, что хотите",10,"продать заклинание",0
+0600   BB6F C2FB20F3E2E5F0E5EDFB2C20F7F2EE20F5EEF2E8F2E50AEFF0EEE4E0F2FC20E7
+0600   BB8F E0EAEBE8EDE0EDE8E500
+0601   BB99 C4 E0 00    s4017 db "Да",0
+0602   BB9C             s4012 db "Добрый день, чем я",10,"могу Вам помочь?",13,"Мне пора идти",10,"Я хочу купить",10,"Я хочу продать",0
+0602   BB9C C4EEE1F0FBE920E4E5EDFC2C20F7E5EC20FF0AECEEE3F320C2E0EC20EFEEECEE
+0602   BBBC F7FC3F0DCCEDE520EFEEF0E020E8E4F2E80ADF20F5EEF7F320EAF3EFE8F2FC0A
+0602   BBDC DF20F5EEF7F320EFF0EEE4E0F2FC00
+0603   BBEB             s4002 db "Заклинание 1",0
+0603   BBEB C7E0EAEBE8EDE0EDE8E5203100
+0604   BBF8             s4004 db "Каменная кожа",0
+0604   BBF8 CAE0ECE5EDEDE0FF20EAEEE6E000
+0605   BC06             s4003 db "Магические силы",0
+0605   BC06 CCE0E3E8F7E5F1EAE8E520F1E8EBFB00
+0606   BC16 CD E5 F2 00 s4016 db "Нет",0
+0607   BC1A             s4005 db "Огонь бездны",0
+0607   BC1A CEE3EEEDFC20E1E5E7E4EDFB00
+0608   BC27 CE EA 00    s4020 db "Ок",0
+0609   BC2A             s4000 db "Отвар листьев",0
+0609   BC2A CEF2E2E0F020EBE8F1F2FCE5E200
+0610   BC38             s4001 db "Полное исцеление",0
+0610   BC38 CFEEEBEDEEE520E8F1F6E5EBE5EDE8E500
+0611   BC49             s4006 db "Порча",0
+0611   BC49 CFEEF0F7E000
+0612   BC4F             s4007 db "Телепортация",0
+0612   BC4F D2E5EBE5EFEEF0F2E0F6E8FF00
+0613   BC5C             s4024 db "У вас не хватает денег.",10,"Я не могу продать вам это",10,"в кредит. Может быть у вас",10,"есть что-нибудь на продажу?",13,"Ок",0
+0613   BC5C D320E2E0F120EDE520F5E2E0F2E0E5F220E4E5EDE5E32E0ADF20EDE520ECEEE3
+0613   BC7C F320EFF0EEE4E0F2FC20E2E0EC20FDF2EE0AE220EAF0E5E4E8F22E20CCEEE6E5
+0613   BC9C F220E1FBF2FC20F320E2E0F10AE5F1F2FC20F7F2EE2DEDE8E1F3E4FC20EDE020
+0613   BCBC EFF0EEE4E0E6F33F0DCEEA00
+0614   BCC8             s4026 db "Хотите купить",10,"что нибудь еще?",13,"Нет",10,"Да",0
+0614   BCC8 D5EEF2E8F2E520EAF3EFE8F2FC0AF7F2EE20EDE8E1F3E4FC20E5F9E53F0DCDE5
+0614   BCE8 F20AC4E000
+0615   BCED             s4027 db "Хотите продать",10,"что нибудь еще?",13,"Нет",10,"Да",0
+0615   BCED D5EEF2E8F2E520EFF0EEE4E0F2FC0AF7F2EE20EDE8E1F3E4FC20E5F9E53F0DCD
+0615   BD0D E5F20AC4E000
+0616   BD13             s4013 db "Что вы хотите купить?",13,"Ничего",0
+0616   BD13 D7F2EE20E2FB20F5EEF2E8F2E520EAF3EFE8F2FC3F0DCDE8F7E5E3EE00
+0617   BD30             s4021 db "Что вы хотите продать?",13,"Ничего",0
+0617   BD30 D7F2EE20E2FB20F5EEF2E8F2E520EFF0EEE4E0F2FC3F0DCDE8F7E5E3EE00
+0618   BD4E             s4018 db "Что это такое?",0
+0618   BD4E D7F2EE20FDF2EE20F2E0EAEEE53F00
+0619   BD5D             s4009 db "Это заклинание делает вашу",10,"плоть твердой как камень.",10,"Пока заклинание активно,",10,"урон уменьшается вдвое.",0
+0619   BD5D DDF2EE20E7E0EAEBE8EDE0EDE8E520E4E5EBE0E5F220E2E0F8F30AEFEBEEF2FC
+0619   BD7D 20F2E2E5F0E4EEE920EAE0EA20EAE0ECE5EDFC2E0ACFEEEAE020E7E0EAEBE8ED
+0619   BD9D E0EDE8E520E0EAF2E8E2EDEE2C0AF3F0EEED20F3ECE5EDFCF8E0E5F2F1FF20E2
+0619   BDBD E4E2EEE52E00
+0620   BDC3             
+0001   BDC3                 ; 3 const int playerItemsMax = 5;
+0002   BDC3                 ; 4 uint8_t playerItems[playerItemsMax] = { 0, 1, 2, -1, -1 };
+0003   BDC3             playerItems: 
+0004   BDC3 00              db 0
+0005   BDC4 01              db 1
+0006   BDC5 02              db 2
+0007   BDC6 FF              db -1
+0008   BDC7 FF              db -1
+0009   BDC8                 ; 6 void playerAddItem(a)
+0010   BDC8             playerAddItem: 
+0011   BDC8                 ; 7 {
+0012   BDC8                 ; 8 c = a;
+0013   BDC8 4F              ld   c, a
+0014   BDC9                 ; 9 hl = &playerItems;
+0015   BDC9 21 C3 BD        ld   hl, playerItems
+0016   BDCC                 ; 10 a = 0xFF;
+0017   BDCC 3E FF           ld   a, 255
+0018   BDCE                 ; 11 b = playerItemsMax;
+0019   BDCE 06 05           ld   b, 5
+0020   BDD0                 ; 12 do {
+0021   BDD0             l5000: 
+0022   BDD0                 ; 13 if (a == *hl)
+0023   BDD0 BE              cp   (hl)
+0024   BDD1                 ; 14 {
+0025   BDD1 C2 D6 BD        jp   nz, l5001
+0026   BDD4                 ; 15 *hl = c;
+0027   BDD4 71              ld   (hl), c
+0028   BDD5                 ; 16 return; // z
+0029   BDD5 C9              ret
+0030   BDD6                 ; 17 }
+0031   BDD6                 ; 18 hl++;
+0032   BDD6             l5001: 
+0033   BDD6 23              inc  hl
+0034   BDD7                 ; 19 } while(--b);
+0035   BDD7 10 F7           djnz l5000
+0036   BDD9                 ; 20 b--; // return nz
+0037   BDD9 05              dec  b
+0038   BDDA                 ; 21 }
+0039   BDDA C9              ret
+0040   BDDB                 ; 23 void playerRemoveItem(a)
+0041   BDDB             playerRemoveItem: 
+0042   BDDB                 ; 24 {
+0043   BDDB                 ; 25 c = a;
+0044   BDDB 4F              ld   c, a
+0045   BDDC                 ; 26 // Адрес удаляемого элемента de = &playerItems + a
+0046   BDDC                 ; 27 e = (a += &playerItems); d = ((a +@= [&playerItems >> 8]) -= e);
+0047   BDDC C6 C3           add  playerItems
+0048   BDDE 5F              ld   e, a
+0049   BDDF CE BD           adc  (playerItems) >> (8)
+0050   BDE1 93              sub  e
+0051   BDE2 57              ld   d, a
+0052   BDE3                 ; 28 // Адрес следующего за удаляемым элемента
+0053   BDE3                 ; 29 l = e; h = d; hl++;
+0054   BDE3 6B              ld   l, e
+0055   BDE4 62              ld   h, d
+0056   BDE5 23              inc  hl
+0057   BDE6                 ; 30 // Сдвигаем элементы, если есть что сдвигать
+0058   BDE6                 ; 31 (a = [playerItemsMax - 1]) -= c;
+0059   BDE6 3E 04           ld   a, 4
+0060   BDE8 91              sub  c
+0061   BDE9                 ; 32 if (flag_nz)
+0062   BDE9                 ; 33 {
+0063   BDE9 CA F1 BD        jp   z, l5002
+0064   BDEC                 ; 34 b = 0; c = a;
+0065   BDEC 06 00           ld   b, 0
+0066   BDEE 4F              ld   c, a
+0067   BDEF                 ; 35 ldir();
+0068   BDEF ED B0           ldir
+0069   BDF1                 ; 36 }
+0070   BDF1                 ; 37 // Очищаем крайний элемент
+0071   BDF1                 ; 38 *de = a = 0xFF;
+0072   BDF1             l5002: 
+0073   BDF1 3E FF           ld   a, 255
+0074   BDF3 12              ld   (de), a
+0075   BDF4                 ; 39 }
+0076   BDF4 C9              ret
+0077   BDF5             
+0001   BDF5             ; HL делится на DE, результат в HL, остаток в DE
+0002   BDF5             
+0003   BDF5 EB          div16:   EX HL, DE
+0004   BDF6 7C          _DIV: 	LD A,H
+0005   BDF7 B5                  OR L
+0006   BDF8 C8                  RET Z
+0007   BDF9 01 00 00            LD BC,0000
+0008   BDFC C5                  PUSH BC
+0009   BDFD 7B          _DIV1: 	LD A,E
+0010   BDFE 95          	SUB L
+0011   BDFF 7A                  LD A,D
+0012   BE00 9C                  SBC H
+0013   BE01 DA 09 BE            JP C, _DIV2
+0014   BE04 E5                  PUSH HL
+0015   BE05 29                  ADD HL, HL
+0016   BE06 D2 FD BD            JP NC, _DIV1
+0017   BE09 21 00 00    _DIV2: 	LD HL,0000
+0018   BE0C C1          _DIV3: 	POP BC
+0019   BE0D 78                  LD A,B
+0020   BE0E B1                  OR C
+0021   BE0F C8                  RET Z
+0022   BE10 29                  ADD HL, HL
+0023   BE11 D5                  PUSH DE
+0024   BE12 7B                  LD A,E
+0025   BE13 91          	SUB C
+0026   BE14 5F                  LD E,A
+0027   BE15 7A                  LD A,D
+0028   BE16 98                  SBC B
+0029   BE17 57                  LD D,A
+0030   BE18 DA 20 BE            JP C, _DIV4
+0031   BE1B 23                  INC HL
+0032   BE1C C1                  POP BC
+0033   BE1D C3 0C BE            JP _DIV3
+0034   BE20 D1          _DIV4: 	POP DE
+0035   BE21 C3 0C BE            JP _DIV3
+0036   BE24             
+0001   BE24                 ; 3 const int gPanelChangedMoney = 0x01;
+0002   BE24                 ; 4 const int gPanelChangedPlace = 0x02;
+0003   BE24                 ; 6 const int panelMoneyX = 4;
+0004   BE24                 ; 7 const int panelMoneyY = 22;
+0005   BE24                 ; 8 const int panelMoneyW = 3;
+0006   BE24                 ; 9 const int panelMoneyH = 1;
+0007   BE24                 ; 10 const int panelMoneyColor = 0x4E;
+0008   BE24                 ; 12 const int panelPlaceX = 4;
+0009   BE24                 ; 13 const int panelPlaceY = 20;
+0010   BE24                 ; 14 const int panelPlaceW = 3;
+0011   BE24                 ; 15 const int panelPlaceH = 1;
+0012   BE24                 ; 16 const int panelPlaceColor = 0x4E;
+0013   BE24                 ; 18 void setPlayerMoney(hl)
+0014   BE24             setPlayerMoney: 
+0015   BE24                 ; 19 {
+0016   BE24                 ; 20 gPlayerMoney = hl;
+0017   BE24 22 89 60        ld   (gPlayerMoney), hl
+0018   BE27                 ; 21 hl = &gPanelChanged1;
+0019   BE27 21 80 5D        ld   hl, gPanelChanged1
+0020   BE2A                 ; 22 *hl |= gPanelChangedMoney;
+0021   BE2A CB C6           set  0, (hl)
+0022   BE2C                 ; 23 hl = &gPanelChanged2;
+0023   BE2C 21 80 DD        ld   hl, gPanelChanged2
+0024   BE2F                 ; 24 *hl |= gPanelChangedMoney;
+0025   BE2F CB C6           set  0, (hl)
+0026   BE31                 ; 25 }
+0027   BE31 C9              ret
+0028   BE32                 ; 27 void playerMoneyRedraw()
+0029   BE32             playerMoneyRedraw: 
+0030   BE32                 ; 28 {
+0031   BE32                 ; 29 // Нужно ли перерисовать?
+0032   BE32                 ; 30 hl = &gPanelChanged1;
+0033   BE32 21 80 5D        ld   hl, gPanelChanged1
+0034   BE35                 ; 31 h = (((a = gVideoPage) &= 0x80) |= h);
+0035   BE35 3A 85 60        ld   a, (gVideoPage)
+0036   BE38 E6 80           and  128
+0037   BE3A B4              or   h
+0038   BE3B 67              ld   h, a
+0039   BE3C                 ; 32 a = *hl;
+0040   BE3C 7E              ld   a, (hl)
+0041   BE3D                 ; 33 if (flag_z a |= a) return;
+0042   BE3D B7              or   a
+0043   BE3E C8              ret  z
+0044   BE3F                 ; 34 *hl = 0;
+0045   BE3F 36 00           ld   (hl), 0
+0046   BE41                 ; 36 // Надо перерисовать деньги
+0047   BE41                 ; 37 if (a & gPanelChangedMoney)
+0048   BE41 CB 47           bit  0, a
+0049   BE43                 ; 38 {
+0050   BE43 CA 6A BE        jp   z, l6000
+0051   BE46                 ; 39 push(a)
+0052   BE46                 ; 40 {
+0053   BE46 F5              push af
+0054   BE47                 ; 41 numberToString16(hl = &tmpString, de = gPlayerMoney);
+0055   BE47 21 CF B8        ld   hl, tmpString
+0056   BE4A ED 5B 89 60     ld   de, (gPlayerMoney)
+0057   BE4E CD B1 BE        call numberToString16
+0058   BE51                 ; 42 gCalcCoords(hl = [panelMoneyY * 8 * 256 + panelMoneyX * 8]);
+0059   BE51 21 20 B0        ld   hl, 45088
+0060   BE54 CD 75 60        call gCalcCoords
+0061   BE57                 ; 43 push(hl);
+0062   BE57 E5              push hl
+0063   BE58                 ; 44 fillRect(hl, bc = [panelMoneyH * 256 + panelMoneyW]);
+0064   BE58 01 03 01        ld   bc, 259
+0065   BE5B CD B7 B5        call fillRect
+0066   BE5E                 ; 45 pop(hl);
+0067   BE5E E1              pop  hl
+0068   BE5F                 ; 46 gDrawText(hl, c = 0, de = &tmpString, a = panelMoneyColor);
+0069   BE5F 0E 00           ld   c, 0
+0070   BE61 11 CF B8        ld   de, tmpString
+0071   BE64 3E 4E           ld   a, 78
+0072   BE66 CD 63 60        call gDrawText
+0073   BE69                 ; 47 }
+0074   BE69 F1              pop  af
+0075   BE6A                 ; 48 }
+0076   BE6A                 ; 50 if (a & gPanelChangedPlace)
+0077   BE6A             l6000: 
+0078   BE6A CB 4F           bit  1, a
+0079   BE6C                 ; 51 {
+0080   BE6C CA 89 BE        jp   z, l6001
+0081   BE6F                 ; 52 push(a)
+0082   BE6F                 ; 53 {
+0083   BE6F F5              push af
+0084   BE70                 ; 54 gCalcCoords(hl = [panelPlaceY * 8 * 256 + panelPlaceX * 8]);
+0085   BE70 21 20 A0        ld   hl, 40992
+0086   BE73 CD 75 60        call gCalcCoords
+0087   BE76                 ; 55 push(hl);
+0088   BE76 E5              push hl
+0089   BE77                 ; 56 fillRect(hl, bc = [panelPlaceH * 256 + panelPlaceW]);
+0090   BE77 01 03 01        ld   bc, 259
+0091   BE7A CD B7 B5        call fillRect
+0092   BE7D                 ; 57 pop(hl);
+0093   BE7D E1              pop  hl
+0094   BE7E                 ; 58 gDrawText(hl, c = 0, de = "Утеха", a = panelPlaceColor);
+0095   BE7E 0E 00           ld   c, 0
+0096   BE80 11 8A BE        ld   de, s6000
+0097   BE83 3E 4E           ld   a, 78
+0098   BE85 CD 63 60        call gDrawText
+0099   BE88                 ; 59 }
+0100   BE88 F1              pop  af
+0101   BE89                 ; 60 }
+0102   BE89                 ; 61 }
+0103   BE89             l6001: 
+0104   BE89 C9              ret
+0105   BE8A                 ; strings
+0106   BE8A             s6000 db "Утеха",0
+0106   BE8A D3F2E5F5E000
+0107   BE90             
+0001   BE90                 ; 3 void getItemOfArray8()
+0002   BE90             getItemOfArray8: 
+0003   BE90                 ; 4 {
+0004   BE90                 ; 5 l = (a += l);
+0005   BE90 85              add  l
+0006   BE91 6F              ld   l, a
+0007   BE92                 ; 6 h = ((a +@= h) -= l);
+0008   BE92 8C              adc  h
+0009   BE93 95              sub  l
+0010   BE94 67              ld   h, a
+0011   BE95                 ; 7 a = *hl;
+0012   BE95 7E              ld   a, (hl)
+0013   BE96                 ; 8 }
+0014   BE96 C9              ret
+0015   BE97                 ; 10 void getItemOfArray16()
+0016   BE97             getItemOfArray16: 
+0017   BE97                 ; 11 {
+0018   BE97                 ; 12 push(a)
+0019   BE97                 ; 13 {
+0020   BE97 F5              push af
+0021   BE98                 ; 14 l = ((a += a) += l);
+0022   BE98 87              add  a
+0023   BE99 85              add  l
+0024   BE9A 6F              ld   l, a
+0025   BE9B                 ; 15 h = ((a +@= h) -= l);
+0026   BE9B 8C              adc  h
+0027   BE9C 95              sub  l
+0028   BE9D 67              ld   h, a
+0029   BE9E                 ; 16 a = *hl; hl++; h = *hl; l = a;
+0030   BE9E 7E              ld   a, (hl)
+0031   BE9F 23              inc  hl
+0032   BEA0 66              ld   h, (hl)
+0033   BEA1 6F              ld   l, a
+0034   BEA2                 ; 17 }
+0035   BEA2 F1              pop  af
+0036   BEA3                 ; 18 }
+0037   BEA3 C9              ret
+0038   BEA4                 ; 20 // b - указывает на максимальное кол-во копируемых символов, размер буфера должен быть на 1 байт больше.
+0039   BEA4                 ; 22 void strcpyn(hl, de, b)
+0040   BEA4             strcpyn: 
+0041   BEA4                 ; 23 {
+0042   BEA4                 ; 24 do
+0043   BEA4             l7000: 
+0044   BEA4                 ; 25 {
+0045   BEA4                 ; 26 a = *de; de++;
+0046   BEA4 1A              ld   a, (de)
+0047   BEA5 13              inc  de
+0048   BEA6                 ; 27 if (flag_z a |= a) goto strncpyBreak;
+0049   BEA6 B7              or   a
+0050   BEA7 CA AE BE        jp   z, strncpyBreak
+0051   BEAA                 ; 28 *hl = a; hl++;
+0052   BEAA 77              ld   (hl), a
+0053   BEAB 23              inc  hl
+0054   BEAC                 ; 29 } while(--b);
+0055   BEAC 10 F6           djnz l7000
+0056   BEAE                 ; 30 strncpyBreak:
+0057   BEAE             strncpyBreak: 
+0058   BEAE                 ; 31 *hl = 0;
+0059   BEAE 36 00           ld   (hl), 0
+0060   BEB0                 ; 32 }
+0061   BEB0 C9              ret
+0062   BEB1                 ; 34 void numberToString16(hl, de)
+0063   BEB1             numberToString16: 
+0064   BEB1                 ; 35 {
+0065   BEB1                 ; 36 *[&uint16_to_str_addr + 1] = hl;
+0066   BEB1 22 C7 BE        ld   ((uint16_to_str_addr) + (1)), hl
+0067   BEB4                 ; 38 // Терминатор
+0068   BEB4                 ; 39 a ^= a;
+0069   BEB4 AF              xor  a
+0070   BEB5                 ; 40 push(a);
+0071   BEB5 F5              push af
+0072   BEB6                 ; 42 // Разделение числа на цифры
+0073   BEB6                 ; 43 ex(hl, de);
+0074   BEB6 EB              ex de, hl
+0075   BEB7                 ; 44 do
+0076   BEB7             l7001: 
+0077   BEB7                 ; 45 {
+0078   BEB7                 ; 46 div16(hl, de = 10);
+0079   BEB7 11 0A 00        ld   de, 10
+0080   BEBA CD F5 BD        call div16
+0081   BEBD                 ; 47 (a = e) += '0';
+0082   BEBD 7B              ld   a, e
+0083   BEBE C6 30           add  48
+0084   BEC0                 ; 48 push(a);
+0085   BEC0 F5              push af
+0086   BEC1                 ; 49 } while (flag_nz (a = h) |= l);
+0087   BEC1 7C              ld   a, h
+0088   BEC2 B5              or   l
+0089   BEC3 C2 B7 BE        jp   nz, l7001
+0090   BEC6                 ; 51 // Вывод в строку
+0091   BEC6                 ; 52 uint16_to_str_addr:
+0092   BEC6             uint16_to_str_addr: 
+0093   BEC6                 ; 53 de = 0;
+0094   BEC6 11 00 00        ld   de, 0
+0095   BEC9                 ; 54 do
+0096   BEC9             l7002: 
+0097   BEC9                 ; 55 {
+0098   BEC9                 ; 56 pop(a);
+0099   BEC9 F1              pop  af
+0100   BECA                 ; 57 *de = a; de++;
+0101   BECA 12              ld   (de), a
+0102   BECB 13              inc  de
+0103   BECC                 ; 58 } while(flag_nz a |= a);
+0104   BECC B7              or   a
+0105   BECD C2 C9 BE        jp   nz, l7002
+0106   BED0                 ; 59 de--;
+0107   BED0 1B              dec  de
+0108   BED1                 ; 60 }
+0109   BED1 C9              ret
+0110   BED2             
+0001   BED2                 savebin "city/city.C", begin, $ - begin ; city/city.asm city/city2.asm city/rand.asm levels/city1.asm levels/city1b.asm levels/city1s.asm city/fillrect.asm levels/dialog.asm city/dialog.asm city/shop.asm city/state.asm city/div16.asm city/panel.asm city/tools.asm
+0002   BED2             

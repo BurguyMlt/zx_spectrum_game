@@ -9,10 +9,14 @@ drawImage:
         ; Преобразование адреса в DE из формата X + Y * 32 в формат YY000 YYYXXXXX
         PUSH   DE
         LD     A, D
+        AND    80h
+        LD     B, A
+        LD     A, D
         ADD    A
         ADD    A
         ADD    A
         ADD    40h - 0C0h
+        OR     B
         LD     D, A
 
         ; Чтение высоты и ширины. Сохранение  её в стеке
