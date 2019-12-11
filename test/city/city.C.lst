@@ -3649,7 +3649,7 @@
 0137   B919                 ; 108 {
 0138   B919                 ; 109 shopStart(de =
 0139   B919                 ; 110 "Добрый день, чем я\n"
-0140   B919                 ; 111 "могу Вам помочь?"
+0140   B919                 ; 111 "могу вам помочь?"
 0141   B919                 ; 112 "\r"
 0142   B919                 ; 113 "Мне пора идти\n"
 0143   B919                 ; 114 "Я хочу купить\n"
@@ -4061,7 +4061,7 @@
 0549   BAA0                 ; 369 {
 0550   BAA0                 ; 370 shopStart(de =
 0551   BAA0                 ; 371 "Хотите купить\n"
-0552   BAA0                 ; 372 "что нибудь еще?"
+0552   BAA0                 ; 372 "что-нибудь еще?"
 0553   BAA0                 ; 373 "\r"
 0554   BAA0                 ; 374 "Нет\n"
 0555   BAA0                 ; 375 "Да",
@@ -4084,7 +4084,7 @@
 0572   BAB2                 ; 386 {
 0573   BAB2                 ; 387 shopStart(de =
 0574   BAB2                 ; 388 "Хотите продать\n"
-0575   BAB2                 ; 389 "что нибудь еще?"
+0575   BAB2                 ; 389 "что-нибудь еще?"
 0576   BAB2                 ; 390 "\r"
 0577   BAB2                 ; 391 "Нет\n"
 0578   BAB2                 ; 392 "Да",
@@ -4119,8 +4119,8 @@
 0600   BB6F C2FB20F3E2E5F0E5EDFB2C20F7F2EE20F5EEF2E8F2E50AEFF0EEE4E0F2FC20E7
 0600   BB8F E0EAEBE8EDE0EDE8E500
 0601   BB99 C4 E0 00    s4017 db "Да",0
-0602   BB9C             s4012 db "Добрый день, чем я",10,"могу Вам помочь?",13,"Мне пора идти",10,"Я хочу купить",10,"Я хочу продать",0
-0602   BB9C C4EEE1F0FBE920E4E5EDFC2C20F7E5EC20FF0AECEEE3F320C2E0EC20EFEEECEE
+0602   BB9C             s4012 db "Добрый день, чем я",10,"могу вам помочь?",13,"Мне пора идти",10,"Я хочу купить",10,"Я хочу продать",0
+0602   BB9C C4EEE1F0FBE920E4E5EDFC2C20F7E5EC20FF0AECEEE3F320E2E0EC20EFEEECEE
 0602   BBBC F7FC3F0DCCEDE520EFEEF0E020E8E4F2E80ADF20F5EEF7F320EAF3EFE8F2FC0A
 0602   BBDC DF20F5EEF7F320EFF0EEE4E0F2FC00
 0603   BBEB             s4002 db "Заклинание 1",0
@@ -4146,11 +4146,11 @@
 0613   BC7C F320EFF0EEE4E0F2FC20E2E0EC20FDF2EE0AE220EAF0E5E4E8F22E20CCEEE6E5
 0613   BC9C F220E1FBF2FC20F320E2E0F10AE5F1F2FC20F7F2EE2DEDE8E1F3E4FC20EDE020
 0613   BCBC EFF0EEE4E0E6F33F0DCEEA00
-0614   BCC8             s4026 db "Хотите купить",10,"что нибудь еще?",13,"Нет",10,"Да",0
-0614   BCC8 D5EEF2E8F2E520EAF3EFE8F2FC0AF7F2EE20EDE8E1F3E4FC20E5F9E53F0DCDE5
+0614   BCC8             s4026 db "Хотите купить",10,"что-нибудь еще?",13,"Нет",10,"Да",0
+0614   BCC8 D5EEF2E8F2E520EAF3EFE8F2FC0AF7F2EE2DEDE8E1F3E4FC20E5F9E53F0DCDE5
 0614   BCE8 F20AC4E000
-0615   BCED             s4027 db "Хотите продать",10,"что нибудь еще?",13,"Нет",10,"Да",0
-0615   BCED D5EEF2E8F2E520EFF0EEE4E0F2FC0AF7F2EE20EDE8E1F3E4FC20E5F9E53F0DCD
+0615   BCED             s4027 db "Хотите продать",10,"что-нибудь еще?",13,"Нет",10,"Да",0
+0615   BCED D5EEF2E8F2E520EFF0EEE4E0F2FC0AF7F2EE2DEDE8E1F3E4FC20E5F9E53F0DCD
 0615   BD0D E5F20AC4E000
 0616   BD13             s4013 db "Что вы хотите купить?",13,"Ничего",0
 0616   BD13 D7F2EE20E2FB20F5EEF2E8F2E520EAF3EFE8F2FC3F0DCDE8F7E5E3EE00
