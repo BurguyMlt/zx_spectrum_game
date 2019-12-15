@@ -1,9 +1,90 @@
 #counter 4000
 
+const int gStringBufferSize = 32;
+
+const int gPanelChangedMoney = 0x01;
+const int gPanelChangedPlace = 0x02;
+
 const int numberToString16max = 5;
 const int playerItemsMax = 5;
+const int playerLutMaxCountInLine = 99;
+const int playerLutMax = 12;
+
+uint8_t shopSel = 0;
 
 //+ Добавить магазин амулетов
+
+void playerAddItem(a)
+{
+    return addElement(de = &gPlayerItems, hl = &gPlayerItemsCount, c = playerItemsMax);
+}
+
+
+void playerRemoveItem(a)
+{
+    return removeElement(de = &gPlayerItems, hl = &gPlayerItemsCount, a);
+}
+
+// Вход: d - тип предмета
+
+void playerAddLut(d)
+{
+    // Поиск этого предмета в кармане
+
+    hl = &gPlayerLut;
+    a = gPlayerLutCount;
+    if (a != 0) // Если карман пуст, то не ищем
+    {
+        b = a; // Для while который замеится на djnz
+        a = d; // Для ускорения поиска помещаем тип предмета в A
+        do {
+            if (a == *hl) // Найден предмет этого типа
+            {
+                hl += (de = playerLutMax);
+                a = *hl; // Учеличиваем кол-во
+                a++;
+                if (a >= playerLutMaxCountInLine) a |= 0x80; // Исключаем из поиска
+                return; // nz
+            }
+            hl++;
+        } while(--b);
+
+        // Если максимум ЛУТ-а, то выходим
+        a = gPlayerLutCount;
+        if (a == playerLutMax) return ; // Z - Нет места в кармане
+    }
+
+    gPlayerLutCount = ++a; // Тут получится флаг NZ
+
+    // Создаем новую запись
+    *hl = d;
+    hl += (de = playerLutMax);
+    *hl = 1;
+
+    // return nz
+}
+
+// Вход: a - порядковый номер ЛУТ-а
+
+void playerRemoveLut(a)
+{
+    push(a)
+    {
+        removeElement(de = &gPlayerLut, hl = &gPlayerLutCount, a);
+    }
+    return removeElement2(de = [&gPlayerLut + playerLutMax], hl = &gPlayerLutCount, a);
+}
+
+void setPlayerMoney(hl)
+{
+    gPlayerMoney = hl;
+    hl = &gPanelChangedA;
+    *hl |= gPanelChangedMoney;
+    hl++;
+    *hl |= gPanelChangedMoney;    
+//panelRedraw:
+//    return gFarCall(iyl = 7, ix = &gPanelRedraw);
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Названия всех заклинаний
@@ -19,6 +100,27 @@ uint16_t itemNames[itemsCount] = {
     "Огонь бездны",
     "Порча",
     "Телепортация"
+};
+
+uint16_t lutNames[] = {
+    "Кожа змеи",
+    "Нож хобгоблина",
+    "Ядовитый клык",
+    "Кровь дракона",
+    "Кислота",
+    "Перья",
+    "Слизь",
+    "Копыта",
+    "Кольчуга",
+    "Изумруд",
+    "Золотое руно",
+    "Майоран"
+};
+
+uint16_t lutPrices[] = {
+    1,
+    2,
+    3
 };
 
 uint16_t itemInfo[itemsCount] = {    
@@ -60,12 +162,6 @@ uint16_t itemPrices[itemsCount] = {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// Временный буфер для формирвоания строки с вопросом
-
-const int tmpStringSize = 32;
-uint8_t tmpString[tmpStringSize];
-
-//----------------------------------------------------------------------------------------------------------------------
 // Сформировать строку во временном буфере с наименованием и ценой.
 // de - имя
 // hl - цена
@@ -75,13 +171,13 @@ void shopMakeNamePrice(bc, de, hl)
 {
     push(hl);
         push(bc);
-            hl = &tmpString;
-            strcpyn(hl, b = [tmpStringSize - 7 - numberToString16max - 1], de); // Запас для " за  ?\r" или "\t"
+            hl = &gStringBuffer;
+            strcpyn(hl, b = [gStringBufferSize - 7 - numberToString16max - 1], de); // Запас для " за  ?\r" или "\t"
         pop(de);
         strcpyn(hl, b = 4, de);
     pop(de);
     numberToString16(hl, de);
-    hl = &tmpString;
+    hl = &gStringBuffer;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -112,12 +208,14 @@ void shopMain()
         "\r"
         "Мне пора идти\n"
         "Я хочу купить\n"
-        "Я хочу продать",
+        "Я хочу продать\n"
+        "Я хочу продать ЛУТ",
         ix = 0
     );
     if (flag_z a |= a) return; // Выход из магазина
     if (flag_z a--) return shopBuy();
-    return shopTrade();
+    if (flag_z a--) return shopTrade();
+    return shopTradeLut();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -176,18 +274,18 @@ void shopBuyItem()
 
     // Хватит ли денег?
     ex(hl, de);
-    subHlDe(hl = gPlayerMoney); //! Доработать компилятор
+    (hl = gPlayerMoney) -= de;
     if (flag_c) return shopBuyNoMoney();
 
     // Добавляем в карман
     playerAddItem(a = shopSel);
-    if (flag_nz) return shopBuyNoSpace();
+    if (flag_z) return shopBuyNoSpace();
 
     // Уменьшаем деньги
     shopBuyGetNamePrice(a = shopSel);
     // hl - цена
     ex(hl, de);
-    subHlDe(hl = gPlayerMoney);
+    (hl = gPlayerMoney) -= de;
     setPlayerMoney(hl);
 
     // Переход на главную страницу
@@ -230,8 +328,6 @@ void shopBuyInfoGetText(a)
 //----------------------------------------------------------------------------------------------------------------------
 // Страница с товарами для продажи
 
-uint8_t shopSel = 0;
-
 void shopTrade()
 {
     shopStart(de =
@@ -250,7 +346,7 @@ void shopTrade()
 
 void stopTradeGetNamePrice(a)
 {
-    getItemOfArray8(hl = &playerItems, a);
+    getItemOfArray8(hl = &gPlayerItems, a);
     hl = 0;
     if (a == 0xFF) return; // return z
     getItemOfArray16(hl = &itemNames, a);
@@ -264,8 +360,11 @@ void stopTradeGetNamePrice(a)
 
 void stopTradeGetText(a)
 {
-    hl = 0;
-    if (a >= playerItemsMax) return; // return hl = 0
+    if (a >= *(hl = &gPlayerItemsCount))
+    {
+        hl = 0;
+        return; // return hl = 0
+    }
     stopTradeGetNamePrice(a);
     if (flag_z) return; // В этой функции hl = 0, поэтому return hl = 0
     // de - наимерование, hl - цена
@@ -290,7 +389,7 @@ void shopTradeItem()
     // hl - цена
     // Увеличиваем деньги игрока
     hl += (de = gPlayerMoney);
-    if (flag_c) return shopTradeOverflow(); // Денег больше, чем 65536 быть не может
+    if (flag_c) { return shopOverflow(hl = &shopTrade); } // Денег больше, чем 65536 быть не может
     setPlayerMoney(hl);
     // Удаляем предмет из кармана
     playerRemoveItem(a = shopSel);  
@@ -316,8 +415,9 @@ void shopTradeItemGetText(a)
 //----------------------------------------------------------------------------------------------------------------------
 // Страница с ошибкой
 
-void shopTradeOverflow()
+void shopOverflow(hl)
 {
+    push(hl);
     shopStart(de =
         "Вам не унести\n"
         "столько денег!"
@@ -325,7 +425,6 @@ void shopTradeOverflow()
         "Ок",
         ix = 0
     );
-    return shopTrade();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -394,4 +493,138 @@ void shopAnyElseTrade()
     );
     if(flag_z a |= a) return shopMain();
     return shopTrade();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Страница с ЛУТ-ом для продажи
+
+uint16_t shopSum;
+
+void shopTradeLut()
+{
+    while()
+    {
+        // Расчет общей суммы
+        hl = 0;
+        a = gPlayerLutCount;
+        while(a != 0)
+        {
+            a--;
+            push(hl);
+            push(a)
+            {
+                stopTradeLutGetNameCntPrice(a);
+            }
+            pop(de);
+            hl += de;
+        }
+        shopSum = hl;
+
+        // Диалог
+        shopStart(de =
+            "Что вы хотите продать?"
+            "\r"
+            "Ничего",
+            ix = &stopTradeLutGetText
+        );
+
+        // Выход
+        a -= 1;
+        if (flag_c) return shopMain();
+
+        // Продать всё
+        if (flag_z)
+        {
+            hl = gPlayerMoney;
+            hl += (de = shopSum);
+            if (flag_c) { return shopOverflow(hl = &shopTradeLut); } // Денег больше, чем 65536 быть не может
+            setPlayerMoney(hl);
+            gPlayerLutCount = a = 0; // Удаляем все предметы
+            return shopMain();
+        }
+
+        // Продать один
+        a--;
+        shopSel = a;
+        // Узнаем цену
+        stopTradeLutGetNameCntPrice(a);
+        // hl - цена
+        // Увеличиваем деньги игрока
+        hl += (de = gPlayerMoney);
+        if (flag_c) { return shopOverflow(hl = &shopTradeLut); } // Денег больше, чем 65536 быть не может
+        setPlayerMoney(hl);
+        // Удаляем предмет из кармана
+        playerRemoveLut(a = shopSel);
+    }
+}
+
+// Получить информацию о ЛУТ-е
+// Вход: a - порядковый номер
+// Выход: de - наименование, hl - цена, c - кол-во
+
+void stopTradeLutGetNameCntPrice(a)
+{
+    getItemOfArray8(hl = &gPlayerLut, a);
+    hl += (de = playerLutMax);
+    c = *hl;
+    // с - кол-во
+    getItemOfArray16(hl = &lutNames, a);
+    ex(hl, de);
+    // de - наименование
+    getItemOfArray16(hl = &lutPrices, a);
+    // hl - цена (hl *= c)
+    push(bc, de)
+    {
+        d = 0; e = c;
+        mul16();
+    }
+}
+
+// Сформировать текст для вывода на экран
+// Вход: a - порядковый номер
+// Выход: hl - строка (если hl = 0, то конец)
+
+void stopTradeLutGetText(a)
+{
+    // Продать все
+    a -= 1;
+    if (flag_c)
+    {
+        hl = &gStringBuffer;
+        strcpyn(hl, b = [gStringBufferSize - numberToString16max - 1], de = "Продать все\x09");
+        de = shopSum;
+        if (flag_z (a = d) |= e)
+        {
+            hl = 0;
+            return;
+        }
+        numberToString16(hl, de);
+        hl = &gStringBuffer;
+        return;
+    }
+
+    // По отдельности
+    if (a < *(hl = &gPlayerLutCount))
+    {
+        // Получить информацию
+        stopTradeLutGetNameCntPrice(a);
+        // de - наимерование, hl - цена, c - кол-во
+        push(hl);
+            push(bc);
+                hl = &gStringBuffer;
+                strcpyn(hl, b = [gStringBufferSize - 3 - 2 - 1 - numberToString16max - 1], de);
+                strcpyn(hl, b = 3, de = " x ");
+            pop(de);
+            d = 0;
+            if ((a = e) < 100) numberToString16(hl, de);
+            strcpyn(hl, b = 1, de = "\x09");
+        pop(de);
+        numberToString16(hl, de);
+        hl = &gStringBuffer;
+        return;
+    }
+
+    // Конец
+    hl = 0;
+    return;
 }

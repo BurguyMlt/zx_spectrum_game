@@ -86,3 +86,48 @@ void Parser::writeFooter()
         }
     }
 }
+
+
+inline void Parser::pushContinue(unsigned c)
+{
+    continues.push_back(c);
+}
+
+inline unsigned Parser::getContinue()
+{
+    if (continues.empty()) throw "Continue without loop";
+    return continues.back();
+}
+
+inline void Parser::popContinue()
+{
+    if (continues.empty()) throw "Continue without loop";
+    continues.pop_back();
+}
+
+inline void Parser::pushBreak(unsigned c)
+{
+    breaks.push_back(c);
+}
+
+inline unsigned Parser::getBreak()
+{
+    if (breaks.empty()) throw "Break without loop";
+    return breaks.back();
+}
+
+inline void Parser::popBreak()
+{
+    if (breaks.empty()) throw "Break without loop";
+    breaks.pop_back();
+}
+
+inline const char* Parser::getSubRegister(const std::string& reg, unsigned n)
+{
+    if (reg == "bc") return n == 0 ? "b" : "c";
+    if (reg == "de") return n == 0 ? "d" : "e";
+    if (reg == "hl") return n == 0 ? "h" : "l";
+    if (reg == "ix") return n == 0 ? "ixh" : "ixl";
+    if (reg == "iy") return n == 0 ? "iyh" : "iyl";
+    throw (std::string)"Невозможно получить половину регистра " + reg;
+}

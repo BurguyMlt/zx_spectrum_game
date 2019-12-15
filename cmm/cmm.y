@@ -18,7 +18,7 @@
 
 %token ';' '(' '{' '}' ')' '~'
 %token REG_A REG_B REG_C REG_D REG_E REG_H REG_L REG_BC REG_DE REG_HL REG_IX REG_IY REG_IXL REG_IXH REG_IYL REG_IYH REG_SP
-%token IF WHILE DO PUSH POP RETURN CONST ELSE GOTO
+%token IF WHILE DO PUSH POP RETURN CONST ELSE GOTO CONTINUE BREAK
 %token IN OUT NOP EX DAA LDI CPI INI OUTI LDD CPD IND OUTD LDIR CPIR INIR OTIR LDDR CPDR INDR OTDR HALT
 
 %token M_COUNTER M_EOL
@@ -39,7 +39,7 @@
 %left '[' // стандарт Си. Наивысший приоритет
 
 %type <Compare> compare shift
-%type <CString> regPush reg16 reg8
+%type <CString> regPush reg16 reg8 while_do_args
 %type <String> CALC ID STRING const addr alu alu_arg com8 com16 reg8phl return_call scalc string2
 %type <Number> NUMBER number icalc
 %type <Unsigned> write_label alloc_label init_array type
@@ -180,6 +180,11 @@ return_call:
     | GOTO ID { $$($2); }
 ;
 
+while_do_args:
+    OP_DEC REG_B { $$(nullptr); }
+    | compare    { $$($1.t);    }
+;
+
 cmd:
     '{' function_body '}'
 
@@ -195,6 +200,14 @@ cmd:
         out << "    jp   " << $3.t << ", " << $5 << "\n";
     } else_return // Это правило блокирует правило if else, поэтому обрабатывает else тут
 
+    | IF '(' compare ')' CONTINUE ';' { // 45. JP CCC, nn
+        out << "    jp   " << $3.t << ", l" << getContinue() << "\n";
+    } else_return // Это правило блокирует правило if else, поэтому обрабатывает else тут
+
+    | IF '(' compare ')' BREAK ';' { // 45. JP CCC, nn
+        out << "    jp   " << $3.t << ", l" << getBreak() << "\n";
+    } else_return // Это правило блокирует правило if else, поэтому обрабатывает else тут
+
     | IF '(' compare ')' RETURN ';' { // 39. RET CCC
         out << "    ret  " << $3.t << "\n";
     } else_return // Это правило блокирует правило if else, поэтому обрабатывает else тут
@@ -204,21 +217,35 @@ cmd:
     } cmd { hack_else = $5; } else_block
 
     | WHILE write_label '(' compare ')' alloc_label { // Для удобства
-        out << "    jp   " << $4.f << ", l" << $6 << "\n"; lc++;
+        pushBreak($6);
+        pushContinue($2);
+        out << "    jp   " << $4.f << ", l" << $6 << "\n";
     } cmd {
-        out << "    jp   l" << $2 << "\n"; out << "l" << $6 << ":\n";
-    }
-
-    | WHILE write_label '(' ')' alloc_label cmd {
         out << "    jp   l" << $2 << "\n";
+        out << "l" << $6 << ":\n";
+        popBreak();
+        popContinue();
     }
 
-    | DO write_label '{' function_body '}' WHILE '(' OP_DEC REG_B ')' ';' { // 3. DJNZ d
-        out << "    djnz l" << $2 << "\n";
+    | WHILE write_label '(' ')' alloc_label {
+        pushContinue($2);
+        pushBreak($5);
+    } cmd {
+        out << "    jp   l" << $2 << "\n";
+        out << "l" << $5 << ":\n";
+        popBreak();
+        popContinue();
     }
 
-    | DO write_label '{' function_body '}' WHILE '(' compare ')' ';' {
-        out << "    jp   " << $8.t << ", l" << $2 << "\n";
+    | DO write_label alloc_label {
+        pushBreak($3);
+        pushContinue($2);
+    } '{' function_body '}' WHILE '(' while_do_args ')' ';' {
+        if ($10) out << "    jp   " << $10 << ", l" << $2 << "\n";
+            else out << "    djnz l" << $2 << "\n"; // 3. DJNZ d
+        out << "l" << $3 << ":\n";
+        popBreak();
+        popContinue();
     }
 
     | PUSH '(' reg_push_array ')' { // Для удобства
@@ -242,6 +269,9 @@ cmd:
         for(auto i = a.rbegin(); i != a.rend(); i++)
             out << "    pop  " << *i << "\n";
     }
+
+    | CONTINUE ';'                       { out << "    jp l" << getContinue() << "\n"; }
+    | BREAK ';'                          { out << "    jp l" << getBreak() << "\n"; }
 
     | DAA  '(' call_args ')' ';'         { out << "    daa\n"; } // 23. DAA
     | LDI  '(' call_args ')' ';'         { out << "    ldi\n"; } // 96. LDI
@@ -301,11 +331,11 @@ compare_com:
 ;
 
 compare:
-      com8 OP_EQ alu_arg            { onlyA($1);  out << "    cp   " << $3 << "\n";                 $$ = Compare("z", "nz"); }
-    | com8 OP_NE alu_arg            { onlyA($1);  out << "    cp   " << $3 << "\n";                 $$ = Compare("nz", "z"); }
-    | com8 OP_GE alu_arg            { onlyA($1);  out << "    cp   " << $3 << "\n";                 $$ = Compare("nc", "c"); }
-    | com8 '<'  alu_arg             { onlyA($1);  out << "    cp   " << $3 << "\n";                 $$ = Compare("c", "nc"); }
-    | reg8phl '&' number            {             out << "    bit  " << getBit($3) << ", " << $1 << "\n";   $$ = Compare("nz", "z"); } // 73. BIT bit, SSS
+      com8 OP_EQ alu_arg            { onlyA($1); if (std::string($3) == "0") out << "    or   a\n"; else out << "    cp   " << $3 << "\n"; $$ = Compare("z", "nz"); }
+    | com8 OP_NE alu_arg            { onlyA($1); if (std::string($3) == "0") out << "    or   a\n"; else out << "    cp   " << $3 << "\n";                 $$ = Compare("nz", "z"); }
+    | com8 OP_GE alu_arg            { onlyA($1); out << "    cp   " << $3 << "\n";                 $$ = Compare("nc", "c"); }
+    | com8 '<'  alu_arg             { onlyA($1); out << "    cp   " << $3 << "\n";                 $$ = Compare("c", "nc"); }
+    | reg8phl '&' number            {            out << "    bit  " << getBit($3) << ", " << $1 << "\n";   $$ = Compare("nz", "z"); } // 73. BIT bit, SSS
     | FLAG_Z  compare_com           { $$ = Compare("z", "nz"); }
     | FLAG_NZ compare_com           { $$ = Compare("nz", "z"); }
     | FLAG_C  compare_com           { $$ = Compare("c", "nc"); }
@@ -380,11 +410,23 @@ com16:
     '(' com16 ')'              { $$($2); }
     | OP_INC com16             {             out << "    inc  " << $2 << "\n"; $$($2); } // 14. INC RP
     | OP_DEC com16             {             out << "    dec  " << $2 << "\n"; $$($2); } // 15. INC RP
+    | com16 '=' com16          {             if (std::string($1) == "sp" && std::string($3) == "hl")
+                                             {
+                                                 out << "    ld   sp, hl\n"; // 44. LD SP,HL
+                                             }
+                                             else
+                                             {
+                                                out << "    ld   " << getSubRegister($1, 0) << ", " << getSubRegister($3, 0) << "\n";
+                                                out << "    ld   " << getSubRegister($1, 1) << ", " << getSubRegister($3, 1) << "\n";
+                                             }
+                                             $$($1);
+                               }
     | com16 '=' const          {             out << "    ld   " << $1 << ", " << $3 << "\n"; $$($1); } // 6. LD RP, nn
     | com16 '=' addr           {             out << "    ld   " << $1 << ", (" << $3 << ")\n"; $$($1); } // 11. LD HL, [nn]; // 83. LD RP, [nn]
     | com16 OP_SADD com16      { onlyHl($1); out << "    add  " << $1 << ", " << $3 << "\n"; $$($1); } // 7. ADD HL, RP
     | com16 OP_SADC com16      { onlyHl($1); out << "    adc  " << $1 << ", " << $3 << "\n"; $$($1); } // 81. ADC HL, RP
     | com16 OP_SSBC com16      { onlyHl($1); out << "    sbc  " << $1 << ", " << $3 << "\n"; $$($1); } // 80. SBC HL, RP
+    | com16 OP_SSUB com16      { onlyHl($1); out << "    or   a\n" << "    sub  " << $1 << ", " << $3 << "\n"; $$($1); } // 80. SBC HL, RP
     | reg16                    { $$($1); }
 ;
 
@@ -524,7 +566,6 @@ shift:
 // 25. SCF
 // 26. CCF
 // 43. JP HL
-// 44. LD SP,HL
 // 47. OUT (d),A
 // 48. IN A, (d)
 // 49. EX (SP),HL

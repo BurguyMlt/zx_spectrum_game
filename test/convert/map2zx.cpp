@@ -104,7 +104,7 @@ void clearTail(Png& png, int gx, int gy)
             png.setPixel(gx + ix, gy + iy, 0);
 }
 
-bool map2zx(const char* outputFileName, const char* inputFileName, bool levelMode, unsigned cityRoadY)
+bool invent2zx(const char* outputFileName, const char* inputFileName, bool levelMode, unsigned cityRoadY)
 {
     std::string name = truncFileExt(basename(inputFileName));
 
@@ -317,5 +317,5 @@ int main(int argc, char **argv)
                   << "Syntax: " << argv[0] << " output_file.inc input_file.png" << std::endl;;
         return 2;
     }
-    return map2zx(argv[1], argv[2], false, 13) ? 0 : 1;
+    return invent2zx(argv[1], argv[2], false, 13) ? 0 : 1;
 }

@@ -1,295 +1,303 @@
-    ; 2 // Вход: DE - текст
-    ; 3 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
-    ; 4 // Портит: HL
-    ; 6 void measureText()
+    ; 3 // Вычисление ширины текста в пикселях
+    ; 4 // Вход: DE - текст
+    ; 5 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
+    ; 6 // Портит: HL
+    ; 8 const int firstChar = [' ' - 11];
+    ; 10 void measureText()
 measureText:
-    ; 7 {
-    ; 8 c = 0;
+    ; 11 {
+    ; 12 c = 0;
     ld   c, 0
-    ; 9 while()
-l0:
-    ; 10 {
-    ; 11 a = *de; de++;
+    ; 13 while()
+l10000:
+    ; 14 {
+    ; 15 a = *de; de++;
     ld   a, (de)
     inc  de
-    ; 12 if (a < ' ') return;
-    cp   32
+    ; 16 if (a < firstChar) return;
+    cp   21
     ret  c
-    ; 14 // Вычисление адреса символа (de = image_font + a * 9)
-    ; 15 push(de)
-    ; 16 {
+    ; 18 // Вычисление адреса символа (de = image_font + a * 9)
+    ; 19 push(de)
+    ; 20 {
     push de
-    ; 17 calcCharAddr(); //  HL - адрес символа в знакогенераторе, DE - мусор
+    ; 21 calcCharAddr(); //  HL - адрес символа в знакогенераторе, DE - мусор
     call calcCharAddr
-    ; 18 hl += (de = 8);
+    ; 22 hl += (de = 8);
     ld   de, 8
     add  hl, de
-    ; 19 a = *hl;
+    ; 23 a = *hl;
     ld   a, (hl)
-    ; 20 c = (a += c);
+    ; 24 c = (a += c);
     add  c
     ld   c, a
-    ; 21 }
+    ; 25 }
     pop  de
-    ; 22 }
-    jp   l0
-    ; 23 }
+    ; 26 }
+    jp   l10000
+l10001:
+    ; 27 }
     ret
-    ; 25 // Вычисление адреса символа
-    ; 26 // Вход: A - символ
-    ; 27 // Выход: HL - адрес символа в знакогенераторе
-    ; 28 // Портит: DE
-    ; 30 void calcCharAddr()
+    ; 29 // Вычисление адреса символа
+    ; 30 // Вход: A - символ
+    ; 31 // Выход: HL - адрес символа в знакогенераторе
+    ; 32 // Портит: DE
+    ; 34 void calcCharAddr()
 calcCharAddr:
-    ; 31 {
-    ; 32 a -= ' ';
-    sub  32
-    ; 33 if (a >= 96) a -= 64;
+    ; 35 {
+    ; 36 a -= firstChar;
+    sub  21
+    ; 37 if (a >= 96) a -= 64;
     cp   96
-    jp   c, l2
+    jp   c, l10002
     sub  64
-    ; 34 h = 0; l = a;
-l2:
+    ; 38 h = 0; l = a;
+l10002:
     ld   h, 0
     ld   l, a
-    ; 35 d = h; e = l;
+    ; 39 d = h; e = l;
     ld   d, h
     ld   e, l
-    ; 36 (((hl += hl) += hl) += hl) += de;
+    ; 40 (((hl += hl) += hl) += hl) += de;
     add  hl, hl
     add  hl, hl
     add  hl, hl
     add  hl, de
-    ; 37 hl += (de = &image_font);
+    ; 41 hl += (de = &image_font);
     ld   de, image_font
     add  hl, de
-    ; 38 }
+    ; 42 }
     ret
-    ; 40 // Вывод текста по центру экрана
-    ; 41 // Вход: DE - текст, H - строка
-    ; 43 void drawTextCenter()
+    ; 44 // Вывод текста по центру экрана
+    ; 45 // Вход: DE - текст, H - строка
+    ; 47 void drawTextCenter()
 drawTextCenter:
-    ; 44 {
-    ; 45 ex(a, a);
+    ; 48 {
+    ; 49 ex(a, a);
     ex   af, af
-    ; 46 push(hl, de)
-    ; 47 {
+    ; 50 push(hl, de)
+    ; 51 {
     push hl
     push de
-    ; 48 measureText();
+    ; 52 measureText();
     call measureText
-    ; 49 a = (((a = 256) -= c) >>= 1);
+    ; 53 a = (((a = 256) -= c) >>= 1);
     ld   a, 256
     sub  c
     srl  a
     ld   a, a
-    ; 50 }
+    ; 54 }
     pop  de
     pop  hl
-    ; 51 l = a;
+    ; 55 l = a;
     ld   l, a
-    ; 52 ex(a, a);
+    ; 56 ex(a, a);
     ex   af, af
-    ; 53 drawTextEx();
+    ; 57 drawTextEx();
     call drawTextEx
-    ; 54 }
+    ; 58 }
     ret
-    ; 56 // Вычисление адреса в видеопамяти и смещения в битах.
-    ; 57 // Вход: H - коодината y, L - коодината x
-    ; 58 // Выход: HL - адрес, C - смещение в битах
-    ; 59 // Портит: A, B
-    ; 61 void calcCoords()
+    ; 60 // Вычисление адреса в видеопамяти и смещения в битах.
+    ; 61 // Вход: H - коодината y, L - коодината x
+    ; 62 // Выход: HL - адрес, C - смещение в битах
+    ; 63 // Портит: A, B
+    ; 65 void calcCoords()
 calcCoords:
-    ; 62 {
-    ; 63 // Необходимо разместить Y в регистре HL следующим образом
-    ; 64 // ...76210 543.....
-    ; 66 c = ((a = l) &= 7); // Из координаты X получаем смещение в битах
+    ; 66 {
+    ; 67 // Необходимо разместить Y в регистре HL следующим образом
+    ; 68 // ...76210 543.....
+    ; 70 c = ((a = l) &= 7); // Из координаты X получаем смещение в битах
     ld   a, l
     and  7
     ld   c, a
-    ; 67 l >>= 3; //  Из координаты X смещение в байтах
+    ; 71 l >>= 3; //  Из координаты X смещение в байтах
     srl  l
     srl  l
     srl  l
-    ; 68 l = ((((a = h) <<= 2) &= 0xE0) |= l);
+    ; 72 l = ((((a = h) <<= 2) &= 0xE0) |= l);
     ld   a, h
     sla  a
     sla  a
     and  224
     or   l
     ld   l, a
-    ; 69 b = (((a = h) >>= 3) &= 0x18);
+    ; 73 b = (((a = h) >>= 3) &= 0x18);
     ld   a, h
     srl  a
     srl  a
     srl  a
     and  24
     ld   b, a
-    ; 70 h = ((((a = h) &= 7) |= 0x40) |= b);
+    ; 74 h = ((((a = h) &= 7) |= 0x40) |= b);
     ld   a, h
     and  7
     or   64
     or   b
     ld   h, a
-    ; 71 h = (((a = gVideoPage) &= 0x80) |= h);
+    ; 75 h = (((a = gVideoPage) &= 0x80) |= h);
     ld   a, (gVideoPage)
     and  128
     or   h
     ld   h, a
-    ; 72 }
+    ; 76 }
     ret
-    ; 74 void drawTextEx()
+    ; 78 void drawTextEx()
 drawTextEx:
-    ; 75 {
-    ; 76 ex(a, a);
+    ; 79 {
+    ; 80 ex(a, a);
     ex   af, af
-    ; 77 calcCoords();
+    ; 81 calcCoords();
     call calcCoords
-    ; 78 ex(a, a);
+    ; 82 ex(a, a);
     ex   af, af
-    ; 79 return drawTextSub();
+    ; 83 return drawTextSub();
     jp   drawTextSub
-    ; 80 }
+    ; 84 }
     ret
-    ; 82 void drawText()
+    ; 86 void drawText()
 drawText:
-    ; 83 {
-    ; 84 c = 0;
+    ; 87 {
+    ; 88 c = 0;
     ld   c, 0
-    ; 85 drawTextSub:
+    ; 89 drawTextSub:
 drawTextSub:
-    ; 86 ex(a, a);
+    ; 90 ex(a, a);
     ex   af, af
-    ; 87 *[&drawTextS + 1] = hl;
+    ; 91 *[&drawTextS + 1] = hl;
     ld   ((drawTextS) + (1)), hl
-    ; 88 while ()
-l3:
-    ; 89 {
-    ; 90 a = *de; de++;
+    ; 92 while ()
+l10003:
+    ; 93 {
+    ; 94 a = *de; de++;
     ld   a, (de)
     inc  de
-    ; 91 if (a < ' ') goto drawTextN;
-    cp   32
-    jp   c, drawTextN
-    ; 92 drawCharSub();
+    ; 95 if (a < firstChar) break;
+    cp   21
+    jp   c, l10004
+    ; 96 drawCharSub();
     call drawCharSub
-    ; 93 }
-    jp   l3
-    ; 94 drawTextN:
-drawTextN:
-    ; 95 push(a, bc, de, hl)
-    ; 96 {
+    ; 97 }
+    jp   l10003
+l10004:
+    ; 98 push(a, bc, de, hl)
+    ; 99 {
     push af
     push bc
     push de
     push hl
-    ; 97 ex(hl, de);
+    ; 100 ex(hl, de);
     ex de, hl
-    ; 98 drawTextS:
+    ; 101 drawTextS:
 drawTextS:
-    ; 99 hl = 0;
+    ; 102 hl = 0;
     ld   hl, 0
-    ; 101 // Две строки?
-    ; 102 if (flag_nz (a = h) &= 7) a = 1;
+    ; 104 // Две строки?
+    ; 105 if (a != 2)
+    cp   2
+    ; 106 if (flag_nz (a = h) &= 7) a = 1;
+    jp   z, l10005
     ld   a, h
     and  7
-    jp   z, l5
+    jp   z, l10006
     ld   a, 1
-    ; 103 b = a;
-l5:
+    ; 107 b = a;
+l10006:
+l10005:
     ld   b, a
-    ; 105 // Преобразование адреса из чб в цвет
-    ; 106 d = (((a = h) >>= 3) &= 3);
+    ; 109 // Преобразование адреса из чб в цвет
+    ; 110 d = (((a = h) >>= 3) &= 3);
     ld   a, h
     srl  a
     srl  a
     srl  a
     and  3
     ld   d, a
-    ; 107 h = ((((a = h) &= 0xC0) |= 0x18) |= d);
+    ; 111 h = ((((a = h) &= 0xC0) |= 0x18) |= d);
     ld   a, h
     and  192
     or   24
     or   d
     ld   h, a
-    ; 109 // Ширина
-    ; 110 (((a = e) -= l) &= 31);
+    ; 113 // Ширина
+    ; 114 (((a = e) -= l) &= 31);
     ld   a, e
     sub  l
     and  31
-    ; 111 c++; if (flag_nz c--) a++;
+    ; 115 c++; if (flag_nz c--) a++;
     inc  c
     dec  c
-    jp   z, l6
+    jp   z, l10007
     inc  a
-    ; 112 if (flag_nz a |= a)
-l6:
+    ; 116 if (flag_nz a |= a)
+l10007:
     or   a
-    ; 113 {
-    jp   z, l7
-    ; 114 c = a;
+    ; 117 {
+    jp   z, l10008
+    ; 118 c = a;
     ld   c, a
-    ; 116 // Цвет
-    ; 117 ex(a, a);
+    ; 120 // Цвет
+    ; 121 ex(a, a);
     ex   af, af
-    ; 119 // Первая строка
-    ; 120 push (bc, hl)
-    ; 121 {
+    ; 123 // Первая строка
+    ; 124 push (bc, hl)
+    ; 125 {
     push bc
     push hl
-    ; 122 do
-l8:
-    ; 123 {
-    ; 124 *hl = a;
+    ; 126 do
+l10009:
+    ; 127 {
+    ; 128 *hl = a;
     ld   (hl), a
-    ; 125 hl++;
+    ; 129 hl++;
     inc  hl
-    ; 126 } while(flag_nz --c);
+    ; 130 } while(flag_nz --c);
     dec  c
-    jp   nz, l8
-    ; 127 }
+    jp   nz, l10009
+l10010:
+    ; 131 }
     pop  hl
     pop  bc
-    ; 129 // Вторая строка
-    ; 130 if (flag_nz b & 1)
+    ; 133 // Вторая строка
+    ; 134 if (flag_nz b & 1)
     bit  0, b
-    ; 131 {
-    jp   z, l9
-    ; 132 hl += (de = 32);
+    ; 135 {
+    jp   z, l10011
+    ; 136 hl += (de = 32);
     ld   de, 32
     add  hl, de
-    ; 133 do
-l10:
-    ; 134 {
-    ; 135 *hl = a;
+    ; 137 do
+l10012:
+    ; 138 {
+    ; 139 *hl = a;
     ld   (hl), a
-    ; 136 hl++;
+    ; 140 hl++;
     inc  hl
-    ; 137 } while(flag_nz --c);
+    ; 141 } while(flag_nz --c);
     dec  c
-    jp   nz, l10
-    ; 138 }
-    ; 139 }
-l9:
-    ; 140 }
-l7:
+    jp   nz, l10012
+l10013:
+    ; 142 }
+    ; 143 }
+l10011:
+    ; 144 }
+l10008:
     pop  hl
     pop  de
     pop  bc
     pop  af
-    ; 141 }
+    ; 145 }
     ret
-    ; 143 uint16_t drawTextTbl[] =
-    ; 144 {
-    ; 145 0x0000, 0x0000, 0xE64F, 0x00FF,
-    ; 146 0x0F00, 0x0000, 0xE64F, 0x807F,
-    ; 147 0x0F0F, 0x0000, 0xE64F, 0xC03F,
-    ; 148 0x0F0F, 0x000F, 0xE64F, 0xE01F,
-    ; 149 0x0F0F, 0x0F0F, 0xE64F, 0xF00F,
-    ; 150 0x0707, 0x0700, 0xE64F, 0xF807,
-    ; 151 0x0707, 0x0000, 0xE64F, 0xFC03,
-    ; 152 0x0700, 0x0000, 0xE64F, 0xFE07
-    ; 153 };
+    ; 147 uint16_t drawTextTbl[] =
+    ; 148 {
+    ; 149 0x0000, 0x0000, 0xE64F, 0x00FF,
+    ; 150 0x0F00, 0x0000, 0xE64F, 0x807F,
+    ; 151 0x0F0F, 0x0000, 0xE64F, 0xC03F,
+    ; 152 0x0F0F, 0x000F, 0xE64F, 0xE01F,
+    ; 153 0x0F0F, 0x0F0F, 0xE64F, 0xF00F,
+    ; 154 0x0707, 0x0700, 0xE64F, 0xF807,
+    ; 155 0x0707, 0x0000, 0xE64F, 0xFC03,
+    ; 156 0x0700, 0x0000, 0xE64F, 0xFE07
+    ; 157 };
 drawTextTbl:
     dw 0
     dw 0
@@ -323,141 +331,142 @@ drawTextTbl:
     dw 0
     dw 58959
     dw 65031
-    ; 155 void drawCharSub()
+    ; 159 void drawCharSub()
 drawCharSub:
-    ; 156 {
-    ; 157 // Функция сохраняет DE
-    ; 158 push(de);
+    ; 160 {
+    ; 161 // Функция сохраняет DE
+    ; 162 push(de);
     push de
-    ; 160 // Вычисление адреса символа
-    ; 161 push(hl)
-    ; 162 {
+    ; 164 // Вычисление адреса символа
+    ; 165 push(hl)
+    ; 166 {
     push hl
-    ; 163 calcCharAddr(); // Вход A, выход HL, портит DE
+    ; 167 calcCharAddr(); // Вход A, выход HL, портит DE
     call calcCharAddr
-    ; 164 ex(hl, de);
+    ; 168 ex(hl, de);
     ex de, hl
-    ; 165 }
+    ; 169 }
     pop  hl
-    ; 167 push(hl, bc)
-    ; 168 {
+    ; 171 push(hl, bc)
+    ; 172 {
     push hl
     push bc
-    ; 169 // Выбор одной из 8 подпрограмм рисования символа
-    ; 170 a = c;
+    ; 173 // Выбор одной из 8 подпрограмм рисования символа
+    ; 174 a = c;
     ld   a, c
-    ; 171 ex(bc, de, hl);
+    ; 175 ex(bc, de, hl);
     exx
-    ; 172 l = ((((a += a) += a) += a) += &drawTextTbl);
+    ; 176 l = ((((a += a) += a) += a) += &drawTextTbl);
     add  a
     add  a
     add  a
     add  drawTextTbl
     ld   l, a
-    ; 173 h = ((a +@= [&drawTextTbl >> 8]) -= l);
+    ; 177 h = ((a +@= [&drawTextTbl >> 8]) -= l);
     adc  (drawTextTbl) >> (8)
     sub  l
     ld   h, a
-    ; 174 de = &C1;
+    ; 178 de = &C1;
     ld   de, C1
-    ; 175 bc = 7;
+    ; 179 bc = 7;
     ld   bc, 7
-    ; 176 ldir();
+    ; 180 ldir();
     ldir
-    ; 177 de++; de++; de++;
+    ; 181 de++; de++; de++;
     inc  de
     inc  de
     inc  de
-    ; 178 ldi();
+    ; 182 ldi();
     ldi
-    ; 179 ex(bc, de, hl);
+    ; 183 ex(bc, de, hl);
     exx
-    ; 181 b = 8;
+    ; 185 b = 8;
     ld   b, 8
-    ; 182 do
-l11:
-    ; 183 {
-    ; 184 a = *de; // Половинка
+    ; 186 do
+l10014:
+    ; 187 {
+    ; 188 a = *de; // Половинка
     ld   a, (de)
-    ; 185 C1:         nop(); nop(); nop(); nop();
+    ; 189 C1:         nop(); nop(); nop(); nop();
 C1:
     nop
     nop
     nop
     nop
-    ; 186 c = a;
+    ; 190 c = a;
     ld   c, a
-    ; 187 a &= 0;
+    ; 191 a &= 0;
     and  0
-    ; 188 *hl = (a ^= *hl);
-    xor  (hl)
-    ld   (hl), a
-    ; 189 a = 0; // Половинка
-    ld   a, 0
-    ; 190 a &= c;
-    and  c
-    ; 191 l++; // влево
-    inc  l
     ; 192 *hl = (a ^= *hl);
     xor  (hl)
     ld   (hl), a
-    ; 193 l--; // вправо
+    ; 193 a = 0; // Половинка
+    ld   a, 0
+    ; 194 a &= c;
+    and  c
+    ; 195 l++; // влево
+    inc  l
+    ; 196 *hl = (a ^= *hl);
+    xor  (hl)
+    ld   (hl), a
+    ; 197 l--; // вправо
     dec  l
-    ; 194 h++; // Цикл
+    ; 198 h++; // Цикл
     inc  h
-    ; 195 (a = h) &= 7;
+    ; 199 (a = h) &= 7;
     ld   a, h
     and  7
-    ; 196 if (flag_z) drawCharNextLine();
+    ; 200 if (flag_z) drawCharNextLine();
     call z, drawCharNextLine
-    ; 197 de++;
+    ; 201 de++;
     inc  de
-    ; 198 } while(--b);
-    djnz l11
-    ; 199 }
+    ; 202 } while(--b);
+    djnz l10014
+l10015:
+    ; 203 }
     pop  bc
     pop  hl
-    ; 201 // Адрес вывода следующего символа на экране
-    ; 202 a = *de; // Ширина символа
+    ; 205 // Адрес вывода следующего символа на экране
+    ; 206 a = *de; // Ширина символа
     ld   a, (de)
-    ; 203 a += c; // Смещение в пикселях
+    ; 207 a += c; // Смещение в пикселях
     add  c
-    ; 204 if (a >= 8) { a &= 7; l++; }
+    ; 208 if (a >= 8) { a &= 7; l++; }
     cp   8
-    jp   c, l12
+    jp   c, l10016
     and  7
     inc  l
-    ; 205 c = a;
-l12:
+    ; 209 c = a;
+l10016:
     ld   c, a
-    ; 207 // Функция сохраняет DE
-    ; 208 pop(de);
+    ; 211 // Функция сохраняет DE
+    ; 212 pop(de);
     pop  de
-    ; 209 }
+    ; 213 }
     ret
-    ; 211 void drawCharNextLine()
+    ; 215 void drawCharNextLine()
 drawCharNextLine:
-    ; 212 {
-    ; 213 push(de)
-    ; 214 {
+    ; 216 {
+    ; 217 push(de)
+    ; 218 {
     push de
-    ; 215 hl += (de = [0x20 - 0x800]);
+    ; 219 hl += (de = [0x20 - 0x800]);
     ld   de, -2016
     add  hl, de
-    ; 216 }
+    ; 220 }
     pop  de
-    ; 217 (a = h) &= 7;
+    ; 221 (a = h) &= 7;
     ld   a, h
     and  7
-    ; 218 if (flag_z) return;
+    ; 222 if (flag_z) return;
     ret  z
-    ; 219 push(de)
-    ; 220 {
+    ; 223 push(de)
+    ; 224 {
     push de
-    ; 221 hl += (de = [0x800 - 0x100]);
+    ; 225 hl += (de = [0x800 - 0x100]);
     ld   de, 1792
     add  hl, de
-    ; 222 }
+    ; 226 }
     pop  de
-    ; 223 }
+    ; 227 }
     ret

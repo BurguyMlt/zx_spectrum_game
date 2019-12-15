@@ -40,12 +40,22 @@ begin:
     IM    2
     EI
 
+    ; Загрузка файла DIALOG
+    LD    A, 6 | 0x10
+    LD    BC, 7FFDh
+    LD    (gSystemPage), A
+    OUT   (C), A
+    LD    HL, aDialog
+    LD    DE, 0C000h
+    CALL  gLoadFile
+
     ; Загрузка файла
     LD    HL, aStart
     JP    gExec
 
 aStart db "city", 0
 ;aStart db "menu", 0
+aDialog db "dialog", 0
 
 baseCode:
     incbin "base.bin"

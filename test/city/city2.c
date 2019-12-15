@@ -1,5 +1,7 @@
 #counter 2000
 
+const int playerLutMax = 12;
+
 const int KEY_UP = 1;
 const int KEY_DOWN = 2;
 const int KEY_LEFT = 4;
@@ -69,21 +71,40 @@ void swapMaps()
 void cityFullRedraw()
 {
     cityInvalidate(hl = cacheAddr1);
-    *[cacheAddr1 + screenAttrSize] = a = 0;
+    //*[cacheAddr1 + screenAttrSize] = a = 0;
     cityInvalidate(hl = cacheAddr2);
-    *[cacheAddr2 + screenAttrSize] = a = 0;
+    //*[cacheAddr2 + screenAttrSize] = a = 0;
+    gPanelChangedA = a = 0xFF;
+    gPanelChangedB = a;
+}
+
+void newGame()
+{
+    gPlayerMoney = hl = 10;
+    gPlayerItemsCount = a = 2;
+    *[&gPlayerItems] = a = 0;
+    *[&gPlayerItems + 1] = a = 1;
+
+    gPlayerLutCount = a = 3;
+    *[&gPlayerLut + 0] = a = 0;
+    *[&gPlayerLut + playerLutMax + 0] = a = 5;
+    *[&gPlayerLut + 1] = a = 1;
+    *[&gPlayerLut + playerLutMax + 1] = a = 10;
+    *[&gPlayerLut + 2] = a = 2;
+    *[&gPlayerLut + playerLutMax + 2] = a = 15;
 }
 
 void main()
 {
-    gPanelChanged1 = a = 0xFF;
-    gPanelChanged2 = a = 0xFF;
-    gPlayerMoney = hl = 10;
+    newGame();
+
+    gPanelChangedA = a = 0xFF;
+    gPanelChangedB = a;
 
     cityPlayerX = a = [mapWidth / 2];
     cityScrollX = (a -= [viewWidth / 2]);
 
-    // Перерисовать панель
+    // Перерисовать панель    
     gDrawPanel();
 
     // Инициализация NPC
@@ -97,9 +118,9 @@ void main()
     // Перерисовать
     while()
     {
-        beginDraw();
+        gBeginDraw();
         cityDraw();
-        endDraw();
+        gEndDraw();
 
         while ((a = gFrame) != *(hl = &processedFrames))
         {
@@ -259,7 +280,21 @@ void processPlayer()
     if (*(hl = &gKeyTrigger) & KEY_FIRE)
     {
         *hl = 0;
-        shopMain();
+        // На двух видеостраницах должно быть идентичное изображение, причем активной должна быть вторая видеостраница
+        hl = &gVideoPage;
+        while ((a = *hl) & 1);
+        if (flag_z a & 8)
+        {
+            gBeginDraw();
+            cityDraw();
+            gEndDraw();
+            hl = &gVideoPage;
+            while ((a = *hl) & 1);
+        }
+
+        // Переход к магазину
+        gFarCall(iyl = 6, ix = 0xC000);
+
         // Перерисовать всё
         cityInvalidate(hl = cacheAddr1);
         cityInvalidate(hl = cacheAddr2);
@@ -326,31 +361,13 @@ void processPlayer()
 
 //----------------------------------------------------------------------------------------------------------------------
 
-void beginDraw()
-{
-    hl = &gVideoPage;
-    while ((a = *hl) & 1);
-    a &= 0x7F;
-    if (flag_z a & 8) a |= 0x80;
-    *hl = a;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-void endDraw()
-{
-    gVideoPage = ((a = gVideoPage) ^= 8 |= 1);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
 void cityDraw()
 {
     // Оценка времени
     //startFrame = a = gFrame;
 
     // Обновить панель
-    playerMoneyRedraw();
+    gPanelRedraw();
 
     // Адрес карты / и сточник
     d` = [&city1Map >> 8];
@@ -378,8 +395,7 @@ void cityDraw()
     do
     {
         // Сохранение адреса вывода
-        iyl = e;
-        iyh = d;
+        iy = de;
 
         // Цикл стобцов
         ixl = viewWidth;

@@ -33,10 +33,11 @@ bool font2zx(const char* outputFileName, const char* inputFileName)
     
     fprintf(fo, "image_%s:\n", name.c_str());
     unsigned n = 0;
-    for (unsigned y = 0; y < 9 * 5; y += 9)
+    for (unsigned y = 0; y < 9 * 6; y += 9)
     {
         for (unsigned x = 0; x < 7 * 32; x += 7)
         {
+            if (png.getPixel(x, y) == 0x0080FF) continue;
             fprintf(fo, "    db");
             uint8_t total_mask = 0;
             for (unsigned iy = 1; iy < 9; iy++)
@@ -67,7 +68,7 @@ bool font2zx(const char* outputFileName, const char* inputFileName)
                 w += lp;
             }
             fprintf(fo, " %u ; %u\n", w + 1, n);
-            n++;
+            n++;            
         }
     }
 

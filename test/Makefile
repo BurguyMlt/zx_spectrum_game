@@ -44,11 +44,11 @@ O += convert/sprites2zx
 convert/sprites2zx: convert/sprites2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
 	g++ --std=c++11 convert/sprites2zx.cpp convert/png.cpp convert/tail.cpp -oconvert/sprites2zx -lpng
 
-# --- LEVELS ---
+O += convert/invent2zx
+convert/invent2zx: convert/invent2zx.cpp convert/png.cpp convert/png.h convert/tail.cpp convert/tail.h
+	g++ --std=c++11 convert/invent2zx.cpp convert/png.cpp convert/tail.cpp -oconvert/invent2zx -lpng
 
-O += levels/dialog.asm
-levels/dialog.asm: levels/dialog.png convert/sprites2zx
-	./convert/sprites2zx 1 $@ $<
+# --- LEVELS ---
 
 O += levels/city1.asm
 levels/city1.asm: levels/city1.png convert/map2zx
@@ -88,17 +88,9 @@ menu/menu.C: menu/menu.asm menu/intro.asm menu/logo.asm menu/takh.asm menu/rast.
 O += city/city2.asm
 city/city2.asm: city/city2.c
 
-O += city/fillrect.asm
-city/fillrect.asm: city/fillrect.c
-
-O += city/dialog.asm
-city/dialog.asm: city/dialog.c
 
 O += city/state.asm
 city/state.asm: city/state.c
-
-O += city/shop.asm
-city/shop.asm: city/shop.c
 
 O += city/panel.asm
 city/panel.asm: city/panel.c
@@ -107,34 +99,80 @@ O += city/tools.asm
 city/tools.asm: city/tools.c
 
 O += city/city.C city/city.C.lst
-city/city.C: city/city.asm city/city2.asm city/rand.asm levels/city1.asm levels/city1b.asm levels/city1s.asm city/fillrect.asm levels/dialog.asm city/dialog.asm city/shop.asm city/state.asm city/div16.asm city/panel.asm city/tools.asm
+city/city.C: city/city.asm city/city2.asm city/rand.asm levels/city1.asm levels/city1b.asm levels/city1s.asm city/state.asm city/tools.asm
 
 # --- BASE ---
 
-O += base/keyboard.asm
+B += base/keyboard.asm
 base/keyboard.asm: base/keyboard.c
 
-O += base/drawtext2.asm
+B += base/drawtext2.asm
 base/drawtext2.asm: base/drawtext2.c
 
-O += base/clearscreen.asm
-base/clearscreen.asm: base/clearscreen.c
+B += base/graphfunctions.asm
+base/graphfunctions.asm: base/graphfunctions.c
 
-O += base/font.asm
+B += base/panel.asm
+base/panel.asm: base/panel.c
+
+B += base/font.asm
 base/font.asm: base/font.png convert/font2zx
 	./convert/font2zx $@ $<
 
-O += base/panel.asm
-base/panel.asm: base/panel.png convert/png2zx
-	./convert/png2zx $@ $< 45
+B += base/fillrect.asm
+base/fillrect.asm: base/fillrect.c
+
+B += base/tools.asm
+base/tools.asm: base/tools.c
+
+O += base/base.bin base/base.bin.lst
+base/base.bin: base/base.asm base/drawimage.asm $B
+
+O += B
 
 O += base/base.C base/base.C.lst
 base/base.C: base/basemover.asm base/base.bin
 	@echo "    savebin \"$@\", begin, $$ - begin" > save.inc
 	./bin/sjasmplus --lst=$@.lst $< save.inc || rm $@
 
-O += base/base.bin base/base.bin.lst
-base/base.bin: base/base.asm base/font.asm base/clearscreen.asm base/drawimage.asm base/keyboard.asm base/drawtext2.asm base/panel.asm
+
+# --- DIALOG ---
+
+D += dialog/alg.asm
+dialog/alg.asm: dialog/alg.c
+
+D += dialog/shop.asm
+dialog/shop.asm: dialog/shop.c
+
+D += dialog/tools.asm
+dialog/tools.asm: dialog/tools.c
+
+D += dialog/dialogrect.asm
+dialog/dialogrect.asm: dialog/dialogrect.png convert/sprites2zx
+	./convert/sprites2zx 1 $@ $<
+
+D += dialog/panelgraph.asm
+dialog/panelgraph.asm: dialog/panelgraph.png convert/png2zx
+	./convert/png2zx $@ $< 45
+
+D += dialog/inventgraph.asm
+dialog/inventgraph.asm: dialog/inventgraph.png convert/invent2zx
+	./convert/invent2zx $@ $<
+
+D += dialog/invent.asm
+dialog/invent.asm: dialog/invent.c
+
+D += dialog/panel.asm
+dialog/panel.asm: dialog/panel.c
+
+D += dialog/magic.asm
+dialog/magic.asm: dialog/magic.png convert/sprites2zx
+	./convert/sprites2zx 2 $@ $<
+
+O += D
+
+O += dialog/dialog.C
+dialog/dialog.C: dialog/dialog.asm dialog/div16.asm $D
 
 # --- BOOT ---
 
@@ -144,7 +182,7 @@ boot/boot.B: boot/boot.asm
 # --- TRD ---
 
 O += lsttrial.trd
-lsttrial.trd: boot/boot.B base/base.C menu/menu.C city/city.C
+lsttrial.trd: boot/boot.B base/base.C menu/menu.C city/city.C dialog/dialog.C
 	./bin/maketrd $@ $^
 
 clean:

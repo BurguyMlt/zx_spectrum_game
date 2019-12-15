@@ -79,7 +79,7 @@ void shopStart(de, ix)
 
             ex(a); // Сохраняем термиатор
             a = c;
-            if (flag_nz (a |= a))
+            if (a != 0)
             {
                 a += iyl; // Добавляем отступ ответов
                 ex(a);
@@ -138,20 +138,20 @@ void shopStart(de, ix)
 
     // РИСОВАНИЕ
 
-    // Выбираем активной видеостраницей невидимую и очищаем экран.
-    beginDraw();
-    cityDraw();
+    // Выбираем 0-ую страницу для рисования
+    gBeginDraw();
+    gFarCall(iyl = 7, ix = &gPanelRedraw);
 
     // Рисуем рамку
     hl = shopX; // И за одно shopY
     calcAddr(); // bc - чб, hl = цвет
     iy = shopW; // И за одно shopH
-    drawDialog2(de = &dialog_0, bc, hl, iyl);
+    drawDialog2(de = &dialogrect_0, bc, hl, iyl);
     do
     {
-        drawDialog2(de = &dialog_3, bc, hl, iyl);
+        drawDialog2(de = &dialogrect_3, bc, hl, iyl);
     } while(flag_nz --iyh);
-    drawDialog2(de = &dialog_6, bc, hl, iyl);
+    drawDialog2(de = &dialogrect_6, bc, hl, iyl);
     drawSprite2(bc, de, hl);
 
     *[&shopStartColor + 1] = a = colorText;
@@ -213,12 +213,11 @@ void shopStart(de, ix)
     dialogDrawCursor();
 
     // Выводим на экран
-    endDraw();
+    gEndDraw();
 
     // Клавиатура
     while()
     {
-continue:
         // Ждем, если прошло меньше 1/50 сек с прошлого цикла.
         while ((a = gVideoPage) & 1);
         gVideoPage = (a |= 1);
@@ -232,7 +231,7 @@ continue:
         if (b & KEY_FIRE)
         {
             // Отмечаем, что весь экран нужно перерисовать и выходим
-            cityFullRedraw();
+            gFarCall(iyl = 7, ix = &gCopyVideoPage);
             a = dialogX;
             return;
         }
@@ -242,12 +241,12 @@ continue:
         if (b & KEY_UP)
         {
             a -= 1;
-            if (flag_c) goto continue;
+            if (flag_c) continue;
         }
         else if (b & KEY_DOWN)
         {
             a++;
-            if (a >= iyl) goto continue;
+            if (a >= iyl) continue;
         }
         dialogX = a;
 
@@ -258,7 +257,7 @@ continue:
         // Плавное перемещение курсора
         hl = &dialogX1;
         b = *hl;
-        if (a == b) goto continue; // Оставит флаг CF при выполнении dialogX1 - menuX
+        if (a == b) continue; // Оставит флаг CF при выполнении dialogX1 - menuX
         b++; // Не изменяет CF
         if (flag_c) ----b;
 
@@ -288,7 +287,7 @@ void drawDialog2()
     {
         drawSprite2();
         a = iyl;
-        ixh = d; ixl = e;
+        ix = de;
         do
         {
             ex(a);
@@ -301,22 +300,6 @@ void drawDialog2()
     // Следующая строка
     l = ((a = l) += 32); h = ((a +@= h) -= l);
     c = ((a = c) += 32); if (flag_c) b = ((a = b) += 8);
-}
-
-void drawSprite2(de, bc, hl)
-{
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++; b++;
-    *bc = a = *de; de++;
-    *hl = a = *de; de++;
-    b = ((a = b) -= 7);
-    hl++;
-    c++;
 }
 
 // Вход:

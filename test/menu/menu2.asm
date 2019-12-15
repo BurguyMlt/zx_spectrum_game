@@ -43,6 +43,7 @@ wait:
 l0:
     or   (hl)
     jp   z, l0
+l1:
     ; 35 *hl = 0;
     ld   (hl), 0
     ; 36 }
@@ -96,14 +97,15 @@ main:
     ; 53 menuDrawCursor();
     call menuDrawCursor
     ; 55 while()
-l1:
+l2:
     ; 56 {
     ; 57 wait();
     call wait
     ; 58 menuTick();
     call menuTick
     ; 59 }
-    jp   l1
+    jp   l2
+l3:
     ; 60 return;
     ret
     ; 61 }
@@ -124,9 +126,9 @@ menuTick:
     ; 72 if (b & KEY_FIRE)
     bit  4, b
     ; 73 {
-    jp   z, l3
+    jp   z, l4
     ; 74 if (a == [0 * menuItemH]) return gExec(hl = "city");
-    cp   0
+    or   a
     ld   hl, s7
     jp   z, gExec
     ; 75 if (a == [1 * menuItemH]) return intro();
@@ -139,21 +141,21 @@ menuTick:
     ; 79 }
     ; 81 // Перемещение курсора
     ; 82 if (b & KEY_UP)
-l3:
+l4:
     bit  0, b
     ; 83 {
-    jp   z, l4
+    jp   z, l5
     ; 84 a -= menuItemH;
     sub  10
     ; 85 if (flag_c) return;
     ret  c
     ; 86 }
     ; 87 else if (b & KEY_DOWN)
-    jp   l5
-l4:
+    jp   l6
+l5:
     bit  1, b
     ; 88 {
-    jp   z, l6
+    jp   z, l7
     ; 89 a += menuItemH;
     add  10
     ; 90 if (a >= menuItemsM) return;
@@ -161,8 +163,8 @@ l4:
     ret  nc
     ; 91 }
     ; 92 menuX = a;
+l7:
 l6:
-l5:
     ld   (menuX), a
     ; 94 // Плавное перемещение курсора
     ; 95 hl = &menuX1;
@@ -175,11 +177,11 @@ l5:
     ; 98 b++; // Не изменяет CF
     inc  b
     ; 99 if (flag_c) ----b;
-    jp   nc, l7
+    jp   nc, l8
     dec  b
     dec  b
     ; 101 push(bc);
-l7:
+l8:
     push bc
     ; 102 menuDrawCursor();
     call menuDrawCursor

@@ -15,20 +15,11 @@ const int panelPlaceW = 3;
 const int panelPlaceH = 1;
 const int panelPlaceColor = 0x4E;
 
-void setPlayerMoney(hl)
-{
-    gPlayerMoney = hl;
-    hl = &gPanelChanged1;
-    *hl |= gPanelChangedMoney;
-    hl = &gPanelChanged2;
-    *hl |= gPanelChangedMoney;
-}
-
-void playerMoneyRedraw()
+void panelRedraw()
 {
     // Нужно ли перерисовать?
-    hl = &gPanelChanged1;
-    h = (((a = gVideoPage) &= 0x80) |= h);
+    hl = &gPanelChangedA;
+    if ((a = gVideoPage) & 0x80) hl++;
     a = *hl;
     if (flag_z a |= a) return;
     *hl = 0;
@@ -38,14 +29,25 @@ void playerMoneyRedraw()
     {
         push(a)
         {
-            numberToString16(hl = &tmpString, de = gPlayerMoney);
+            numberToString16(hl = &gStringBuffer, de = gPlayerMoney);
+
+            hl = &gStringBuffer;
+            while()
+            {
+                (a = *hl) -= [48 - 22];
+                if (flag_c) break;
+                *hl = a; hl++;
+            }
+            hl++; *hl = 2;
+
             gCalcCoords(hl = [panelMoneyY * 8 * 256 + panelMoneyX * 8]);
-            push(hl);
             fillRect(hl, bc = [panelMoneyH * 256 + panelMoneyW]);
-            pop(hl);
-            gDrawText(hl, c = 0, de = &tmpString, a = panelMoneyColor);
+
+            gCalcCoords(hl = [(panelMoneyY * 8 + 2) * 256 + panelMoneyX * 8]);
+            gDrawText(hl, c = 0, de = &gStringBuffer, a = panelMoneyColor);
         }
     }
+    /*
 
     if (a & gPanelChangedPlace)
     {
@@ -58,4 +60,5 @@ void playerMoneyRedraw()
             gDrawText(hl, c = 0, de = "Утеха", a = panelPlaceColor);
         }
     }
+    */
 }

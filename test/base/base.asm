@@ -19,8 +19,26 @@ iMeasureText:    jp measureText
 iCalcCoords:     jp calcCoords
 iDrawCharSub:    jp drawCharSub
 iExec:           jp exec
+iLoadFile:       jp loadFile
+iFarCall         jp farCall
 iIrqHandler:     jp irqHandler
 iDrawPanel:      jp drawPanel
+iBeginDraw:      jp beginDraw
+iEndDraw:        jp endDraw
+iCopyVideoPage:  jp copyVideoPage
+iPanelRedraw:    jp panelRedraw
+iStringBuffer:   ds gStringBufferSize
+
+iFrame:            db 0
+iVideoPage:        db 0
+iSystemPage:       db 0
+iKeyTrigger:       db 0
+iKeyPressed:       db 0
+iPlayerMoney:      db 0
+iPlayerLut:        ds playerLutMax * 2
+iPlayerLutCount:   db 0
+iPlayerItems:      ds playerItemsMax
+iPlayerItemsCount: db 0
 
 ;-------------------------------------------------------------------------------
 
@@ -137,13 +155,18 @@ loadFile_1:
     ld   c, 8
     call 3D13h
 
-    ; Надо перенести имя
+    ; На всякий случай
+    LD   A, (gSystemPage)
+    LD   (23388),A
 
     ; Загрузка файла
+    xor  a
+    ld   (5CF9h), a
     ld   de, (5CEBh)
     ld   a, (5CEAh)
     ld   b, a
     pop  hl
+    ld   a, 0FFh
     ld   c, 5
     call 3D13h
 
@@ -162,13 +185,46 @@ loadFile_1:
 
 ;-------------------------------------------------------------------------------
 
-panelX = 0
-panelY = 20
+; IYL - Страница, IX - Функция, A` - Портит, BC` - Портит.
 
-drawPanel:
-    ld   hl, image_panel
-    ld   de, 5800h + panelX + (panelY << 5)
-    call drawImage
-    ld   hl, image_panel
-    ld   de, 8000h + 5800h + panelX + (panelY << 5)
-    jp   drawImage
+farCall:
+    ; Выбор страницы с сохранением выбранной видеостраницы
+    EXX
+    EX AF, AF
+    DI
+    LD    A, (gSystemPage)
+    PUSH  AF
+    AND   ~7
+    OR    IYL
+    LD    (gSystemPage), A
+    LD    BC, 7FFDh
+    OUT   (C), A
+    EI
+    EX AF, AF
+    EXX
+
+    ; Вызов
+    CALL  farJump2
+
+    ; Восстановление  с сохранением выбранной видеостраницы
+    EXX
+    EX AF, AF
+    POP   AF
+    AND   7
+    LD    B, A
+    DI
+    LD    A, (gSystemPage)
+    AND   ~7
+    OR    B
+    LD    (gSystemPage), A
+    LD    BC, 7FFDh
+    OUT   (C), A
+    EI
+    EX AF, AF
+    EXX
+    RET
+
+farJump2:
+    JP    IX
+
+;-------------------------------------------------------------------------------

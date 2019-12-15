@@ -2,9 +2,6 @@
 ;screenAddr     = 4000h
 ;cacheAddr      = 5B00h
 
-gPanelChanged1  = 0x5D80
-gPanelChanged2  = 0x5D80 | 0x8000
-
 irqTableAddr      = 5F00h
 irqAddr           = 6060h
 stackBeginAddr    = 6001h
@@ -34,10 +31,25 @@ gDrawCharSub      = gEnd
 gEnd = gEnd + 3
 gExec             = gEnd
 gEnd = gEnd + 3
+gLoadFile         = gEnd
+gEnd = gEnd + 3
+gFarCall          = gEnd
+gEnd = gEnd + 3
 gIrqHandler       = gEnd
 gEnd = gEnd + 3
 gDrawPanel        = gEnd
 gEnd = gEnd + 3
+gBeginDraw        = gEnd
+gEnd = gEnd + 3
+gEndDraw          = gEnd
+gEnd = gEnd + 3
+gCopyVideoPage    = gEnd
+gEnd = gEnd + 3
+gPanelRedraw      = gEnd
+gEnd = gEnd + 3
+gStringBuffer     = gEnd
+gStringBufferSize = 32
+gEnd = gEnd + gStringBufferSize
 
 ; Переменные
 gFrame            = gEnd
@@ -52,3 +64,24 @@ gKeyPressed       = gEnd
 gEnd = gEnd + 1
 gPlayerMoney      = gEnd
 gEnd = gEnd + 2
+gPlayerLut        = gEnd
+playerLutMax = 12
+gEnd = gEnd + 2 * playerLutMax
+gPlayerLutCount   = gEnd
+gEnd = gEnd + 1
+gPlayerItems      = gEnd
+playerItemsMax = 5
+gEnd = gEnd + playerItemsMax
+gPlayerItemsCount = gEnd
+gEnd = gEnd + 1
+gPanelChangedA    = gEnd
+gEnd = gEnd + 1
+gPanelChangedB    = gEnd
+gEnd = gEnd + 1
+
+; Другие модули
+gPanelgraphPage = 6
+gPanelgraph = 0C003h
+gPanelX = 0
+gPanelY = 20
+

@@ -1,41 +1,83 @@
-image_panel:
-    ; Width, height
-    db 32, 4
-    ; Black & white
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h ; 0
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 00Ch, 0E4h, 0AAh, 097h, 080h, 000h, 031h, 0D1h, 04Bh, 09Ch, 000h
-    db 00Eh, 067h, 018h, 040h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 012h, 094h, 0AAh, 094h, 000h, 000h, 04Ah, 051h, 049h, 024h, 000h
-    db 008h, 094h, 0A4h, 0A0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 012h, 093h, 09Ch, 0B7h, 000h, 000h, 012h, 055h, 059h, 024h, 000h
-    db 008h, 097h, 024h, 0A0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 012h, 0E0h, 0AAh, 0D4h, 000h, 000h, 04Bh, 0D5h, 069h, 03Ch, 000h
-    db 008h, 094h, 024h, 0A0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 00Ch, 083h, 02Ah, 097h, 080h, 000h, 032h, 05Fh, 049h, 024h, 000h
-    db 008h, 064h, 019h, 0F0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 080h, 000h, 000h
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 0FFh, 0FFh, 081h, 0FFh, 0FFh, 080h, 001h, 0FFh, 0FFh, 080h, 000h
-    db 000h, 000h, 000h, 000h, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h ; 1
-    db 000h, 000h, 000h, 000h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 00Ah, 0A5h, 092h, 080h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 00Ah, 0A4h, 052h, 0E0h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 007h, 02Ch, 09Eh, 090h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 00Ah, 0B4h, 052h, 090h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 00Ah, 0A5h, 092h, 0E0h, 080h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 000h, 000h, 000h, 000h, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 0FFh, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h ; 2
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 006h, 073h, 01Dh, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 009h, 024h, 0A5h, 0C0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 008h, 027h, 0A5h, 020h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 009h, 024h, 0A5h, 020h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 006h, 024h, 0A5h, 0C0h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 000h, 000h, 081h, 000h, 000h, 080h, 001h, 000h, 000h, 080h, 000h
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 001h, 0FFh, 0FFh, 081h, 0FFh, 0FFh, 080h, 001h, 0FFh, 0FFh, 080h, 000h ; 3
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 00Fh, 04Bh, 0BDh, 0C0h, 094h, 0B9h, 0EEh, 067h, 020h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 008h, 049h, 021h, 020h, 094h, 0A5h, 004h, 094h, 0B8h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 00Eh, 069h, 039h, 02Eh, 0B7h, 0B9h, 0C4h, 0F7h, 024h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 008h, 059h, 021h, 0C0h, 0D4h, 0A5h, 004h, 094h, 024h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 00Fh, 049h, 03Dh, 020h, 094h, 0B9h, 0E4h, 094h, 038h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
-    ; Color attributes
-    db 04Fh, 04Fh, 04Fh, 04Fh, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 049h ; 0
-    db 04Fh, 04Fh, 04Fh, 04Fh, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 047h, 049h, 04Fh, 045h, 045h, 04Fh, 045h, 045h, 04Fh, 04Fh, 045h, 045h, 04Fh, 049h ; 1
-    db 04Fh, 04Fh, 04Fh, 04Fh, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 04Fh, 045h, 045h, 04Fh, 045h, 045h, 04Fh, 04Fh, 045h, 045h, 04Fh, 049h ; 2
-    db 04Dh, 04Dh, 04Dh, 04Dh, 04Dh, 04Dh, 04Dh, 04Dh, 04Dh, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 049h, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 04Fh, 049h ; 3
+    ; 3 const int gPanelChangedMoney = 0x01;
+    ; 4 const int gPanelChangedPlace = 0x02;
+    ; 6 const int panelMoneyX = 4;
+    ; 7 const int panelMoneyY = 22;
+    ; 8 const int panelMoneyW = 3;
+    ; 9 const int panelMoneyH = 1;
+    ; 10 const int panelMoneyColor = 0x4E;
+    ; 12 const int panelPlaceX = 4;
+    ; 13 const int panelPlaceY = 20;
+    ; 14 const int panelPlaceW = 3;
+    ; 15 const int panelPlaceH = 1;
+    ; 16 const int panelPlaceColor = 0x4E;
+    ; 18 void panelRedraw()
+panelRedraw:
+    ; 19 {
+    ; 20 // Нужно ли перерисовать?
+    ; 21 hl = &gPanelChangedA;
+    ld   hl, gPanelChangedA
+    ; 22 if ((a = gVideoPage) & 0x80) hl++;
+    ld   a, (gVideoPage)
+    bit  7, a
+    jp   z, l6000
+    inc  hl
+    ; 23 a = *hl;
+l6000:
+    ld   a, (hl)
+    ; 24 if (flag_z a |= a) return;
+    or   a
+    ret  z
+    ; 25 *hl = 0;
+    ld   (hl), 0
+    ; 27 // Надо перерисовать деньги
+    ; 28 if (a & gPanelChangedMoney)
+    bit  0, a
+    ; 29 {
+    jp   z, l6001
+    ; 30 push(a)
+    ; 31 {
+    push af
+    ; 32 numberToString16(hl = &gStringBuffer, de = gPlayerMoney);
+    ld   hl, gStringBuffer
+    ld   de, (gPlayerMoney)
+    call numberToString16
+    ; 34 hl = &gStringBuffer;
+    ld   hl, gStringBuffer
+    ; 35 while()
+l6002:
+    ; 36 {
+    ; 37 (a = *hl) -= [48 - 22];
+    ld   a, (hl)
+    sub  26
+    ; 38 if (flag_c) break;
+    jp   c, l6003
+    ; 39 *hl = a; hl++;
+    ld   (hl), a
+    inc  hl
+    ; 40 }
+    jp   l6002
+l6003:
+    ; 41 hl++; *hl = 2;
+    inc  hl
+    ld   (hl), 2
+    ; 43 gCalcCoords(hl = [panelMoneyY * 8 * 256 + panelMoneyX * 8]);
+    ld   hl, 45088
+    call gCalcCoords
+    ; 44 fillRect(hl, bc = [panelMoneyH * 256 + panelMoneyW]);
+    ld   bc, 259
+    call fillRect
+    ; 46 gCalcCoords(hl = [(panelMoneyY * 8 + 2) * 256 + panelMoneyX * 8]);
+    ld   hl, 45600
+    call gCalcCoords
+    ; 47 gDrawText(hl, c = 0, de = &gStringBuffer, a = panelMoneyColor);
+    ld   c, 0
+    ld   de, gStringBuffer
+    ld   a, 78
+    call gDrawText
+    ; 48 }
+    pop  af
+    ; 49 }
+    ; 50 /*
+    ; 64 }
+l6001:
+    ret

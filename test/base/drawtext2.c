@@ -1,7 +1,11 @@
+#counter 10000
+
 // Вычисление ширины текста в пикселях
 // Вход: DE - текст
 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
 // Портит: HL
+
+const int firstChar = [' ' - 11];
 
 void measureText()
 {
@@ -9,7 +13,7 @@ void measureText()
     while()
     {
         a = *de; de++;
-        if (a < ' ') return;
+        if (a < firstChar) return;
 
         // Вычисление адреса символа (de = image_font + a * 9)
         push(de)
@@ -29,7 +33,7 @@ void measureText()
 
 void calcCharAddr()
 {
-    a -= ' ';
+    a -= firstChar;
     if (a >= 96) a -= 64;
     h = 0; l = a;
     d = h; e = l;
@@ -88,10 +92,9 @@ drawTextSub:
     while ()
     {
         a = *de; de++;
-        if (a < ' ') goto drawTextN;
+        if (a < firstChar) break;
         drawCharSub();
     }
-drawTextN:
     push(a, bc, de, hl)
     {
         ex(hl, de);
@@ -99,7 +102,8 @@ drawTextS:
         hl = 0;
 
         // Две строки?
-        if (flag_nz (a = h) &= 7) a = 1;
+        if (a != 2)
+            if (flag_nz (a = h) &= 7) a = 1;
         b = a;
 
         // Преобразование адреса из чб в цвет

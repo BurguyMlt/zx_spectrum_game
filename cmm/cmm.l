@@ -50,16 +50,18 @@
 "halt"  { return Parser::HALT; }
 
 // Команды
-"if"     { return Parser::IF; }
-"while"  { return Parser::WHILE; }
-"do"     { return Parser::DO; }
-"ex"     { return Parser::EX; }
-"push"   { return Parser::PUSH; }
-"pop"    { return Parser::POP; }
-"return" { return Parser::RETURN; }
-"const"  { return Parser::CONST; }
-"else"   { return Parser::ELSE; }
-"goto"   { return Parser::GOTO; }
+"if"       { return Parser::IF; }
+"while"    { return Parser::WHILE; }
+"do"       { return Parser::DO; }
+"ex"       { return Parser::EX; }
+"push"     { return Parser::PUSH; }
+"pop"      { return Parser::POP; }
+"return"   { return Parser::RETURN; }
+"const"    { return Parser::CONST; }
+"else"     { return Parser::ELSE; }
+"goto"     { return Parser::GOTO; }
+"continue" { return Parser::CONTINUE; }
+"break"    { return Parser::BREAK; }
 
 // Регистры
 "a"   { return Parser::REG_A; }

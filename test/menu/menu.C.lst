@@ -5,57 +5,89 @@
 002+  0000             ;screenAddr     = 4000h
 003+  0000             ;cacheAddr      = 5B00h
 004+  0000             
-005+  0000             gPanelChanged1  = 0x5D80
-006+  0000             gPanelChanged2  = 0x5D80 | 0x8000
-007+  0000             
-008+  0000             irqTableAddr      = 5F00h
-009+  0000             irqAddr           = 6060h
-010+  0000             stackBeginAddr    = 6001h
-011+  0000             stackEndAddr      = 605Fh
-012+  0000             baseAddr          = 6063h
-013+  0000             moduleLoadAddr    = 7000h
-014+  0000             moverAddr         = 8000h
-015+  0000             
-016+  0000             gEnd = baseAddr
-017+  0000             
-018+  0000             ; Функции
-019+  0000             gDrawText         = gEnd
-020+  0000             gEnd = gEnd + 3
-021+  0000             gDrawTextCenter   = gEnd
-022+  0000             gEnd = gEnd + 3
-023+  0000             gDrawTextEx       = gEnd
-024+  0000             gEnd = gEnd + 3
-025+  0000             gClearScreen      = gEnd
-026+  0000             gEnd = gEnd + 3
-027+  0000             gDrawImage        = gEnd
-028+  0000             gEnd = gEnd + 3
-029+  0000             gMeasureText      = gEnd
-030+  0000             gEnd = gEnd + 3
-031+  0000             gCalcCoords       = gEnd
-032+  0000             gEnd = gEnd + 3
-033+  0000             gDrawCharSub      = gEnd
-034+  0000             gEnd = gEnd + 3
-035+  0000             gExec             = gEnd
-036+  0000             gEnd = gEnd + 3
-037+  0000             gIrqHandler       = gEnd
-038+  0000             gEnd = gEnd + 3
-039+  0000             gDrawPanel        = gEnd
-040+  0000             gEnd = gEnd + 3
-041+  0000             
-042+  0000             ; Переменные
-043+  0000             gFrame            = gEnd
-044+  0000             gEnd = gEnd + 1
-045+  0000             gVideoPage        = gEnd
-046+  0000             gEnd = gEnd + 1
-047+  0000             gSystemPage       = gEnd
-048+  0000             gEnd = gEnd + 1
-049+  0000             gKeyTrigger       = gEnd
-050+  0000             gEnd = gEnd + 1
-051+  0000             gKeyPressed       = gEnd
-052+  0000             gEnd = gEnd + 1
-053+  0000             gPlayerMoney      = gEnd
-054+  0000             gEnd = gEnd + 2
-055+  0000             
+005+  0000             irqTableAddr      = 5F00h
+006+  0000             irqAddr           = 6060h
+007+  0000             stackBeginAddr    = 6001h
+008+  0000             stackEndAddr      = 605Fh
+009+  0000             baseAddr          = 6063h
+010+  0000             moduleLoadAddr    = 7000h
+011+  0000             moverAddr         = 8000h
+012+  0000             
+013+  0000             gEnd = baseAddr
+014+  0000             
+015+  0000             ; Функции
+016+  0000             gDrawText         = gEnd
+017+  0000             gEnd = gEnd + 3
+018+  0000             gDrawTextCenter   = gEnd
+019+  0000             gEnd = gEnd + 3
+020+  0000             gDrawTextEx       = gEnd
+021+  0000             gEnd = gEnd + 3
+022+  0000             gClearScreen      = gEnd
+023+  0000             gEnd = gEnd + 3
+024+  0000             gDrawImage        = gEnd
+025+  0000             gEnd = gEnd + 3
+026+  0000             gMeasureText      = gEnd
+027+  0000             gEnd = gEnd + 3
+028+  0000             gCalcCoords       = gEnd
+029+  0000             gEnd = gEnd + 3
+030+  0000             gDrawCharSub      = gEnd
+031+  0000             gEnd = gEnd + 3
+032+  0000             gExec             = gEnd
+033+  0000             gEnd = gEnd + 3
+034+  0000             gLoadFile         = gEnd
+035+  0000             gEnd = gEnd + 3
+036+  0000             gFarCall          = gEnd
+037+  0000             gEnd = gEnd + 3
+038+  0000             gIrqHandler       = gEnd
+039+  0000             gEnd = gEnd + 3
+040+  0000             gDrawPanel        = gEnd
+041+  0000             gEnd = gEnd + 3
+042+  0000             gBeginDraw        = gEnd
+043+  0000             gEnd = gEnd + 3
+044+  0000             gEndDraw          = gEnd
+045+  0000             gEnd = gEnd + 3
+046+  0000             gCopyVideoPage    = gEnd
+047+  0000             gEnd = gEnd + 3
+048+  0000             gPanelRedraw      = gEnd
+049+  0000             gEnd = gEnd + 3
+050+  0000             gStringBuffer     = gEnd
+051+  0000             gStringBufferSize = 32
+052+  0000             gEnd = gEnd + gStringBufferSize
+053+  0000             
+054+  0000             ; Переменные
+055+  0000             gFrame            = gEnd
+056+  0000             gEnd = gEnd + 1
+057+  0000             gVideoPage        = gEnd
+058+  0000             gEnd = gEnd + 1
+059+  0000             gSystemPage       = gEnd
+060+  0000             gEnd = gEnd + 1
+061+  0000             gKeyTrigger       = gEnd
+062+  0000             gEnd = gEnd + 1
+063+  0000             gKeyPressed       = gEnd
+064+  0000             gEnd = gEnd + 1
+065+  0000             gPlayerMoney      = gEnd
+066+  0000             gEnd = gEnd + 2
+067+  0000             gPlayerLut        = gEnd
+068+  0000             playerLutMax = 12
+069+  0000             gEnd = gEnd + 2 * playerLutMax
+070+  0000             gPlayerLutCount   = gEnd
+071+  0000             gEnd = gEnd + 1
+072+  0000             gPlayerItems      = gEnd
+073+  0000             playerItemsMax = 5
+074+  0000             gEnd = gEnd + playerItemsMax
+075+  0000             gPlayerItemsCount = gEnd
+076+  0000             gEnd = gEnd + 1
+077+  0000             gPanelChangedA    = gEnd
+078+  0000             gEnd = gEnd + 1
+079+  0000             gPanelChangedB    = gEnd
+080+  0000             gEnd = gEnd + 1
+081+  0000             
+082+  0000             ; Другие модули
+083+  0000             gPanelgraphPage = 6
+084+  0000             gPanelgraph = 0C003h
+085+  0000             gPanelX = 0
+086+  0000             gPanelY = 20
+087+  0000             
 004   0000             
 005   0000                 org moduleLoadAddr
 006   7000             
@@ -1512,7 +1544,7 @@
 027   9409 C6 64           add  100
 028   940B 67              ld   h, a
 029   940C 2E 48           ld   l, 72
-030   940E 11 D3 94        ld   de, s0
+030   940E 11 D2 94        ld   de, s0
 031   9411 3E 44           ld   a, 68
 032   9413 CD 69 60        call gDrawTextEx
 033   9416                 ; 28 }
@@ -1521,181 +1553,183 @@
 036   9417             wait: 
 037   9417                 ; 31 {
 038   9417                 ; 32 hl = &gFrame;
-039   9417 21 84 60        ld   hl, gFrame
+039   9417 21 B6 60        ld   hl, gFrame
 040   941A                 ; 33 a ^= a;
 041   941A AF              xor  a
 042   941B                 ; 34 do { a |= *hl; } while(flag_z);
 043   941B             l0: 
 044   941B B6              or   (hl)
 045   941C CA 1B 94        jp   z, l0
-046   941F                 ; 35 *hl = 0;
-047   941F 36 00           ld   (hl), 0
-048   9421                 ; 36 }
-049   9421 C9              ret
-050   9422                 ; 38 void main()
-051   9422             main: 
-052   9422                 ; 39 {
-053   9422                 ; 40 gClearScreen(a = 0x45);
-054   9422 3E 45           ld   a, 69
-055   9424 CD 6C 60        call gClearScreen
-056   9427                 ; 41 gDrawImage(de = [0x5800 + menuLogoX + (menuLogoY << 5)], hl = &image_logo);
-057   9427 11 21 58        ld   de, 22561
-058   942A 21 1F 74        ld   hl, image_logo
-059   942D CD 6F 60        call gDrawImage
-060   9430                 ; 42 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 0) * 256 + menuItemsX], de = "Начать новую игру");
-061   9430 3E 45           ld   a, 69
-062   9432 21 50 64        ld   hl, 25680
-063   9435 11 61 95        ld   de, s1
-064   9438 CD 69 60        call gDrawTextEx
-065   943B                 ; 43 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 1) * 256 + menuItemsX], de = "Настроить управление");
-066   943B 3E 45           ld   a, 69
-067   943D 21 50 6E        ld   hl, 28240
-068   9440 11 4C 95        ld   de, s2
-069   9443 CD 69 60        call gDrawTextEx
-070   9446                 ; 44 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 2) * 256 + menuItemsX], de = "Ввести пароль");
-071   9446 3E 45           ld   a, 69
-072   9448 21 50 78        ld   hl, 30800
-073   944B 11 DA 94        ld   de, s3
-074   944E CD 69 60        call gDrawTextEx
-075   9451                 ; 46 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 2], de = "Игра | 2019 Алексей {Alemorf} Морозов");
-076   9451 3E 43           ld   a, 67
-077   9453 26 A4           ld   h, 164
-078   9455 11 FF 94        ld   de, s4
-079   9458 CD 66 60        call gDrawTextCenter
-080   945B                 ; 47 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 1], de = "Мюзикл | 1998 Антон {Саруман} Круглов,");
-081   945B 3E 43           ld   a, 67
-082   945D 26 AE           ld   h, 174
-083   945F 11 25 95        ld   de, s5
-084   9462 CD 66 60        call gDrawTextCenter
-085   9465                 ; 48 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 0], de = "Елена {Мириам} Ханпира");
-086   9465 3E 43           ld   a, 67
-087   9467 26 B8           ld   h, 184
-088   9469 11 E8 94        ld   de, s6
-089   946C CD 66 60        call gDrawTextCenter
-090   946F                 ; 50 menuX = a ^= a;
-091   946F AF              xor  a
-092   9470 32 02 94        ld   (menuX), a
-093   9473                 ; 51 menuX1 = (++a);
-094   9473 3C              inc  a
-095   9474 32 03 94        ld   (menuX1), a
-096   9477                 ; 53 menuDrawCursor();
-097   9477 CD 06 94        call menuDrawCursor
-098   947A                 ; 55 while()
-099   947A             l1: 
-100   947A                 ; 56 {
-101   947A                 ; 57 wait();
-102   947A CD 17 94        call wait
-103   947D                 ; 58 menuTick();
-104   947D CD 85 94        call menuTick
-105   9480                 ; 59 }
-106   9480 C3 7A 94        jp   l1
-107   9483                 ; 60 return;
-108   9483 C9              ret
-109   9484                 ; 61 }
-110   9484 C9              ret
-111   9485                 ; 63 void menuTick()
-112   9485             menuTick: 
-113   9485                 ; 64 {
-114   9485                 ; 65 // Получить нажатую клавишу
-115   9485                 ; 66 hl = &gKeyTrigger;
-116   9485 21 87 60        ld   hl, gKeyTrigger
-117   9488                 ; 67 b = *hl;
-118   9488 46              ld   b, (hl)
-119   9489                 ; 68 *hl = 0;
-120   9489 36 00           ld   (hl), 0
-121   948B                 ; 70 // Нажат выстрел
-122   948B                 ; 71 a = menuX;
-123   948B 3A 02 94        ld   a, (menuX)
-124   948E                 ; 72 if (b & KEY_FIRE)
-125   948E CB 60           bit  4, b
-126   9490                 ; 73 {
-127   9490 CA A1 94        jp   z, l3
-128   9493                 ; 74 if (a == [0 * menuItemH]) return gExec(hl = "city");
-129   9493 FE 00           cp   0
-130   9495 21 D5 94        ld   hl, s7
-131   9498 CA 7B 60        jp   z, gExec
-132   949B                 ; 75 if (a == [1 * menuItemH]) return intro();
-133   949B FE 0A           cp   10
-134   949D CA 03 70        jp   z, intro
-135   94A0                 ; 76 //if (a == [2 * menuItemH]) return loadGame();
-136   94A0                 ; 77 //return saveGame();
-137   94A0                 ; 78 return;
-138   94A0 C9              ret
-139   94A1                 ; 79 }
-140   94A1                 ; 81 // Перемещение курсора
-141   94A1                 ; 82 if (b & KEY_UP)
-142   94A1             l3: 
-143   94A1 CB 40           bit  0, b
-144   94A3                 ; 83 {
-145   94A3 CA AC 94        jp   z, l4
-146   94A6                 ; 84 a -= menuItemH;
-147   94A6 D6 0A           sub  10
-148   94A8                 ; 85 if (flag_c) return;
-149   94A8 D8              ret  c
-150   94A9                 ; 86 }
-151   94A9                 ; 87 else if (b & KEY_DOWN)
-152   94A9 C3 B6 94        jp   l5
-153   94AC             l4: 
-154   94AC CB 48           bit  1, b
-155   94AE                 ; 88 {
-156   94AE CA B6 94        jp   z, l6
-157   94B1                 ; 89 a += menuItemH;
-158   94B1 C6 0A           add  10
-159   94B3                 ; 90 if (a >= menuItemsM) return;
-160   94B3 FE 1E           cp   30
-161   94B5 D0              ret  nc
-162   94B6                 ; 91 }
-163   94B6                 ; 92 menuX = a;
-164   94B6             l6: 
-165   94B6             l5: 
-166   94B6 32 02 94        ld   (menuX), a
-167   94B9                 ; 94 // Плавное перемещение курсора
-168   94B9                 ; 95 hl = &menuX1;
-169   94B9 21 03 94        ld   hl, menuX1
-170   94BC                 ; 96 b = *hl;
-171   94BC 46              ld   b, (hl)
-172   94BD                 ; 97 if (a == b) return; // Оставит флаг CF при выполнении menuX1 - menuX
-173   94BD B8              cp   b
-174   94BE C8              ret  z
-175   94BF                 ; 98 b++; // Не изменяет CF
-176   94BF 04              inc  b
-177   94C0                 ; 99 if (flag_c) ----b;
-178   94C0 D2 C5 94        jp   nc, l7
-179   94C3 05              dec  b
-180   94C4 05              dec  b
-181   94C5                 ; 101 push(bc);
-182   94C5             l7: 
-183   94C5 C5              push bc
-184   94C6                 ; 102 menuDrawCursor();
-185   94C6 CD 06 94        call menuDrawCursor
-186   94C9                 ; 103 pop(bc);
-187   94C9 C1              pop  bc
-188   94CA                 ; 105 *(hl = &menuX1) = b;
-189   94CA 21 03 94        ld   hl, menuX1
-190   94CD 70              ld   (hl), b
-191   94CE                 ; 107 menuDrawCursor();
-192   94CE CD 06 94        call menuDrawCursor
-193   94D1                 ; 109 return;
-194   94D1 C9              ret
-195   94D2                 ; 110 }
-196   94D2 C9              ret
-197   94D3                 ; strings
-198   94D3 40 00       s0 db "@",0
-199   94D5 6369747900  s7 db "city",0
-200   94DA             s3 db "Ввести пароль",0
-200   94DA C2E2E5F1F2E820EFE0F0EEEBFC00
-201   94E8             s6 db "Елена {Мириам} Ханпира",0
-201   94E8 C5EBE5EDE0207BCCE8F0E8E0EC7D20D5E0EDEFE8F0E000
-202   94FF             s4 db "Игра | 2019 Алексей {Alemorf} Морозов",0
-202   94FF C8E3F0E0207C203230313920C0EBE5EAF1E5E9207B416C656D6F72667D20CCEE
-202   951F F0EEE7EEE200
-203   9525             s5 db "Мюзикл | 1998 Антон {Саруман} Круглов,",0
-203   9525 CCFEE7E8EAEB207C203139393820C0EDF2EEED207BD1E0F0F3ECE0ED7D20CAF0
-203   9545 F3E3EBEEE22C00
-204   954C             s2 db "Настроить управление",0
-204   954C CDE0F1F2F0EEE8F2FC20F3EFF0E0E2EBE5EDE8E500
-205   9561             s1 db "Начать новую игру",0
-205   9561 CDE0F7E0F2FC20EDEEE2F3FE20E8E3F0F300
-206   9573             
-001   9573                 savebin "menu/menu.C", begin, $ - begin ; menu/menu.asm menu/intro.asm menu/logo.asm menu/takh.asm menu/rast.asm menu/spark.asm menu/menu2.asm
-002   9573             
+046   941F             l1: 
+047   941F                 ; 35 *hl = 0;
+048   941F 36 00           ld   (hl), 0
+049   9421                 ; 36 }
+050   9421 C9              ret
+051   9422                 ; 38 void main()
+052   9422             main: 
+053   9422                 ; 39 {
+054   9422                 ; 40 gClearScreen(a = 0x45);
+055   9422 3E 45           ld   a, 69
+056   9424 CD 6C 60        call gClearScreen
+057   9427                 ; 41 gDrawImage(de = [0x5800 + menuLogoX + (menuLogoY << 5)], hl = &image_logo);
+058   9427 11 21 58        ld   de, 22561
+059   942A 21 1F 74        ld   hl, image_logo
+060   942D CD 6F 60        call gDrawImage
+061   9430                 ; 42 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 0) * 256 + menuItemsX], de = "Начать новую игру");
+062   9430 3E 45           ld   a, 69
+063   9432 21 50 64        ld   hl, 25680
+064   9435 11 60 95        ld   de, s1
+065   9438 CD 69 60        call gDrawTextEx
+066   943B                 ; 43 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 1) * 256 + menuItemsX], de = "Настроить управление");
+067   943B 3E 45           ld   a, 69
+068   943D 21 50 6E        ld   hl, 28240
+069   9440 11 4B 95        ld   de, s2
+070   9443 CD 69 60        call gDrawTextEx
+071   9446                 ; 44 gDrawTextEx(a = 0x45, hl = [(menuItemsY + menuItemH * 2) * 256 + menuItemsX], de = "Ввести пароль");
+072   9446 3E 45           ld   a, 69
+073   9448 21 50 78        ld   hl, 30800
+074   944B 11 D9 94        ld   de, s3
+075   944E CD 69 60        call gDrawTextEx
+076   9451                 ; 46 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 2], de = "Игра | 2019 Алексей {Alemorf} Морозов");
+077   9451 3E 43           ld   a, 67
+078   9453 26 A4           ld   h, 164
+079   9455 11 FE 94        ld   de, s4
+080   9458 CD 66 60        call gDrawTextCenter
+081   945B                 ; 47 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 1], de = "Мюзикл | 1998 Антон {Саруман} Круглов,");
+082   945B 3E 43           ld   a, 67
+083   945D 26 AE           ld   h, 174
+084   945F 11 24 95        ld   de, s5
+085   9462 CD 66 60        call gDrawTextCenter
+086   9465                 ; 48 gDrawTextCenter(a = 0x43, h = [192 - 8 - menuItemH * 0], de = "Елена {Мириам} Ханпира");
+087   9465 3E 43           ld   a, 67
+088   9467 26 B8           ld   h, 184
+089   9469 11 E7 94        ld   de, s6
+090   946C CD 66 60        call gDrawTextCenter
+091   946F                 ; 50 menuX = a ^= a;
+092   946F AF              xor  a
+093   9470 32 02 94        ld   (menuX), a
+094   9473                 ; 51 menuX1 = (++a);
+095   9473 3C              inc  a
+096   9474 32 03 94        ld   (menuX1), a
+097   9477                 ; 53 menuDrawCursor();
+098   9477 CD 06 94        call menuDrawCursor
+099   947A                 ; 55 while()
+100   947A             l2: 
+101   947A                 ; 56 {
+102   947A                 ; 57 wait();
+103   947A CD 17 94        call wait
+104   947D                 ; 58 menuTick();
+105   947D CD 85 94        call menuTick
+106   9480                 ; 59 }
+107   9480 C3 7A 94        jp   l2
+108   9483             l3: 
+109   9483                 ; 60 return;
+110   9483 C9              ret
+111   9484                 ; 61 }
+112   9484 C9              ret
+113   9485                 ; 63 void menuTick()
+114   9485             menuTick: 
+115   9485                 ; 64 {
+116   9485                 ; 65 // Получить нажатую клавишу
+117   9485                 ; 66 hl = &gKeyTrigger;
+118   9485 21 B9 60        ld   hl, gKeyTrigger
+119   9488                 ; 67 b = *hl;
+120   9488 46              ld   b, (hl)
+121   9489                 ; 68 *hl = 0;
+122   9489 36 00           ld   (hl), 0
+123   948B                 ; 70 // Нажат выстрел
+124   948B                 ; 71 a = menuX;
+125   948B 3A 02 94        ld   a, (menuX)
+126   948E                 ; 72 if (b & KEY_FIRE)
+127   948E CB 60           bit  4, b
+128   9490                 ; 73 {
+129   9490 CA A0 94        jp   z, l4
+130   9493                 ; 74 if (a == [0 * menuItemH]) return gExec(hl = "city");
+131   9493 B7              or   a
+132   9494 21 D4 94        ld   hl, s7
+133   9497 CA 7B 60        jp   z, gExec
+134   949A                 ; 75 if (a == [1 * menuItemH]) return intro();
+135   949A FE 0A           cp   10
+136   949C CA 03 70        jp   z, intro
+137   949F                 ; 76 //if (a == [2 * menuItemH]) return loadGame();
+138   949F                 ; 77 //return saveGame();
+139   949F                 ; 78 return;
+140   949F C9              ret
+141   94A0                 ; 79 }
+142   94A0                 ; 81 // Перемещение курсора
+143   94A0                 ; 82 if (b & KEY_UP)
+144   94A0             l4: 
+145   94A0 CB 40           bit  0, b
+146   94A2                 ; 83 {
+147   94A2 CA AB 94        jp   z, l5
+148   94A5                 ; 84 a -= menuItemH;
+149   94A5 D6 0A           sub  10
+150   94A7                 ; 85 if (flag_c) return;
+151   94A7 D8              ret  c
+152   94A8                 ; 86 }
+153   94A8                 ; 87 else if (b & KEY_DOWN)
+154   94A8 C3 B5 94        jp   l6
+155   94AB             l5: 
+156   94AB CB 48           bit  1, b
+157   94AD                 ; 88 {
+158   94AD CA B5 94        jp   z, l7
+159   94B0                 ; 89 a += menuItemH;
+160   94B0 C6 0A           add  10
+161   94B2                 ; 90 if (a >= menuItemsM) return;
+162   94B2 FE 1E           cp   30
+163   94B4 D0              ret  nc
+164   94B5                 ; 91 }
+165   94B5                 ; 92 menuX = a;
+166   94B5             l7: 
+167   94B5             l6: 
+168   94B5 32 02 94        ld   (menuX), a
+169   94B8                 ; 94 // Плавное перемещение курсора
+170   94B8                 ; 95 hl = &menuX1;
+171   94B8 21 03 94        ld   hl, menuX1
+172   94BB                 ; 96 b = *hl;
+173   94BB 46              ld   b, (hl)
+174   94BC                 ; 97 if (a == b) return; // Оставит флаг CF при выполнении menuX1 - menuX
+175   94BC B8              cp   b
+176   94BD C8              ret  z
+177   94BE                 ; 98 b++; // Не изменяет CF
+178   94BE 04              inc  b
+179   94BF                 ; 99 if (flag_c) ----b;
+180   94BF D2 C4 94        jp   nc, l8
+181   94C2 05              dec  b
+182   94C3 05              dec  b
+183   94C4                 ; 101 push(bc);
+184   94C4             l8: 
+185   94C4 C5              push bc
+186   94C5                 ; 102 menuDrawCursor();
+187   94C5 CD 06 94        call menuDrawCursor
+188   94C8                 ; 103 pop(bc);
+189   94C8 C1              pop  bc
+190   94C9                 ; 105 *(hl = &menuX1) = b;
+191   94C9 21 03 94        ld   hl, menuX1
+192   94CC 70              ld   (hl), b
+193   94CD                 ; 107 menuDrawCursor();
+194   94CD CD 06 94        call menuDrawCursor
+195   94D0                 ; 109 return;
+196   94D0 C9              ret
+197   94D1                 ; 110 }
+198   94D1 C9              ret
+199   94D2                 ; strings
+200   94D2 40 00       s0 db "@",0
+201   94D4 6369747900  s7 db "city",0
+202   94D9             s3 db "Ввести пароль",0
+202   94D9 C2E2E5F1F2E820EFE0F0EEEBFC00
+203   94E7             s6 db "Елена {Мириам} Ханпира",0
+203   94E7 C5EBE5EDE0207BCCE8F0E8E0EC7D20D5E0EDEFE8F0E000
+204   94FE             s4 db "Игра | 2019 Алексей {Alemorf} Морозов",0
+204   94FE C8E3F0E0207C203230313920C0EBE5EAF1E5E9207B416C656D6F72667D20CCEE
+204   951E F0EEE7EEE200
+205   9524             s5 db "Мюзикл | 1998 Антон {Саруман} Круглов,",0
+205   9524 CCFEE7E8EAEB207C203139393820C0EDF2EEED207BD1E0F0F3ECE0ED7D20CAF0
+205   9544 F3E3EBEEE22C00
+206   954B             s2 db "Настроить управление",0
+206   954B CDE0F1F2F0EEE8F2FC20F3EFF0E0E2EBE5EDE8E500
+207   9560             s1 db "Начать новую игру",0
+207   9560 CDE0F7E0F2FC20EDEEE2F3FE20E8E3F0F300
+208   9572             
+001   9572                 savebin "menu/menu.C", begin, $ - begin ; menu/menu.asm menu/intro.asm menu/logo.asm menu/takh.asm menu/rast.asm menu/spark.asm menu/menu2.asm
+002   9572             

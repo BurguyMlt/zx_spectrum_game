@@ -51,6 +51,18 @@ class Parser: public ParserBase
 
         long long int lc = 0;
         unsigned hack_else = 0;
+
+        std::vector<unsigned> continues;
+        void pushContinue(unsigned c);
+        unsigned getContinue();
+        void popContinue();
+
+        std::vector<unsigned> breaks;
+        void pushBreak(unsigned c);
+        unsigned getBreak();
+        void popBreak();
+
+        const char* getSubRegister(const std::string& reg, unsigned n);
 };
 
 

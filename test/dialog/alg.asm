@@ -45,6 +45,7 @@ l1:
     inc  de
     cp   32
     jp   nc, l1
+l2:
     ; 36 if (flag_nz a |= a) return; // nz
     or   a
     ret  nz
@@ -100,7 +101,7 @@ shopStart:
     ld   iy, 0
     ; 70 // de - указатель на текст
     ; 71 do
-l2:
+l3:
     ; 72 {
     ; 73 push(de)
     ; 74 {
@@ -116,10 +117,10 @@ l2:
     ex   af, af
     ; 81 a = c;
     ld   a, c
-    ; 82 if (flag_nz (a |= a))
+    ; 82 if (a != 0)
     or   a
     ; 83 {
-    jp   z, l3
+    jp   z, l5
     ; 84 a += iyl; // Добавляем отступ ответов
     add  iyl
     ; 85 ex(a);
@@ -127,17 +128,17 @@ l2:
     ; 86 if (a == 9) // Если есть цена
     cp   9
     ; 87 {
-    jp   nz, l4
+    jp   nz, l6
     ; 88 ex(bc, de, hl);
     exx
     ; 89 ex(a);
     ex   af, af
     ; 90 if (a >= l`) l` = a;  // Вычисляем максимальную ширину
     cp   l
-    jp   c, l5
+    jp   c, l7
     ld   l, a
     ; 91 ex(bc, de, hl);
-l5:
+l7:
     exx
     ; 93 push(hl)
     ; 94 {
@@ -155,38 +156,38 @@ l5:
     exx
     ; 102 if (a >= h`) h` = a;  // Вычисляем максимальную ширину
     cp   h
-    jp   c, l6
+    jp   c, l8
     ld   h, a
     ; 103 ex(bc, de, hl);
-l6:
+l8:
     exx
     ; 104 }
     ; 105 else
-    jp   l7
-l4:
+    jp   l9
+l6:
     ; 106 {
     ; 107 ex(a);
     ex   af, af
     ; 108 if (a >= h) h = a; // Вычисляем максимальную ширину
     cp   h
-    jp   c, l8
+    jp   c, l10
     ld   h, a
     ; 109 }
-l8:
-l7:
+l10:
+l9:
     ; 110 l = ((a = l) += shopLineHeight); // Вычисляем высоту
     ld   a, l
     add  10
     ld   l, a
     ; 111 }
     ; 112 ex(a);
-l3:
+l5:
     ex   af, af
     ; 114 // Если строка оканчивается кодом 13, то далее идут ответы
     ; 115 if (a == 13)
     cp   13
     ; 116 {
-    jp   nz, l9
+    jp   nz, l11
     ; 117 iyl = tailSize; // Отступ для ответов
     ld   iyl, 8
     ; 118 l = ((a = l) += [shopAnswerSeparatorHeight]); // Отступ ответов. Это примерно половина высота строки. Это гарантирует отсутсвтие клешинга.
@@ -195,13 +196,14 @@ l3:
     ld   l, a
     ; 119 }
     ; 120 }
-l9:
+l11:
     pop  de
     ; 122 // Следующая строка
     ; 123 shopNextLine();
     call shopNextLine
     ; 124 } while(flag_nz);
-    jp   nz, l2
+    jp   nz, l3
+l4:
     ; 126 // Преобразование пикселей в знакоместа
     ; 127 ex(bc, de, hl);
     exx
@@ -209,19 +211,19 @@ l9:
     ld   a, h
     ; 129 if (flag_nz a |= a) a += tailSize; // Если есть цена, то добавляем разделитель в одно знакоместо между наименованием и ценой.
     or   a
-    jp   z, l10
+    jp   z, l12
     add  8
     ; 130 a += l`; // Суммируем ширину наименований и цен
-l10:
+l12:
     add  l
     ; 131 ex(bc, de, hl);
     exx
     ; 132 if (a < h) a = h;
     cp   h
-    jp   nc, l11
+    jp   nc, l13
     ld   a, h
     ; 134 h = ((a += 7) >>= 3); shopW = a; // Преобразуем в знакоместа
-l11:
+l13:
     add  7
     srl  a
     srl  a
@@ -247,11 +249,13 @@ l11:
     srl  a
     ld   (shopY), a
     ; 139 // РИСОВАНИЕ
-    ; 141 // Выбираем активной видеостраницей невидимую и очищаем экран.
-    ; 142 beginDraw();
-    call beginDraw
-    ; 143 cityDraw();
-    call cityDraw
+    ; 141 // Выбираем 0-ую страницу для рисования
+    ; 142 gBeginDraw();
+    call gBeginDraw
+    ; 143 gFarCall(iyl = 7, ix = &gPanelRedraw);
+    ld   iyl, 7
+    ld   ix, gPanelRedraw
+    call gFarCall
     ; 145 // Рисуем рамку
     ; 146 hl = shopX; // И за одно shopY
     ld   hl, (shopX)
@@ -259,20 +263,21 @@ l11:
     call calcAddr
     ; 148 iy = shopW; // И за одно shopH
     ld   iy, (shopW)
-    ; 149 drawDialog2(de = &dialog_0, bc, hl, iyl);
-    ld   de, dialog_0
+    ; 149 drawDialog2(de = &dialogrect_0, bc, hl, iyl);
+    ld   de, dialogrect_0
     call drawDialog2
     ; 150 do
-l12:
+l14:
     ; 151 {
-    ; 152 drawDialog2(de = &dialog_3, bc, hl, iyl);
-    ld   de, dialog_3
+    ; 152 drawDialog2(de = &dialogrect_3, bc, hl, iyl);
+    ld   de, dialogrect_3
     call drawDialog2
     ; 153 } while(flag_nz --iyh);
     dec  iyh
-    jp   nz, l12
-    ; 154 drawDialog2(de = &dialog_6, bc, hl, iyl);
-    ld   de, dialog_6
+    jp   nz, l14
+l15:
+    ; 154 drawDialog2(de = &dialogrect_6, bc, hl, iyl);
+    ld   de, dialogrect_6
     call drawDialog2
     ; 155 drawSprite2(bc, de, hl);
     call drawSprite2
@@ -297,14 +302,14 @@ l12:
     ; 164 iy = 0;            // iyl - кол-во ответов, iyh - режим динамического текста
     ld   iy, 0
     ; 165 do
-l13:
+l16:
     ; 166 {
     ; 167 a = *de;
     ld   a, (de)
     ; 168 if (a >= ' ')
     cp   32
     ; 169 {
-    jp   c, l14
+    jp   c, l18
     ; 170 push(de)
     ; 171 {
     push de
@@ -321,7 +326,7 @@ shopStartColor:
     ; 177 if (a == 9)
     cp   9
     ; 178 {
-    jp   nz, l15
+    jp   nz, l19
     ; 179 push(hl)
     ; 180 {
     push hl
@@ -356,17 +361,17 @@ shopStartColor:
     pop  hl
     ; 192 }
     ; 193 }
-l15:
+l19:
     pop  de
     ; 194 hl += (bc = [shopLineHeight * 256]);
     ld   bc, 2560
     add  hl, bc
     ; 195 }
     ; 196 if (a == 13)
-l14:
+l18:
     cp   13
     ; 197 {
-    jp   nz, l16
+    jp   nz, l20
     ; 198 h = ((a = h) += shopAnswerSeparatorHeight); // Если есть цена, то добавляем разделитель в одно знакоместо между наименованием и ценой.
     ld   a, h
     add  4
@@ -384,12 +389,13 @@ l14:
     ld   ((shopStartColor) + (1)), a
     ; 203 }
     ; 204 iyl++; // Счетчик кол-ва ответов
-l16:
+l20:
     inc  iyl
     ; 205 shopNextLine();
     call shopNextLine
     ; 206 } while(flag_nz);
-    jp   nz, l13
+    jp   nz, l16
+l17:
     ; 208 // Начальное положение курсора
     ; 209 dialogX = (a ^= a);
     xor  a
@@ -400,280 +406,226 @@ l16:
     ; 213 dialogDrawCursor();
     call dialogDrawCursor
     ; 215 // Выводим на экран
-    ; 216 endDraw();
-    call endDraw
+    ; 216 gEndDraw();
+    call gEndDraw
     ; 218 // Клавиатура
     ; 219 while()
-l17:
+l21:
     ; 220 {
-    ; 221 continue:
-continue:
-    ; 222 // Ждем, если прошло меньше 1/50 сек с прошлого цикла.
-    ; 223 while ((a = gVideoPage) & 1);
-l19:
+    ; 221 // Ждем, если прошло меньше 1/50 сек с прошлого цикла.
+    ; 222 while ((a = gVideoPage) & 1);
+l23:
     ld   a, (gVideoPage)
     bit  0, a
-    jp   z, l20
-    jp   l19
-l20:
-    ; 224 gVideoPage = (a |= 1);
+    jp   z, l24
+    jp   l23
+l24:
+    ; 223 gVideoPage = (a |= 1);
     or   1
     ld   (gVideoPage), a
-    ; 226 // Получить нажатую клавишу
-    ; 227 hl = &gKeyTrigger;
+    ; 225 // Получить нажатую клавишу
+    ; 226 hl = &gKeyTrigger;
     ld   hl, gKeyTrigger
-    ; 228 b = *hl;
+    ; 227 b = *hl;
     ld   b, (hl)
-    ; 229 *hl = 0;
+    ; 228 *hl = 0;
     ld   (hl), 0
-    ; 231 // Нажат выстрел
-    ; 232 if (b & KEY_FIRE)
+    ; 230 // Нажат выстрел
+    ; 231 if (b & KEY_FIRE)
     bit  4, b
-    ; 233 {
-    jp   z, l22
-    ; 234 // Отмечаем, что весь экран нужно перерисовать и выходим
-    ; 235 cityFullRedraw();
-    call cityFullRedraw
-    ; 236 a = dialogX;
-    ld   a, (dialogX)
-    ; 237 return;
-    ret
-    ; 238 }
-    ; 240 // Перемещение курсора
-    ; 241 a = dialogX;
-l22:
-    ld   a, (dialogX)
-    ; 242 if (b & KEY_UP)
-    bit  0, b
-    ; 243 {
-    jp   z, l23
-    ; 244 a -= 1;
-    sub  1
-    ; 245 if (flag_c) goto continue;
-    jp   c, continue
-    ; 246 }
-    ; 247 else if (b & KEY_DOWN)
-    jp   l24
-l23:
-    bit  1, b
-    ; 248 {
+    ; 232 {
     jp   z, l25
-    ; 249 a++;
-    inc  a
-    ; 250 if (a >= iyl) goto continue;
-    cp   iyl
-    jp   nc, continue
-    ; 251 }
-    ; 252 dialogX = a;
+    ; 233 // Отмечаем, что весь экран нужно перерисовать и выходим
+    ; 234 gFarCall(iyl = 7, ix = &gCopyVideoPage);
+    ld   iyl, 7
+    ld   ix, gCopyVideoPage
+    call gFarCall
+    ; 235 a = dialogX;
+    ld   a, (dialogX)
+    ; 236 return;
+    ret
+    ; 237 }
+    ; 239 // Перемещение курсора
+    ; 240 a = dialogX;
 l25:
-l24:
+    ld   a, (dialogX)
+    ; 241 if (b & KEY_UP)
+    bit  0, b
+    ; 242 {
+    jp   z, l26
+    ; 243 a -= 1;
+    sub  1
+    ; 244 if (flag_c) continue;
+    jp   c, l21
+    ; 245 }
+    ; 246 else if (b & KEY_DOWN)
+    jp   l27
+l26:
+    bit  1, b
+    ; 247 {
+    jp   z, l28
+    ; 248 a++;
+    inc  a
+    ; 249 if (a >= iyl) continue;
+    cp   iyl
+    jp   nc, l21
+    ; 250 }
+    ; 251 dialogX = a;
+l28:
+l27:
     ld   (dialogX), a
-    ; 254 // Умножение на 10
-    ; 255 c = (a += a);
+    ; 253 // Умножение на 10
+    ; 254 c = (a += a);
     add  a
     ld   c, a
-    ; 256 ((a += a) += a) += c;
+    ; 255 ((a += a) += a) += c;
     add  a
     add  a
     add  c
-    ; 258 // Плавное перемещение курсора
-    ; 259 hl = &dialogX1;
+    ; 257 // Плавное перемещение курсора
+    ; 258 hl = &dialogX1;
     ld   hl, dialogX1
-    ; 260 b = *hl;
+    ; 259 b = *hl;
     ld   b, (hl)
-    ; 261 if (a == b) goto continue; // Оставит флаг CF при выполнении dialogX1 - menuX
+    ; 260 if (a == b) continue; // Оставит флаг CF при выполнении dialogX1 - menuX
     cp   b
-    jp   z, continue
-    ; 262 b++; // Не изменяет CF
+    jp   z, l21
+    ; 261 b++; // Не изменяет CF
     inc  b
-    ; 263 if (flag_c) ----b;
-    jp   nc, l26
+    ; 262 if (flag_c) ----b;
+    jp   nc, l29
     dec  b
     dec  b
-    ; 265 // Стираем прошлый курсор
-    ; 266 push(bc);
-l26:
+    ; 264 // Стираем прошлый курсор
+    ; 265 push(bc);
+l29:
     push bc
-    ; 267 dialogDrawCursor();
+    ; 266 dialogDrawCursor();
     call dialogDrawCursor
-    ; 268 pop(bc);
+    ; 267 pop(bc);
     pop  bc
-    ; 270 // Сохраняем новые координаты курсора
-    ; 271 *(hl = &dialogX1) = b;
+    ; 269 // Сохраняем новые координаты курсора
+    ; 270 *(hl = &dialogX1) = b;
     ld   hl, dialogX1
     ld   (hl), b
-    ; 273 // Рисуем курсор
-    ; 274 dialogDrawCursor();
+    ; 272 // Рисуем курсор
+    ; 273 dialogDrawCursor();
     call dialogDrawCursor
+    ; 274 }
+    jp   l21
+l22:
     ; 275 }
-    jp   l17
-    ; 276 }
     ret
-    ; 278 void dialogDrawCursor()
+    ; 277 void dialogDrawCursor()
 dialogDrawCursor:
-    ; 279 {
-    ; 280 hl = dialogCursor;
+    ; 278 {
+    ; 279 hl = dialogCursor;
     ld   hl, (dialogCursor)
-    ; 281 h = ((a = dialogX1) += h);
+    ; 280 h = ((a = dialogX1) += h);
     ld   a, (dialogX1)
     add  h
     ld   h, a
-    ; 282 gDrawTextEx(hl, de = "@", a = colorCursor);
+    ; 281 gDrawTextEx(hl, de = "@", a = colorCursor);
     ld   de, s0
     ld   a, 67
     call gDrawTextEx
-    ; 283 }
+    ; 282 }
     ret
-    ; 285 void drawDialog2()
+    ; 284 void drawDialog2()
 drawDialog2:
-    ; 286 {
-    ; 287 push(bc, hl)
-    ; 288 {
+    ; 285 {
+    ; 286 push(bc, hl)
+    ; 287 {
     push bc
     push hl
-    ; 289 drawSprite2();
+    ; 288 drawSprite2();
     call drawSprite2
-    ; 290 a = iyl;
+    ; 289 a = iyl;
     ld   a, iyl
-    ; 291 ixh = d; ixl = e;
+    ; 290 ix = de;
     ld   ixh, d
     ld   ixl, e
-    ; 292 do
-l27:
-    ; 293 {
-    ; 294 ex(a);
+    ; 291 do
+l30:
+    ; 292 {
+    ; 293 ex(a);
     ex   af, af
-    ; 295 d = ixh; e = ixl;
+    ; 294 d = ixh; e = ixl;
     ld   d, ixh
     ld   e, ixl
-    ; 296 drawSprite2();
+    ; 295 drawSprite2();
     call drawSprite2
-    ; 297 ex(a);
+    ; 296 ex(a);
     ex   af, af
-    ; 298 } while(flag_nz --a);
+    ; 297 } while(flag_nz --a);
     dec  a
-    jp   nz, l27
-    ; 299 drawSprite2();
+    jp   nz, l30
+l31:
+    ; 298 drawSprite2();
     call drawSprite2
-    ; 300 }
+    ; 299 }
     pop  hl
     pop  bc
-    ; 301 // Следующая строка
-    ; 302 l = ((a = l) += 32); h = ((a +@= h) -= l);
+    ; 300 // Следующая строка
+    ; 301 l = ((a = l) += 32); h = ((a +@= h) -= l);
     ld   a, l
     add  32
     ld   l, a
     adc  h
     sub  l
     ld   h, a
-    ; 303 c = ((a = c) += 32); if (flag_c) b = ((a = b) += 8);
+    ; 302 c = ((a = c) += 32); if (flag_c) b = ((a = b) += 8);
     ld   a, c
     add  32
     ld   c, a
-    jp   nc, l28
+    jp   nc, l32
     ld   a, b
     add  8
     ld   b, a
-    ; 304 }
-l28:
+    ; 303 }
+l32:
     ret
-    ; 306 void drawSprite2(de, bc, hl)
-drawSprite2:
-    ; 307 {
-    ; 308 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 309 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 310 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 311 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 312 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 313 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 314 *bc = a = *de; de++; b++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    inc  b
-    ; 315 *bc = a = *de; de++;
-    ld   a, (de)
-    ld   (bc), a
-    inc  de
-    ; 316 *hl = a = *de; de++;
-    ld   a, (de)
-    ld   (hl), a
-    inc  de
-    ; 317 b = ((a = b) -= 7);
-    ld   a, b
-    sub  7
-    ld   b, a
-    ; 318 hl++;
-    inc  hl
-    ; 319 c++;
-    inc  c
-    ; 320 }
-    ret
-    ; 322 // Вход:
-    ; 323 //   l - x
-    ; 324 //   h - y
-    ; 325 //   hl - цветной адрес
-    ; 326 //   bc - чб адрес
-    ; 328 void calcAddr()
+    ; 305 // Вход:
+    ; 306 //   l - x
+    ; 307 //   h - y
+    ; 308 //   hl - цветной адрес
+    ; 309 //   bc - чб адрес
+    ; 311 void calcAddr()
 calcAddr:
-    ; 329 {
-    ; 330 //        43210     43210
-    ; 331 // bc  .1.43...  210.....
-    ; 332 // hl  .1.11.43  210.....
-    ; 333 b = (((a = h) &= 0x18) |= 0x40);
+    ; 312 {
+    ; 313 //        43210     43210
+    ; 314 // bc  .1.43...  210.....
+    ; 315 // hl  .1.11.43  210.....
+    ; 316 b = (((a = h) &= 0x18) |= 0x40);
     ld   a, h
     and  24
     or   64
     ld   b, a
-    ; 334 h = ((a = h) >>r= 3);
+    ; 317 h = ((a = h) >>r= 3);
     ld   a, h
     rrca
     rrca
     rrca
     ld   h, a
-    ; 335 c = l = ((a &= 0xE0) |= l);
+    ; 318 c = l = ((a &= 0xE0) |= l);
     and  224
     or   l
     ld   l, a
     ld   c, l
-    ; 336 h = (((a = h) &= 0x03) |= 0x58);
+    ; 319 h = (((a = h) &= 0x03) |= 0x58);
     ld   a, h
     and  3
     or   88
     ld   h, a
-    ; 338 if (flag_z (a = gVideoPage) & 0x80) return;
+    ; 321 if (flag_z (a = gVideoPage) & 0x80) return;
     ld   a, (gVideoPage)
     bit  7, a
     ret  z
-    ; 339 h |= 0x80;
+    ; 322 h |= 0x80;
     set  7, h
-    ; 340 b |= 0x80;
+    ; 323 b |= 0x80;
     set  7, b
-    ; 341 }
+    ; 324 }
     ret
     ; strings
 s0 db "@",0

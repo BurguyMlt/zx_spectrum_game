@@ -12,7 +12,7 @@ public:
     uint8_t data[9];
 
     inline Tail() { clear(); }
-    inline void clear() { type == ttDefault; memset(data, 0, sizeof(data)); }
+    inline void clear() { type = ttDefault; memset(data, 0, sizeof(data)); }
     inline Tail(const Tail& b) { *this = b; }
     inline Tail& operator = (const Tail& b) { type = b.type; memcpy(data, b.data, sizeof(data)); return *this; }
 

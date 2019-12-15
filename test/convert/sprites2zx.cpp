@@ -84,7 +84,7 @@ bool sprites2zx(int mode, const char* outputFileName, const char* inputFileName)
             x += sw - 1;
         }
     }
-    else
+    else if (mode == 1)
     {
         unsigned n = 0;
         for (unsigned y = 0; y < h; y++)
@@ -109,6 +109,55 @@ bool sprites2zx(int mode, const char* outputFileName, const char* inputFileName)
             }
         }
     }
+    if (mode == 2)
+    {
+        unsigned s = 0;
+        unsigned n = 0;
+        for (unsigned x = 0; x < w; x++)
+        {
+            unsigned gx = x * 8;
+
+            Tail t;
+            readTail(t, png, x * 8, 0);
+            bool tn = t.data[7] != 0;
+
+            unsigned ix;
+            for(ix = x + 1; ix < w; ix++)
+            {
+                Tail t;
+                readTail(t, png, ix * 8, 0);
+                bool tn1 = t.data[7] != 0;
+                if (tn != tn1) break;
+            }
+            unsigned sw = ix - x;
+
+            fprintf(fo, "%s_%u: ; %x\n", name.c_str(), n, s);
+            n++;
+
+            for (unsigned y = 1; y < h; y++)
+            {
+                for (ix = x; ix < x + sw; ix++)
+                {
+                    Tail t;
+                    unsigned gy = y * 8;
+                    readTail(t, png, ix * 8, gy);
+                    if (t.type != ttEnemy)
+                    {
+                        fprintf(fo, "    db ");
+                        for (unsigned i = 0; i < sizeof(t.data); i++)
+                        {
+                            fprintf(fo, "%s%03Xh", i == 0 ? "" : ", ", t.data[i]);
+                        }
+                        fprintf(fo, "\n");
+                    }
+                }
+            }
+
+            x += sw - 1;
+        }
+    }
+    else
+
     fclose(fo);
     return true;
 }
