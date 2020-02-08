@@ -1,63 +1,62 @@
-    ; 3 const int gPanelX = 0;
-    ; 4 const int gPanelY = 20;
-    ; 6 void panelFullRedraw()
+    ; dialog/panel.c:2 
+    ; dialog/panel.c:3 const int gPanelX = 0;
+    ; dialog/panel.c:4 const int gPanelY = 20;
+    ; dialog/panel.c:5 
+    ; dialog/panel.c:6 void panelFullRedraw()
 panelFullRedraw:
-    ; 7 {
-    ; 8 gDrawImage(de = [0x5800 + gPanelX + (gPanelY << 5)], hl = &image_panelgraph);
+    ; dialog/panel.c:7 {
+    ; dialog/panel.c:8 gDrawImage(de = [0x5800 + gPanelX + (gPanelY << 5)], hl = &image_panelgraph);
     ld   de, 23168
     ld   hl, image_panelgraph
     call gDrawImage
-    ; 9 panelDrawSecondWeapon();
-    call panelDrawSecondWeapon
-    ; 10 }
+    ; dialog/panel.c:9 return panelRedrawImages();
+    jp   panelRedrawImages
+    ; dialog/panel.c:10 }
     ret
-    ; 12 void deMulA36(a) // a должно быть меньше 16
+    ; dialog/panel.c:11 
+    ; dialog/panel.c:12 void panelRedrawImages()
+panelRedrawImages:
+    ; dialog/panel.c:13 {
+    ; dialog/panel.c:14 panelDrawSecondWeapon();
+    call panelDrawSecondWeapon
+    ; dialog/panel.c:15 }
+    ret
+    ; dialog/panel.c:16 
+    ; dialog/panel.c:17 void deMulA36(a) // a должно быть меньше 16
 deMulA36:
-    ; 13 {
-    ; 14 a += a += a;
+    ; dialog/panel.c:18 {
+    ; dialog/panel.c:19 a += a += a;
     add  a
     add  a
-    ; 15 c = a;
+    ; dialog/panel.c:20 c = a;
     ld   c, a
-    ; 16 a += a += a;
+    ; dialog/panel.c:21 a += a += a;
     add  a
     add  a
-    ; 17 l = a; h = 0; b = h;
+    ; dialog/panel.c:22 l = a; h = 0; b = h;
     ld   l, a
     ld   h, 0
     ld   b, h
-    ; 18 hl += hl += bc += de;
+    ; dialog/panel.c:23 hl += hl += bc += de;
     add  hl, hl
     add  hl, bc
     add  hl, de
-    ; 19 ex(hl, de);
+    ; dialog/panel.c:24 ex(hl, de);
     ex de, hl
-    ; 20 }
+    ; dialog/panel.c:25 }
     ret
-    ; 22 void panelDrawSecondWeapon()
+    ; dialog/panel.c:26 
+    ; dialog/panel.c:27 void panelDrawSecondWeapon()
 panelDrawSecondWeapon:
-    ; 23 {
-    ; 24 deMulA36(a = secondWeapon, de = &magic_0);
-    ld   a, (secondWeapon)
+    ; dialog/panel.c:28 {
+    ; dialog/panel.c:29 deMulA36(a = gPlayerSecondWeaponSel, de = &magic_0);
+    ld   a, (gPlayerSecondWeaponSel)
     ld   de, magic_0
     call deMulA36
-    ; 25 drawSprite4(hl = 0x5AB8, bc = 0x50B8, de);
+    ; dialog/panel.c:30 return drawSprite4(hl = 0x5AB8, bc = 0x50B8, de);
     ld   hl, 23224
     ld   bc, 20664
-    call drawSprite4
-    ; 26 return panelDrawSecondWeaponCount();
-    jp   panelDrawSecondWeaponCount
-    ; 27 }
+    jp   drawSprite4
+    ; dialog/panel.c:31 }
     ret
-    ; 29 void panelDrawSecondWeaponCount()
-panelDrawSecondWeaponCount:
-    ; 30 {
-    ; 31 gDrawTextEx(hl = [24 * 8 + 3 + 186 * 256], de = "\x1F\x1F\x02", a = [0x40 + 1 * 8 + 7]);
-    ld   hl, 47811
-    ld   de, s21000
-    ld   a, 79
-    call gDrawTextEx
-    ; 32 }
-    ret
-    ; strings
-s21000 db 31,31,2,0
+    ; dialog/panel.c:32 

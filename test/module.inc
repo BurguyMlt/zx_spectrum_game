@@ -47,6 +47,8 @@ gCopyVideoPage    = gEnd
 gEnd = gEnd + 3
 gPanelRedraw      = gEnd
 gEnd = gEnd + 3
+gCopyPanel        = gEnd
+gEnd = gEnd + 3
 gStringBuffer     = gEnd
 gStringBufferSize = 32
 gEnd = gEnd + gStringBufferSize
@@ -77,6 +79,13 @@ gEnd = gEnd + 1
 gPanelChangedA    = gEnd
 gEnd = gEnd + 1
 gPanelChangedB    = gEnd
+gEnd = gEnd + 1
+gPlayerSecondWeaponCount = gEnd
+gEnd = gEnd + 1
+gPlayerSecondWeaponCounters = gEnd
+secondWeaponMax = 9
+gEnd = gEnd + secondWeaponMax
+gPlayerSecondWeaponSel = gEnd
 gEnd = gEnd + 1
 
 ; Другие модули

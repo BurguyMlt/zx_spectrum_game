@@ -2,11 +2,7 @@
 // (c) Морозов Алексей
 // Главное меню.
 
-const int KEY_UP = 1;
-const int KEY_DOWN = 2;
-const int KEY_LEFT = 4;
-const int KEY_RIGHT = 8;
-const int KEY_FIRE = 16;
+#include "common.h"
 
 const int menuLogoX      = 1;
 const int menuLogoY      = 1;

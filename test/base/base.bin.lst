@@ -52,44 +52,53 @@
 047+  0000             gEnd = gEnd + 3
 048+  0000             gPanelRedraw      = gEnd
 049+  0000             gEnd = gEnd + 3
-050+  0000             gStringBuffer     = gEnd
-051+  0000             gStringBufferSize = 32
-052+  0000             gEnd = gEnd + gStringBufferSize
-053+  0000             
-054+  0000             ; Переменные
-055+  0000             gFrame            = gEnd
-056+  0000             gEnd = gEnd + 1
-057+  0000             gVideoPage        = gEnd
+050+  0000             gCopyPanel        = gEnd
+051+  0000             gEnd = gEnd + 3
+052+  0000             gStringBuffer     = gEnd
+053+  0000             gStringBufferSize = 32
+054+  0000             gEnd = gEnd + gStringBufferSize
+055+  0000             
+056+  0000             ; Переменные
+057+  0000             gFrame            = gEnd
 058+  0000             gEnd = gEnd + 1
-059+  0000             gSystemPage       = gEnd
+059+  0000             gVideoPage        = gEnd
 060+  0000             gEnd = gEnd + 1
-061+  0000             gKeyTrigger       = gEnd
+061+  0000             gSystemPage       = gEnd
 062+  0000             gEnd = gEnd + 1
-063+  0000             gKeyPressed       = gEnd
+063+  0000             gKeyTrigger       = gEnd
 064+  0000             gEnd = gEnd + 1
-065+  0000             gPlayerMoney      = gEnd
-066+  0000             gEnd = gEnd + 2
-067+  0000             gPlayerLut        = gEnd
-068+  0000             playerLutMax = 12
-069+  0000             gEnd = gEnd + 2 * playerLutMax
-070+  0000             gPlayerLutCount   = gEnd
-071+  0000             gEnd = gEnd + 1
-072+  0000             gPlayerItems      = gEnd
-073+  0000             playerItemsMax = 5
-074+  0000             gEnd = gEnd + playerItemsMax
-075+  0000             gPlayerItemsCount = gEnd
-076+  0000             gEnd = gEnd + 1
-077+  0000             gPanelChangedA    = gEnd
+065+  0000             gKeyPressed       = gEnd
+066+  0000             gEnd = gEnd + 1
+067+  0000             gPlayerMoney      = gEnd
+068+  0000             gEnd = gEnd + 2
+069+  0000             gPlayerLut        = gEnd
+070+  0000             playerLutMax = 12
+071+  0000             gEnd = gEnd + 2 * playerLutMax
+072+  0000             gPlayerLutCount   = gEnd
+073+  0000             gEnd = gEnd + 1
+074+  0000             gPlayerItems      = gEnd
+075+  0000             playerItemsMax = 5
+076+  0000             gEnd = gEnd + playerItemsMax
+077+  0000             gPlayerItemsCount = gEnd
 078+  0000             gEnd = gEnd + 1
-079+  0000             gPanelChangedB    = gEnd
+079+  0000             gPanelChangedA    = gEnd
 080+  0000             gEnd = gEnd + 1
-081+  0000             
-082+  0000             ; Другие модули
-083+  0000             gPanelgraphPage = 6
-084+  0000             gPanelgraph = 0C003h
-085+  0000             gPanelX = 0
-086+  0000             gPanelY = 20
-087+  0000             
+081+  0000             gPanelChangedB    = gEnd
+082+  0000             gEnd = gEnd + 1
+083+  0000             gPlayerSecondWeaponCount = gEnd
+084+  0000             gEnd = gEnd + 1
+085+  0000             gPlayerSecondWeaponCounters = gEnd
+086+  0000             secondWeaponMax = 9
+087+  0000             gEnd = gEnd + secondWeaponMax
+088+  0000             gPlayerSecondWeaponSel = gEnd
+089+  0000             gEnd = gEnd + 1
+090+  0000             
+091+  0000             ; Другие модули
+092+  0000             gPanelgraphPage = 6
+093+  0000             gPanelgraph = 0C003h
+094+  0000             gPanelX = 0
+095+  0000             gPanelY = 20
+096+  0000             
 006   0000             
 007   0000             ;-------------------------------------------------------------------------------
 008   0000             ; Точки входа
@@ -97,1615 +106,2167 @@
 010   0000                 org baseAddr
 011   6063             
 012   6063             begin: 
-013   6063 C3 E1 62    iDrawText:        jp drawText
-014   6066 C3 98 62    iDrawTextCenter:  jp drawTextCenter
-015   6069 C3 D8 62    iDrawTextEx:      jp drawTextEx
-016   606C C3 E9 63    iClearScreen:     jp clearScreen
-017   606F C3 DA 61    iDrawImage:       jp drawImage
-018   6072 C3 6A 62    iMeasureText:     jp measureText
-019   6075 C3 AC 62    iCalcCoords:      jp calcCoords
-020   6078 C3 89 63    iDrawCharSub:     jp drawCharSub
-021   607B C3 0D 61    iExec:            jp exec
-022   607E C3 49 61    iLoadFile:        jp loadFile
-023   6081 C3 A6 61    iFarCall         jp farCall
-024   6084 C3 DE 60    iIrqHandler:      jp irqHandler
-025   6087 C3 60 64    iDrawPanel:       jp drawPanel
-026   608A C3 21 64    iBeginDraw:       jp beginDraw
-027   608D C3 38 64    iEndDraw:         jp endDraw
-028   6090 C3 43 64    iCopyVideoPage:   jp copyVideoPage
-029   6093 C3 76 64    iPanelRedraw:     jp panelRedraw
-030   6096 00          iStringBuffer:    ds gStringBufferSize
-031   60B6             
-032   60B6 00          iFrame:             db 0
-033   60B7 00          iVideoPage:         db 0
-034   60B8 00          iSystemPage:        db 0
-035   60B9 00          iKeyTrigger:        db 0
-036   60BA 00          iKeyPressed:        db 0
-037   60BB 00          iPlayerMoney:       db 0
-038   60BC 00          iPlayerLut:         ds playerLutMax * 2
-039   60D4 00          iPlayerLutCount:    db 0
-040   60D5 00          iPlayerItems:       ds playerItemsMax
-041   60DA 00          iPlayerItemsCount:  db 0
-042   60DB             
-043   60DB             ;-------------------------------------------------------------------------------
-044   60DB             
-045   60DB                 org gEnd
-046   60DE             
-047   60DE             irqHandler: 
-048   60DE F5              PUSH  AF
-049   60DF C5              PUSH  BC
-050   60E0 E5              PUSH  HL
-051   60E1             
-052   60E1                 ; Переключение видеостраницы
-053   60E1 3A B7 60        LD    A, (gVideoPage)
-054   60E4 CB 47           BIT   0, A
-055   60E6 CA FD 60        JP    Z, irqHandler_1
-056   60E9 E6 FE           AND   ~1
-057   60EB 32 B7 60        LD    (gVideoPage), A
-058   60EE 47              LD    B, A
-059   60EF 3A B8 60        LD    A, (gSystemPage)
-060   60F2 E6 F7           AND   ~8
-061   60F4 B0              OR    B
-062   60F5 32 B8 60        LD    (gSystemPage), A
-063   60F8 01 FD 7F        LD    BC, 7FFDh
-064   60FB ED 79           OUT   (C), A
-065   60FD             irqHandler_1: 
-066   60FD             
-067   60FD 3A B6 60        LD    A, (gFrame)
-068   6100 3C              INC   A
-069   6101 32 B6 60        LD    (gFrame), A
-070   6104             
-071   6104 CD 25 62        call  readKey
-072   6107             
-073   6107 E1              POP   HL
-074   6108 C1              POP   BC
-075   6109 F1              POP   AF
-076   610A FB              EI
-077   610B ED 4D           RETI
-078   610D             
-079   610D             ;-------------------------------------------------------------------------------
-080   610D             
-081   610D             exec: 
-082   610D 31 5F 60        LD    SP, stackEndAddr
-083   6110             
-084   6110 E5              PUSH  HL
-085   6111                 ; Установка черной рамки
-086   6111 3E 00           LD    A, 0
-087   6113 D3 FE           OUT   (-2), A
-088   6115                 ; Очистка всех экранов
-089   6115 3E 42           LD    A, 42h
-090   6117 CD E9 63        CALL  clearScreen
-091   611A E1              POP   HL
-092   611B             
-093   611B 11 00 70        LD    DE, moduleLoadAddr
-094   611E CD 49 61        CALL  loadFile
-095   6121 C3 00 70        JP    moduleLoadAddr
-096   6124             
-097   6124             ;-------------------------------------------------------------------------------
-098   6124             
-099   6124             fileNotFound: 
-100   6124 21 00 00        ld   hl, 0
-101   6127 11 37 61        ld   de, aFileNotFound
-102   612A CD D8 62        call drawTextEx
-103   612D 21 00 0A        ld   hl, 10 << 8
-104   6130 D1              pop  de
-105   6131 CD D8 62        call drawTextEx
-106   6134             
-107   6134 C3 34 61        jp $
-108   6137             
-109   6137             ;-------------------------------------------------------------------------------
-110   6137             
-111   6137             aFileNotFound db "Не найден файл ", 0
-111   6137 CDE520EDE0E9E4E5ED20F4E0E9EB2000
-112   6147             aSpace = $ - 2
-113   6147 43 00       aExt db "C",0
-114   6149             
-115   6149             ;-------------------------------------------------------------------------------
-116   6149             
-117   6149             loadFile: 
-118   6149                 ; Сохраняем адрес загрузки
-119   6149 D5              push de
-120   614A             
-121   614A                 ; Преобразование имени файла
-122   614A 01 08 08        ld   bc, 808h
-123   614D             loadFile_0: 
-124   614D 7E              ld   a, (hl)
-125   614E B7              or   a
-126   614F C2 55 61        jp   nz, loadFile_1
-127   6152 21 45 61        ld   hl, aSpace
-128   6155             loadFile_1: 
-129   6155 ED A0           ldi
-130   6157 10 F4           djnz loadFile_0
-131   6159 21 47 61        ld   hl, aExt
-132   615C ED A0           ldi
-133   615E ED A0           ldi
-134   6160 E1              pop  hl
-135   6161             
-136   6161                 ; Установка прерываний по умолчанию
-137   6161 F3              di
-138   6162 ED 57           ld   a, i
-139   6164 F5              push af
-140   6165 ED 56           im   1
-141   6167             
-142   6167                 ; Передача имени файла
-143   6167 E5              push hl
-144   6168 0E 13           ld   c, 13h
-145   616A CD 13 3D        call 3D13h
-146   616D             
-147   616D                 ; Поиск файла
-148   616D 0E 0A           ld   c, 0Ah
-149   616F CD 13 3D        call 3D13h
-150   6172 79              ld   a, c
-151   6173 FE FF           cp   0FFh
-152   6175 CA 24 61        jp   z, fileNotFound ; Файл не найден
-153   6178             
-154   6178                 ; Загрузка заголовка
-155   6178 0E 08           ld   c, 8
-156   617A CD 13 3D        call 3D13h
-157   617D             
-158   617D                 ; На всякий случай
-159   617D 3A B8 60        LD   A, (gSystemPage)
-160   6180 32 5C 5B        LD   (23388),A
-161   6183             
-162   6183                 ; Загрузка файла
-163   6183 AF              xor  a
-164   6184 32 F9 5C        ld   (5CF9h), a
-165   6187 ED 5B EB 5C     ld   de, (5CEBh)
-166   618B 3A EA 5C        ld   a, (5CEAh)
-167   618E 47              ld   b, a
-168   618F E1              pop  hl
-169   6190 3E FF           ld   a, 0FFh
-170   6192 0E 05           ld   c, 5
-171   6194 CD 13 3D        call 3D13h
-172   6197             
-173   6197                 ; Восстановление страницы
-174   6197 3A B8 60        LD    A, (gSystemPage)
-175   619A 01 FD 7F        LD    BC, 7FFDh
-176   619D ED 79           OUT   (C), A
-177   619F             
-178   619F                 ; Восстановление прерываний
-179   619F F1              pop  af
-180   61A0 ED 47           LD   i, a
-181   61A2 ED 5E           im   2
-182   61A4 FB              ei
-183   61A5             
-184   61A5 C9              ret
-185   61A6             
-186   61A6             ;-------------------------------------------------------------------------------
-187   61A6             
-188   61A6             ; IYL - Страница, IX - Функция, A` - Портит, BC` - Портит.
-189   61A6             
-190   61A6             farCall: 
-191   61A6                 ; Выбор страницы с сохранением выбранной видеостраницы
-192   61A6 D9              EXX
-193   61A7 08              EX AF, AF
-194   61A8 F3              DI
-195   61A9 3A B8 60        LD    A, (gSystemPage)
-196   61AC F5              PUSH  AF
-197   61AD E6 F8           AND   ~7
-198   61AF FD B5           OR    IYL
-199   61B1 32 B8 60        LD    (gSystemPage), A
-200   61B4 01 FD 7F        LD    BC, 7FFDh
-201   61B7 ED 79           OUT   (C), A
-202   61B9 FB              EI
-203   61BA 08              EX AF, AF
-204   61BB D9              EXX
-205   61BC             
-206   61BC                 ; Вызов
-207   61BC CD D8 61        CALL  farJump2
-208   61BF             
-209   61BF                 ; Восстановление  с сохранением выбранной видеостраницы
-210   61BF D9              EXX
-211   61C0 08              EX AF, AF
-212   61C1 F1              POP   AF
-213   61C2 E6 07           AND   7
-214   61C4 47              LD    B, A
-215   61C5 F3              DI
-216   61C6 3A B8 60        LD    A, (gSystemPage)
-217   61C9 E6 F8           AND   ~7
-218   61CB B0              OR    B
-219   61CC 32 B8 60        LD    (gSystemPage), A
-220   61CF 01 FD 7F        LD    BC, 7FFDh
-221   61D2 ED 79           OUT   (C), A
-222   61D4 FB              EI
-223   61D5 08              EX AF, AF
-224   61D6 D9              EXX
-225   61D7 C9              RET
-226   61D8             
-227   61D8             farJump2: 
-228   61D8 DD E9           JP    IX
-229   61DA             
-230   61DA             ;-------------------------------------------------------------------------------
-231   61DA             
-001   61DA             ; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
-002   61DA             
-003   61DA             ;-------------------------------------------------------------------------------
-004   61DA             ; Вывести изображение
-005   61DA             ; HL - адрес изображения
-006   61DA             ; DE - адрес в видеопамяти (5800 - 5CFFh)
-007   61DA             
-008   61DA             drawImage: 
-009   61DA                     ; Преобразование адреса в DE из формата X + Y * 32 в формат YY000 YYYXXXXX
-010   61DA D5                  PUSH   DE
-011   61DB 7A                  LD     A, D
-012   61DC E6 80               AND    80h
-013   61DE 47                  LD     B, A
-014   61DF 7A                  LD     A, D
-015   61E0 87                  ADD    A
-016   61E1 87                  ADD    A
-017   61E2 87                  ADD    A
-018   61E3 C6 80               ADD    40h - 0C0h
-019   61E5 B0                  OR     B
-020   61E6 57                  LD     D, A
-021   61E7             
-022   61E7                     ; Чтение высоты и ширины. Сохранение  её в стеке
-023   61E7 4E                  LD     C, (HL)
-024   61E8 23                  INC    HL
-025   61E9 46                  LD     B, (HL)
-026   61EA 23                  INC    HL
-027   61EB C5                  PUSH   BC
-028   61EC             
-029   61EC                     ; Вывод чернобелой графики
-030   61EC             drawImage_1: 
-031   61EC C5                  PUSH   BC
-032   61ED             
-033   61ED                     ; Копирование строки
-034   61ED 3E 08               LD     A, 8
-035   61EF             drawImage_3: 
-036   61EF C5                  PUSH   BC
-037   61F0 D5                  PUSH   DE
-038   61F1 06 00               LD     B, 0
-039   61F3 ED B0               LDIR
-040   61F5 D1                  POP    DE
-041   61F6 C1                  POP    BC
-042   61F7 14                  INC    D
-043   61F8 3D                  DEC    A
-044   61F9 C2 EF 61            JP     NZ, drawImage_3
-045   61FC             
-046   61FC                     ; Адрес следующей строки
-047   61FC 01 20 F8            LD     BC, 0x20 - 0x800
-048   61FF EB                  EX     DE, HL
-049   6200 09                  ADD    HL, BC
-050   6201 EB                  EX     DE, HL
-051   6202 7A                  LD     A, D
-052   6203 E6 07               AND    7
-053   6205 C4 1E 62            CALL   NZ, drawImage_4
-054   6208             
-055   6208                     ; Следующая строка
-056   6208 C1                  POP    BC
-057   6209 10 E1               DJNZ   drawImage_1
-058   620B             
-059   620B                     ; Восстановление координат вывода и размера
-060   620B C1                  POP    BC
-061   620C D1                  POP    DE
-062   620D             
-063   620D                     ; Цикл для каждой строки
-064   620D             drawImage_2: 
-065   620D C5                  PUSH   BC
-066   620E             
-067   620E                     ; Копирование строки
-068   620E D5                  PUSH   DE
-069   620F 06 00               LD     B, 0
-070   6211 ED B0               LDIR
-071   6213 D1                  POP    DE
-072   6214             
-073   6214                     ; Адрес следующей строки
-074   6214 EB                  EX     DE, HL
-075   6215 01 20 00            LD     BC, 32
-076   6218 09                  ADD    HL, BC
-077   6219 EB                  EX     DE, HL
-078   621A             
-079   621A                     ; Следующая строка
-080   621A C1                  POP    BC
-081   621B 10 F0               DJNZ   drawImage_2
-082   621D             
-083   621D C9                  RET
-084   621E             
-085   621E             ;-------------------------------------------------------------------------------
-086   621E             
-087   621E             drawImage_4: 
-088   621E 01 00 07            LD     BC, 0x800 - 0x100
-089   6221 EB                  EX     DE, HL
-090   6222 09                  ADD    HL, BC
-091   6223 EB                  EX     DE, HL
-092   6224 C9                  RET
-093   6225             
-001   6225                 ; 3 const int KEY_UP = 1;
-002   6225                 ; 4 const int KEY_DOWN = 2;
-003   6225                 ; 5 const int KEY_LEFT = 4;
-004   6225                 ; 6 const int KEY_RIGHT = 8;
-005   6225                 ; 7 const int KEY_FIRE = 16;
-006   6225                 ; 9 // Использует A, BC, HL
-007   6225                 ; 10 void readKey()
-008   6225             readKey: 
-009   6225                 ; 11 {
-010   6225                 ; 12 c = in(bc = 0xEFFE);
-011   6225 01 FE EF        ld   bc, 61438
-012   6228 ED 48           in   c, (c)
-013   622A                 ; 13 a ^= a;
-014   622A AF              xor  a
-015   622B                 ; 14 if (c & 0x04) a |= KEY_RIGHT;
-016   622B CB 51           bit  2, c
-017   622D CA 32 62        jp   z, l1000
-018   6230 F6 08           or   8
-019   6232                 ; 15 if (c & 0x08) a |= KEY_UP;
-020   6232             l1000: 
-021   6232 CB 59           bit  3, c
-022   6234 CA 39 62        jp   z, l1001
-023   6237 F6 01           or   1
-024   6239                 ; 16 if (c & 0x10) a |= KEY_DOWN;
-025   6239             l1001: 
-026   6239 CB 61           bit  4, c
-027   623B CA 40 62        jp   z, l1002
-028   623E F6 02           or   2
-029   6240                 ; 17 c = in(bc = 0xF7FE);
-030   6240             l1002: 
-031   6240 01 FE F7        ld   bc, 63486
-032   6243 ED 48           in   c, (c)
-033   6245                 ; 18 if (c & 0x10) a |= KEY_LEFT;
-034   6245 CB 61           bit  4, c
-035   6247 CA 4C 62        jp   z, l1003
-036   624A F6 04           or   4
-037   624C                 ; 19 c = in(bc = 0x7FFE);
-038   624C             l1003: 
-039   624C 01 FE 7F        ld   bc, 32766
-040   624F ED 48           in   c, (c)
-041   6251                 ; 20 if (c & 0x01) a |= KEY_FIRE;
-042   6251 CB 41           bit  0, c
-043   6253 CA 58 62        jp   z, l1004
-044   6256 F6 10           or   16
-045   6258                 ; 21 a ^= 0xFF;
-046   6258             l1004: 
-047   6258 EE FF           xor  255
-048   625A                 ; 23 // Чтение прошлого значения и сохранение нового
-049   625A                 ; 24 b = a;
-050   625A 47              ld   b, a
-051   625B                 ; 25 hl = &gKeyPressed;
-052   625B 21 BA 60        ld   hl, gKeyPressed
-053   625E                 ; 26 a = *hl;
-054   625E 7E              ld   a, (hl)
-055   625F                 ; 27 *hl = b;
-056   625F 70              ld   (hl), b
-057   6260                 ; 29 // Выделение события нажатия
-058   6260                 ; 30 a ^= 0xFF;
-059   6260 EE FF           xor  255
-060   6262                 ; 31 a &= b;
-061   6262 A0              and  b
-062   6263                 ; 32 hl = &gKeyTrigger;
-063   6263 21 B9 60        ld   hl, gKeyTrigger
-064   6266                 ; 33 a |= *hl;
-065   6266 B6              or   (hl)
-066   6267                 ; 34 *hl = a;
-067   6267 77              ld   (hl), a
-068   6268                 ; 36 return;
-069   6268 C9              ret
-070   6269                 ; 37 }
-071   6269 C9              ret
-072   626A             
-001   626A                 ; 3 // Вычисление ширины текста в пикселях
-002   626A                 ; 4 // Вход: DE - текст
-003   626A                 ; 5 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
-004   626A                 ; 6 // Портит: HL
-005   626A                 ; 8 const int firstChar = [' ' - 11];
-006   626A                 ; 10 void measureText()
-007   626A             measureText: 
-008   626A                 ; 11 {
-009   626A                 ; 12 c = 0;
-010   626A 0E 00           ld   c, 0
-011   626C                 ; 13 while()
-012   626C             l10000: 
-013   626C                 ; 14 {
-014   626C                 ; 15 a = *de; de++;
-015   626C 1A              ld   a, (de)
-016   626D 13              inc  de
-017   626E                 ; 16 if (a < firstChar) return;
-018   626E FE 15           cp   21
-019   6270 D8              ret  c
-020   6271                 ; 18 // Вычисление адреса символа (de = image_font + a * 9)
-021   6271                 ; 19 push(de)
-022   6271                 ; 20 {
-023   6271 D5              push de
-024   6272                 ; 21 calcCharAddr(); //  HL - адрес символа в знакогенераторе, DE - мусор
-025   6272 CD 81 62        call calcCharAddr
-026   6275                 ; 22 hl += (de = 8);
-027   6275 11 08 00        ld   de, 8
-028   6278 19              add  hl, de
-029   6279                 ; 23 a = *hl;
-030   6279 7E              ld   a, (hl)
-031   627A                 ; 24 c = (a += c);
-032   627A 81              add  c
-033   627B 4F              ld   c, a
-034   627C                 ; 25 }
-035   627C D1              pop  de
-036   627D                 ; 26 }
-037   627D C3 6C 62        jp   l10000
-038   6280             l10001: 
-039   6280                 ; 27 }
-040   6280 C9              ret
-041   6281                 ; 29 // Вычисление адреса символа
-042   6281                 ; 30 // Вход: A - символ
-043   6281                 ; 31 // Выход: HL - адрес символа в знакогенераторе
-044   6281                 ; 32 // Портит: DE
-045   6281                 ; 34 void calcCharAddr()
-046   6281             calcCharAddr: 
-047   6281                 ; 35 {
-048   6281                 ; 36 a -= firstChar;
-049   6281 D6 15           sub  21
-050   6283                 ; 37 if (a >= 96) a -= 64;
-051   6283 FE 60           cp   96
-052   6285 DA 8A 62        jp   c, l10002
-053   6288 D6 40           sub  64
-054   628A                 ; 38 h = 0; l = a;
-055   628A             l10002: 
-056   628A 26 00           ld   h, 0
-057   628C 6F              ld   l, a
-058   628D                 ; 39 d = h; e = l;
-059   628D 54              ld   d, h
-060   628E 5D              ld   e, l
-061   628F                 ; 40 (((hl += hl) += hl) += hl) += de;
-062   628F 29              add  hl, hl
-063   6290 29              add  hl, hl
-064   6291 29              add  hl, hl
-065   6292 19              add  hl, de
-066   6293                 ; 41 hl += (de = &image_font);
-067   6293 11 C6 64        ld   de, image_font
-068   6296 19              add  hl, de
-069   6297                 ; 42 }
-070   6297 C9              ret
-071   6298                 ; 44 // Вывод текста по центру экрана
-072   6298                 ; 45 // Вход: DE - текст, H - строка
-073   6298                 ; 47 void drawTextCenter()
-074   6298             drawTextCenter: 
-075   6298                 ; 48 {
-076   6298                 ; 49 ex(a, a);
-077   6298 08              ex   af, af
-078   6299                 ; 50 push(hl, de)
-079   6299                 ; 51 {
-080   6299 E5              push hl
-081   629A D5              push de
-082   629B                 ; 52 measureText();
-083   629B CD 6A 62        call measureText
-084   629E                 ; 53 a = (((a = 256) -= c) >>= 1);
-085   629E 3E 00           ld   a, 256
-086   62A0 91              sub  c
-087   62A1 CB 3F           srl  a
-088   62A3 7F              ld   a, a
-089   62A4                 ; 54 }
-090   62A4 D1              pop  de
-091   62A5 E1              pop  hl
-092   62A6                 ; 55 l = a;
-093   62A6 6F              ld   l, a
-094   62A7                 ; 56 ex(a, a);
-095   62A7 08              ex   af, af
-096   62A8                 ; 57 drawTextEx();
-097   62A8 CD D8 62        call drawTextEx
-098   62AB                 ; 58 }
-099   62AB C9              ret
-100   62AC                 ; 60 // Вычисление адреса в видеопамяти и смещения в битах.
-101   62AC                 ; 61 // Вход: H - коодината y, L - коодината x
-102   62AC                 ; 62 // Выход: HL - адрес, C - смещение в битах
-103   62AC                 ; 63 // Портит: A, B
-104   62AC                 ; 65 void calcCoords()
-105   62AC             calcCoords: 
-106   62AC                 ; 66 {
-107   62AC                 ; 67 // Необходимо разместить Y в регистре HL следующим образом
-108   62AC                 ; 68 // ...76210 543.....
-109   62AC                 ; 70 c = ((a = l) &= 7); // Из координаты X получаем смещение в битах
-110   62AC 7D              ld   a, l
-111   62AD E6 07           and  7
-112   62AF 4F              ld   c, a
-113   62B0                 ; 71 l >>= 3; //  Из координаты X смещение в байтах
-114   62B0 CB 3D           srl  l
-115   62B2 CB 3D           srl  l
-116   62B4 CB 3D           srl  l
-117   62B6                 ; 72 l = ((((a = h) <<= 2) &= 0xE0) |= l);
-118   62B6 7C              ld   a, h
-119   62B7 CB 27           sla  a
-120   62B9 CB 27           sla  a
-121   62BB E6 E0           and  224
-122   62BD B5              or   l
-123   62BE 6F              ld   l, a
-124   62BF                 ; 73 b = (((a = h) >>= 3) &= 0x18);
-125   62BF 7C              ld   a, h
-126   62C0 CB 3F           srl  a
-127   62C2 CB 3F           srl  a
-128   62C4 CB 3F           srl  a
-129   62C6 E6 18           and  24
-130   62C8 47              ld   b, a
-131   62C9                 ; 74 h = ((((a = h) &= 7) |= 0x40) |= b);
-132   62C9 7C              ld   a, h
-133   62CA E6 07           and  7
-134   62CC F6 40           or   64
-135   62CE B0              or   b
-136   62CF 67              ld   h, a
-137   62D0                 ; 75 h = (((a = gVideoPage) &= 0x80) |= h);
-138   62D0 3A B7 60        ld   a, (gVideoPage)
-139   62D3 E6 80           and  128
-140   62D5 B4              or   h
-141   62D6 67              ld   h, a
-142   62D7                 ; 76 }
-143   62D7 C9              ret
-144   62D8                 ; 78 void drawTextEx()
-145   62D8             drawTextEx: 
-146   62D8                 ; 79 {
-147   62D8                 ; 80 ex(a, a);
-148   62D8 08              ex   af, af
-149   62D9                 ; 81 calcCoords();
-150   62D9 CD AC 62        call calcCoords
-151   62DC                 ; 82 ex(a, a);
-152   62DC 08              ex   af, af
-153   62DD                 ; 83 return drawTextSub();
-154   62DD C3 E3 62        jp   drawTextSub
-155   62E0                 ; 84 }
-156   62E0 C9              ret
-157   62E1                 ; 86 void drawText()
-158   62E1             drawText: 
-159   62E1                 ; 87 {
-160   62E1                 ; 88 c = 0;
-161   62E1 0E 00           ld   c, 0
-162   62E3                 ; 89 drawTextSub:
-163   62E3             drawTextSub: 
-164   62E3                 ; 90 ex(a, a);
-165   62E3 08              ex   af, af
-166   62E4                 ; 91 *[&drawTextS + 1] = hl;
-167   62E4 22 FA 62        ld   ((drawTextS) + (1)), hl
-168   62E7                 ; 92 while ()
-169   62E7             l10003: 
-170   62E7                 ; 93 {
-171   62E7                 ; 94 a = *de; de++;
-172   62E7 1A              ld   a, (de)
-173   62E8 13              inc  de
-174   62E9                 ; 95 if (a < firstChar) break;
-175   62E9 FE 15           cp   21
-176   62EB DA F4 62        jp   c, l10004
-177   62EE                 ; 96 drawCharSub();
-178   62EE CD 89 63        call drawCharSub
-179   62F1                 ; 97 }
-180   62F1 C3 E7 62        jp   l10003
-181   62F4             l10004: 
-182   62F4                 ; 98 push(a, bc, de, hl)
-183   62F4                 ; 99 {
-184   62F4 F5              push af
-185   62F5 C5              push bc
-186   62F6 D5              push de
-187   62F7 E5              push hl
-188   62F8                 ; 100 ex(hl, de);
-189   62F8 EB              ex de, hl
-190   62F9                 ; 101 drawTextS:
-191   62F9             drawTextS: 
-192   62F9                 ; 102 hl = 0;
-193   62F9 21 00 00        ld   hl, 0
-194   62FC                 ; 104 // Две строки?
-195   62FC                 ; 105 if (a != 2)
-196   62FC FE 02           cp   2
-197   62FE                 ; 106 if (flag_nz (a = h) &= 7) a = 1;
-198   62FE CA 09 63        jp   z, l10005
-199   6301 7C              ld   a, h
-200   6302 E6 07           and  7
-201   6304 CA 09 63        jp   z, l10006
-202   6307 3E 01           ld   a, 1
-203   6309                 ; 107 b = a;
-204   6309             l10006: 
-205   6309             l10005: 
-206   6309 47              ld   b, a
-207   630A                 ; 109 // Преобразование адреса из чб в цвет
-208   630A                 ; 110 d = (((a = h) >>= 3) &= 3);
-209   630A 7C              ld   a, h
-210   630B CB 3F           srl  a
-211   630D CB 3F           srl  a
-212   630F CB 3F           srl  a
-213   6311 E6 03           and  3
-214   6313 57              ld   d, a
-215   6314                 ; 111 h = ((((a = h) &= 0xC0) |= 0x18) |= d);
-216   6314 7C              ld   a, h
-217   6315 E6 C0           and  192
-218   6317 F6 18           or   24
-219   6319 B2              or   d
-220   631A 67              ld   h, a
-221   631B                 ; 113 // Ширина
-222   631B                 ; 114 (((a = e) -= l) &= 31);
-223   631B 7B              ld   a, e
-224   631C 95              sub  l
-225   631D E6 1F           and  31
-226   631F                 ; 115 c++; if (flag_nz c--) a++;
-227   631F 0C              inc  c
-228   6320 0D              dec  c
-229   6321 CA 25 63        jp   z, l10007
-230   6324 3C              inc  a
-231   6325                 ; 116 if (flag_nz a |= a)
-232   6325             l10007: 
-233   6325 B7              or   a
-234   6326                 ; 117 {
-235   6326 CA 44 63        jp   z, l10008
-236   6329                 ; 118 c = a;
-237   6329 4F              ld   c, a
-238   632A                 ; 120 // Цвет
-239   632A                 ; 121 ex(a, a);
-240   632A 08              ex   af, af
-241   632B                 ; 123 // Первая строка
-242   632B                 ; 124 push (bc, hl)
-243   632B                 ; 125 {
-244   632B C5              push bc
-245   632C E5              push hl
-246   632D                 ; 126 do
-247   632D             l10009: 
-248   632D                 ; 127 {
-249   632D                 ; 128 *hl = a;
-250   632D 77              ld   (hl), a
-251   632E                 ; 129 hl++;
-252   632E 23              inc  hl
-253   632F                 ; 130 } while(flag_nz --c);
-254   632F 0D              dec  c
-255   6330 C2 2D 63        jp   nz, l10009
-256   6333             l10010: 
-257   6333                 ; 131 }
-258   6333 E1              pop  hl
-259   6334 C1              pop  bc
-260   6335                 ; 133 // Вторая строка
-261   6335                 ; 134 if (flag_nz b & 1)
-262   6335 CB 40           bit  0, b
-263   6337                 ; 135 {
-264   6337 CA 44 63        jp   z, l10011
-265   633A                 ; 136 hl += (de = 32);
-266   633A 11 20 00        ld   de, 32
-267   633D 19              add  hl, de
-268   633E                 ; 137 do
-269   633E             l10012: 
-270   633E                 ; 138 {
-271   633E                 ; 139 *hl = a;
-272   633E 77              ld   (hl), a
-273   633F                 ; 140 hl++;
-274   633F 23              inc  hl
-275   6340                 ; 141 } while(flag_nz --c);
-276   6340 0D              dec  c
-277   6341 C2 3E 63        jp   nz, l10012
-278   6344             l10013: 
-279   6344                 ; 142 }
-280   6344                 ; 143 }
-281   6344             l10011: 
-282   6344                 ; 144 }
-283   6344             l10008: 
-284   6344 E1              pop  hl
-285   6345 D1              pop  de
-286   6346 C1              pop  bc
-287   6347 F1              pop  af
-288   6348                 ; 145 }
-289   6348 C9              ret
-290   6349                 ; 147 uint16_t drawTextTbl[] =
-291   6349                 ; 148 {
-292   6349                 ; 149 0x0000, 0x0000, 0xE64F, 0x00FF,
-293   6349                 ; 150 0x0F00, 0x0000, 0xE64F, 0x807F,
-294   6349                 ; 151 0x0F0F, 0x0000, 0xE64F, 0xC03F,
-295   6349                 ; 152 0x0F0F, 0x000F, 0xE64F, 0xE01F,
-296   6349                 ; 153 0x0F0F, 0x0F0F, 0xE64F, 0xF00F,
-297   6349                 ; 154 0x0707, 0x0700, 0xE64F, 0xF807,
-298   6349                 ; 155 0x0707, 0x0000, 0xE64F, 0xFC03,
-299   6349                 ; 156 0x0700, 0x0000, 0xE64F, 0xFE07
-300   6349                 ; 157 };
-301   6349             drawTextTbl: 
-302   6349 00 00           dw 0
-303   634B 00 00           dw 0
-304   634D 4F E6           dw 58959
-305   634F FF 00           dw 255
-306   6351 00 0F           dw 3840
-307   6353 00 00           dw 0
-308   6355 4F E6           dw 58959
-309   6357 7F 80           dw 32895
-310   6359 0F 0F           dw 3855
-311   635B 00 00           dw 0
-312   635D 4F E6           dw 58959
-313   635F 3F C0           dw 49215
-314   6361 0F 0F           dw 3855
-315   6363 0F 00           dw 15
-316   6365 4F E6           dw 58959
-317   6367 1F E0           dw 57375
-318   6369 0F 0F           dw 3855
-319   636B 0F 0F           dw 3855
-320   636D 4F E6           dw 58959
-321   636F 0F F0           dw 61455
-322   6371 07 07           dw 1799
-323   6373 00 07           dw 1792
-324   6375 4F E6           dw 58959
-325   6377 07 F8           dw 63495
-326   6379 07 07           dw 1799
-327   637B 00 00           dw 0
-328   637D 4F E6           dw 58959
-329   637F 03 FC           dw 64515
-330   6381 00 07           dw 1792
-331   6383 00 00           dw 0
-332   6385 4F E6           dw 58959
-333   6387 07 FE           dw 65031
-334   6389                 ; 159 void drawCharSub()
-335   6389             drawCharSub: 
-336   6389                 ; 160 {
-337   6389                 ; 161 // Функция сохраняет DE
-338   6389                 ; 162 push(de);
-339   6389 D5              push de
-340   638A                 ; 164 // Вычисление адреса символа
-341   638A                 ; 165 push(hl)
-342   638A                 ; 166 {
-343   638A E5              push hl
-344   638B                 ; 167 calcCharAddr(); // Вход A, выход HL, портит DE
-345   638B CD 81 62        call calcCharAddr
-346   638E                 ; 168 ex(hl, de);
-347   638E EB              ex de, hl
-348   638F                 ; 169 }
-349   638F E1              pop  hl
-350   6390                 ; 171 push(hl, bc)
-351   6390                 ; 172 {
-352   6390 E5              push hl
-353   6391 C5              push bc
-354   6392                 ; 173 // Выбор одной из 8 подпрограмм рисования символа
-355   6392                 ; 174 a = c;
-356   6392 79              ld   a, c
-357   6393                 ; 175 ex(bc, de, hl);
-358   6393 D9              exx
-359   6394                 ; 176 l = ((((a += a) += a) += a) += &drawTextTbl);
-360   6394 87              add  a
-361   6395 87              add  a
-362   6396 87              add  a
-363   6397 C6 49           add  drawTextTbl
-364   6399 6F              ld   l, a
-365   639A                 ; 177 h = ((a +@= [&drawTextTbl >> 8]) -= l);
-366   639A CE 63           adc  (drawTextTbl) >> (8)
-367   639C 95              sub  l
-368   639D 67              ld   h, a
-369   639E                 ; 178 de = &C1;
-370   639E 11 AF 63        ld   de, C1
-371   63A1                 ; 179 bc = 7;
-372   63A1 01 07 00        ld   bc, 7
-373   63A4                 ; 180 ldir();
-374   63A4 ED B0           ldir
-375   63A6                 ; 181 de++; de++; de++;
-376   63A6 13              inc  de
-377   63A7 13              inc  de
-378   63A8 13              inc  de
-379   63A9                 ; 182 ldi();
-380   63A9 ED A0           ldi
-381   63AB                 ; 183 ex(bc, de, hl);
-382   63AB D9              exx
-383   63AC                 ; 185 b = 8;
-384   63AC 06 08           ld   b, 8
-385   63AE                 ; 186 do
-386   63AE             l10014: 
-387   63AE                 ; 187 {
-388   63AE                 ; 188 a = *de; // Половинка
-389   63AE 1A              ld   a, (de)
-390   63AF                 ; 189 C1:         nop(); nop(); nop(); nop();
-391   63AF             C1: 
-392   63AF 00              nop
-393   63B0 00              nop
-394   63B1 00              nop
-395   63B2 00              nop
-396   63B3                 ; 190 c = a;
-397   63B3 4F              ld   c, a
-398   63B4                 ; 191 a &= 0;
-399   63B4 E6 00           and  0
-400   63B6                 ; 192 *hl = (a ^= *hl);
-401   63B6 AE              xor  (hl)
-402   63B7 77              ld   (hl), a
-403   63B8                 ; 193 a = 0; // Половинка
-404   63B8 3E 00           ld   a, 0
-405   63BA                 ; 194 a &= c;
-406   63BA A1              and  c
-407   63BB                 ; 195 l++; // влево
-408   63BB 2C              inc  l
-409   63BC                 ; 196 *hl = (a ^= *hl);
-410   63BC AE              xor  (hl)
-411   63BD 77              ld   (hl), a
-412   63BE                 ; 197 l--; // вправо
-413   63BE 2D              dec  l
-414   63BF                 ; 198 h++; // Цикл
-415   63BF 24              inc  h
-416   63C0                 ; 199 (a = h) &= 7;
-417   63C0 7C              ld   a, h
-418   63C1 E6 07           and  7
-419   63C3                 ; 200 if (flag_z) drawCharNextLine();
-420   63C3 CC D8 63        call z, drawCharNextLine
-421   63C6                 ; 201 de++;
-422   63C6 13              inc  de
-423   63C7                 ; 202 } while(--b);
-424   63C7 10 E5           djnz l10014
-425   63C9             l10015: 
-426   63C9                 ; 203 }
-427   63C9 C1              pop  bc
-428   63CA E1              pop  hl
-429   63CB                 ; 205 // Адрес вывода следующего символа на экране
-430   63CB                 ; 206 a = *de; // Ширина символа
-431   63CB 1A              ld   a, (de)
-432   63CC                 ; 207 a += c; // Смещение в пикселях
-433   63CC 81              add  c
-434   63CD                 ; 208 if (a >= 8) { a &= 7; l++; }
-435   63CD FE 08           cp   8
-436   63CF DA D5 63        jp   c, l10016
-437   63D2 E6 07           and  7
-438   63D4 2C              inc  l
-439   63D5                 ; 209 c = a;
-440   63D5             l10016: 
-441   63D5 4F              ld   c, a
-442   63D6                 ; 211 // Функция сохраняет DE
-443   63D6                 ; 212 pop(de);
-444   63D6 D1              pop  de
-445   63D7                 ; 213 }
-446   63D7 C9              ret
-447   63D8                 ; 215 void drawCharNextLine()
-448   63D8             drawCharNextLine: 
-449   63D8                 ; 216 {
-450   63D8                 ; 217 push(de)
-451   63D8                 ; 218 {
-452   63D8 D5              push de
-453   63D9                 ; 219 hl += (de = [0x20 - 0x800]);
-454   63D9 11 20 F8        ld   de, -2016
-455   63DC 19              add  hl, de
-456   63DD                 ; 220 }
-457   63DD D1              pop  de
-458   63DE                 ; 221 (a = h) &= 7;
-459   63DE 7C              ld   a, h
-460   63DF E6 07           and  7
-461   63E1                 ; 222 if (flag_z) return;
-462   63E1 C8              ret  z
-463   63E2                 ; 223 push(de)
-464   63E2                 ; 224 {
-465   63E2 D5              push de
-466   63E3                 ; 225 hl += (de = [0x800 - 0x100]);
-467   63E3 11 00 07        ld   de, 1792
-468   63E6 19              add  hl, de
-469   63E7                 ; 226 }
-470   63E7 D1              pop  de
-471   63E8                 ; 227 }
-472   63E8 C9              ret
-473   63E9             
-001   63E9                 ; 3 // Очистить оба экрана
-002   63E9                 ; 4 // Вход: A - атрбут
-003   63E9                 ; 5 // Сохраняет: A', BC', DE', HL', IY, IX
-004   63E9                 ; 7 void clearScreen()
-005   63E9             clearScreen: 
-006   63E9                 ; 8 {
-007   63E9                 ; 9 // В прерывании не выбирать видеостраницу
-008   63E9                 ; 10 gVideoPage = a = 0;
-009   63E9 3E 00           ld   a, 0
-010   63EB 32 B7 60        ld   (gVideoPage), a
-011   63EE                 ; 12 // Выбрать вторую видеостраницу для записи
-012   63EE                 ; 13 a = gSystemPage;
-013   63EE 3A B8 60        ld   a, (gSystemPage)
-014   63F1                 ; 14 a |= 7;
-015   63F1 F6 07           or   7
-016   63F3                 ; 15 gSystemPage = a;
-017   63F3 32 B8 60        ld   (gSystemPage), a
-018   63F6                 ; 16 out(bc = 0x7FFD, a);
-019   63F6 01 FD 7F        ld   bc, 32765
-020   63F9 ED 79           out  (c), a
-021   63FB                 ; 18 clearScreen1(hl = [0x5B00 - 1]);
-022   63FB 21 FF 5A        ld   hl, 23295
-023   63FE CD 15 64        call clearScreen1
-024   6401                 ; 19 clearScreen1(hl = [0xDB00 - 1]);
-025   6401 21 FF DA        ld   hl, 56063
-026   6404 CD 15 64        call clearScreen1
-027   6407                 ; 21 // Выбрать первую видеостраницу для отображения
-028   6407                 ; 22 a = gSystemPage;
-029   6407 3A B8 60        ld   a, (gSystemPage)
-030   640A                 ; 23 a &= [~8];
-031   640A E6 F7           and  ~(8)
-032   640C                 ; 24 gSystemPage = a;
-033   640C 32 B8 60        ld   (gSystemPage), a
-034   640F                 ; 25 out(bc = 0x7FFD, a);
-035   640F 01 FD 7F        ld   bc, 32765
-036   6412 ED 79           out  (c), a
-037   6414                 ; 26 }
-038   6414 C9              ret
-039   6415                 ; 28 void clearScreen1(hl, a)
-040   6415             clearScreen1: 
-041   6415                 ; 29 {
-042   6415                 ; 30 d = h;
-043   6415 54              ld   d, h
-044   6416                 ; 31 e = l;
-045   6416 5D              ld   e, l
-046   6417                 ; 32 de--;
-047   6417 1B              dec  de
-048   6418                 ; 33 a ^= a;
-049   6418 AF              xor  a
-050   6419                 ; 34 *hl = 0;
-051   6419 36 00           ld   (hl), 0
-052   641B                 ; 35 lddr(bc = [0x1B00 - 1]);
-053   641B 01 FF 1A        ld   bc, 6911
-054   641E ED B8           lddr
-055   6420                 ; 36 }
-056   6420 C9              ret
-057   6421                 ; 38 void beginDraw()
-058   6421             beginDraw: 
-059   6421                 ; 39 {
-060   6421                 ; 40 hl = &gVideoPage;
-061   6421 21 B7 60        ld   hl, gVideoPage
-062   6424                 ; 41 while ((a = *hl) & 1);
-063   6424             l0: 
-064   6424 7E              ld   a, (hl)
-065   6425 CB 47           bit  0, a
-066   6427 CA 2D 64        jp   z, l1
-067   642A C3 24 64        jp   l0
-068   642D             l1: 
-069   642D                 ; 42 a &= 0x7F;
-070   642D E6 7F           and  127
-071   642F                 ; 43 if (flag_z a & 8) a |= 0x80;
-072   642F CB 5F           bit  3, a
-073   6431 C2 36 64        jp   nz, l2
-074   6434 F6 80           or   128
-075   6436                 ; 44 *hl = a;
-076   6436             l2: 
-077   6436 77              ld   (hl), a
-078   6437                 ; 45 }
-079   6437 C9              ret
-080   6438                 ; 47 void endDraw()
-081   6438             endDraw: 
-082   6438                 ; 48 {    
-083   6438                 ; 49 gVideoPage = ((a = gVideoPage) ^= 8 |= 1);
-084   6438 3A B7 60        ld   a, (gVideoPage)
-085   643B EE 08           xor  8
-086   643D F6 01           or   1
-087   643F 32 B7 60        ld   (gVideoPage), a
-088   6442                 ; 50 }
-089   6442 C9              ret
-090   6443                 ; 52 void copyVideoPage()
-091   6443             copyVideoPage: 
-092   6443                 ; 53 {
-093   6443                 ; 54 // Переключаемся на 2-ую страницу и обновляем там панель
-094   6443                 ; 55 beginDraw();
-095   6443 CD 21 64        call beginDraw
-096   6446                 ; 56 panelRedraw();
-097   6446 CD 76 64        call panelRedraw
-098   6449                 ; 57 endDraw();
-099   6449 CD 38 64        call endDraw
-100   644C                 ; 59 // Ждем завершения переключения
-101   644C                 ; 60 hl = &gVideoPage;
-102   644C 21 B7 60        ld   hl, gVideoPage
-103   644F                 ; 61 do {} while (flag_nz *hl & 1);
-104   644F             l3: 
-105   644F CB 46           bit  0, (hl)
-106   6451 C2 4F 64        jp   nz, l3
-107   6454             l4: 
-108   6454                 ; 63 // Копируем 2-ую страницу на первую
-109   6454                 ; 64 ldir(hl = 0xC000, de = 0x4000, bc = 0x1B00);
-110   6454 21 00 C0        ld   hl, 49152
-111   6457 11 00 40        ld   de, 16384
-112   645A 01 00 1B        ld   bc, 6912
-113   645D ED B0           ldir
-114   645F                 ; 65 }
-115   645F C9              ret
-116   6460                 ; 67 void drawPanel()
-117   6460             drawPanel: 
-118   6460                 ; 68 {
-119   6460                 ; 69 // Рисуем панель на нулевой видеостранице
-120   6460                 ; 70 farCall(iyl = &gPanelgraphPage, ix = &gPanelgraph);
-121   6460 FD 2E 06        ld   iyl, gPanelgraphPage
-122   6463 DD 21 03 C0     ld   ix, gPanelgraph
-123   6467 CD A6 61        call farCall
-124   646A                 ; 71 // Копируем её на первую видеостраницу. Для ускорения копируем только нижнюю треть ч/б.
-125   646A                 ; 72 ldir(hl = 0x5000, de = 0xD000, bc = 0xB00);
-126   646A 21 00 50        ld   hl, 20480
-127   646D 11 00 D0        ld   de, 53248
-128   6470 01 00 0B        ld   bc, 2816
-129   6473 ED B0           ldir
-130   6475                 ; 73 }
-131   6475 C9              ret
-132   6476             
-001   6476                 ; 3 const int gPanelChangedMoney = 0x01;
-002   6476                 ; 4 const int gPanelChangedPlace = 0x02;
-003   6476                 ; 6 const int panelMoneyX = 4;
-004   6476                 ; 7 const int panelMoneyY = 22;
-005   6476                 ; 8 const int panelMoneyW = 3;
-006   6476                 ; 9 const int panelMoneyH = 1;
-007   6476                 ; 10 const int panelMoneyColor = 0x4E;
-008   6476                 ; 12 const int panelPlaceX = 4;
-009   6476                 ; 13 const int panelPlaceY = 20;
-010   6476                 ; 14 const int panelPlaceW = 3;
-011   6476                 ; 15 const int panelPlaceH = 1;
-012   6476                 ; 16 const int panelPlaceColor = 0x4E;
-013   6476                 ; 18 void panelRedraw()
-014   6476             panelRedraw: 
-015   6476                 ; 19 {
-016   6476                 ; 20 // Нужно ли перерисовать?
-017   6476                 ; 21 hl = &gPanelChangedA;
-018   6476 21 DC 60        ld   hl, gPanelChangedA
-019   6479                 ; 22 if ((a = gVideoPage) & 0x80) hl++;
-020   6479 3A B7 60        ld   a, (gVideoPage)
-021   647C CB 7F           bit  7, a
-022   647E CA 82 64        jp   z, l6000
-023   6481 23              inc  hl
-024   6482                 ; 23 a = *hl;
-025   6482             l6000: 
-026   6482 7E              ld   a, (hl)
-027   6483                 ; 24 if (flag_z a |= a) return;
-028   6483 B7              or   a
-029   6484 C8              ret  z
-030   6485                 ; 25 *hl = 0;
-031   6485 36 00           ld   (hl), 0
-032   6487                 ; 27 // Надо перерисовать деньги
-033   6487                 ; 28 if (a & gPanelChangedMoney)
-034   6487 CB 47           bit  0, a
-035   6489                 ; 29 {
-036   6489 CA C5 64        jp   z, l6001
-037   648C                 ; 30 push(a)
-038   648C                 ; 31 {
-039   648C F5              push af
-040   648D                 ; 32 numberToString16(hl = &gStringBuffer, de = gPlayerMoney);
-041   648D 21 96 60        ld   hl, gStringBuffer
-042   6490 ED 5B BB 60     ld   de, (gPlayerMoney)
-043   6494 CD F3 6A        call numberToString16
-044   6497                 ; 34 hl = &gStringBuffer;
-045   6497 21 96 60        ld   hl, gStringBuffer
-046   649A                 ; 35 while()
-047   649A             l6002: 
-048   649A                 ; 36 {
-049   649A                 ; 37 (a = *hl) -= [48 - 22];
-050   649A 7E              ld   a, (hl)
-051   649B D6 1A           sub  26
-052   649D                 ; 38 if (flag_c) break;
-053   649D DA A5 64        jp   c, l6003
-054   64A0                 ; 39 *hl = a; hl++;
-055   64A0 77              ld   (hl), a
-056   64A1 23              inc  hl
-057   64A2                 ; 40 }
-058   64A2 C3 9A 64        jp   l6002
-059   64A5             l6003: 
-060   64A5                 ; 41 hl++; *hl = 2;
-061   64A5 23              inc  hl
-062   64A6 36 02           ld   (hl), 2
-063   64A8                 ; 43 gCalcCoords(hl = [panelMoneyY * 8 * 256 + panelMoneyX * 8]);
-064   64A8 21 20 B0        ld   hl, 45088
-065   64AB CD 75 60        call gCalcCoords
-066   64AE                 ; 44 fillRect(hl, bc = [panelMoneyH * 256 + panelMoneyW]);
-067   64AE 01 03 01        ld   bc, 259
-068   64B1 CD C9 6A        call fillRect
-069   64B4                 ; 46 gCalcCoords(hl = [(panelMoneyY * 8 + 2) * 256 + panelMoneyX * 8]);
-070   64B4 21 20 B2        ld   hl, 45600
-071   64B7 CD 75 60        call gCalcCoords
-072   64BA                 ; 47 gDrawText(hl, c = 0, de = &gStringBuffer, a = panelMoneyColor);
-073   64BA 0E 00           ld   c, 0
-074   64BC 11 96 60        ld   de, gStringBuffer
-075   64BF 3E 4E           ld   a, 78
-076   64C1 CD 63 60        call gDrawText
-077   64C4                 ; 48 }
-078   64C4 F1              pop  af
-079   64C5                 ; 49 }
-080   64C5                 ; 50 /*
-081   64C5                 ; 64 }
-082   64C5             l6001: 
-083   64C5 C9              ret
-084   64C6             
-001   64C6             image_font: 
-002   64C6                 db 008h, 010h, 020h, 040h, 080h, 000h, 000h, 000h, 6 ; 0
-002   64C6 081020408000000006
-003   64CF                 db 060h, 090h, 090h, 090h, 060h, 000h, 000h, 000h, 5 ; 1
-003   64CF 609090906000000005
-004   64D8                 db 040h, 0C0h, 040h, 040h, 0E0h, 000h, 000h, 000h, 4 ; 2
-004   64D8 40C04040E000000004
-005   64E1                 db 060h, 090h, 020h, 040h, 0F0h, 000h, 000h, 000h, 5 ; 3
-005   64E1 60902040F000000005
-006   64EA                 db 060h, 090h, 020h, 090h, 060h, 000h, 000h, 000h, 5 ; 4
-006   64EA 609020906000000005
-007   64F3                 db 090h, 090h, 0F0h, 010h, 010h, 000h, 000h, 000h, 5 ; 5
-007   64F3 9090F0101000000005
-008   64FC                 db 0F0h, 080h, 0E0h, 010h, 0E0h, 000h, 000h, 000h, 5 ; 6
-008   64FC F080E010E000000005
-009   6505                 db 060h, 080h, 0E0h, 090h, 060h, 000h, 000h, 000h, 5 ; 7
-009   6505 6080E0906000000005
-010   650E                 db 0F0h, 010h, 020h, 040h, 040h, 000h, 000h, 000h, 5 ; 8
-010   650E F01020404000000005
-011   6517                 db 060h, 090h, 060h, 090h, 060h, 000h, 000h, 000h, 5 ; 9
-011   6517 609060906000000005
-012   6520                 db 060h, 090h, 070h, 010h, 060h, 000h, 000h, 000h, 5 ; 10
-012   6520 609070106000000005
-013   6529                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 4 ; 11
-013   6529 000000000000000004
-014   6532                 db 020h, 020h, 020h, 020h, 020h, 000h, 020h, 000h, 6 ; 12
-014   6532 202020202000200006
-015   653B                 db 050h, 050h, 050h, 000h, 000h, 000h, 000h, 000h, 6 ; 13
-015   653B 505050000000000006
-016   6544                 db 050h, 050h, 0F8h, 050h, 0F8h, 050h, 050h, 000h, 6 ; 14
-016   6544 5050F850F850500006
-017   654D                 db 088h, 070h, 088h, 088h, 088h, 070h, 088h, 000h, 6 ; 15
-017   654D 887088888870880006
-018   6556                 db 0C0h, 0C8h, 010h, 020h, 040h, 098h, 018h, 000h, 6 ; 16
-018   6556 C0C810204098180006
-019   655F                 db 040h, 0A0h, 0A0h, 040h, 0A8h, 090h, 068h, 000h, 6 ; 17
-019   655F 40A0A040A890680006
-020   6568                 db 020h, 020h, 020h, 000h, 000h, 000h, 000h, 000h, 6 ; 18
-020   6568 202020000000000006
-021   6571                 db 020h, 040h, 080h, 080h, 080h, 040h, 020h, 000h, 4 ; 19
-021   6571 204080808040200004
-022   657A                 db 080h, 040h, 020h, 020h, 020h, 040h, 080h, 000h, 4 ; 20
-022   657A 804020202040800004
-023   6583                 db 000h, 000h, 000h, 050h, 020h, 050h, 000h, 000h, 6 ; 21
-023   6583 000000502050000006
-024   658C                 db 000h, 020h, 020h, 0F8h, 020h, 020h, 000h, 000h, 6 ; 22
-024   658C 002020F82020000006
-025   6595                 db 000h, 000h, 000h, 000h, 000h, 000h, 040h, 080h, 3 ; 23
-025   6595 000000000000408003
-026   659E                 db 000h, 000h, 000h, 0F0h, 000h, 000h, 000h, 000h, 5 ; 24
-026   659E 000000F00000000005
-027   65A7                 db 000h, 000h, 000h, 000h, 000h, 000h, 040h, 000h, 4 ; 25
-027   65A7 000000000000400004
-028   65B0                 db 000h, 008h, 010h, 020h, 040h, 080h, 000h, 000h, 6 ; 26
-028   65B0 000810204080000006
-029   65B9                 db 060h, 090h, 090h, 090h, 090h, 090h, 060h, 000h, 5 ; 27
-029   65B9 609090909090600005
-030   65C2                 db 040h, 0C0h, 040h, 040h, 040h, 040h, 0E0h, 000h, 4 ; 28
-030   65C2 40C040404040E00004
-031   65CB                 db 060h, 090h, 010h, 020h, 040h, 080h, 0F0h, 000h, 5 ; 29
-031   65CB 609010204080F00005
-032   65D4                 db 060h, 090h, 010h, 020h, 010h, 090h, 060h, 000h, 5 ; 30
-032   65D4 609010201090600005
-033   65DD                 db 010h, 030h, 050h, 090h, 0F0h, 010h, 010h, 000h, 5 ; 31
-033   65DD 10305090F010100005
-034   65E6                 db 0F0h, 080h, 0E0h, 010h, 010h, 010h, 0E0h, 000h, 5 ; 32
-034   65E6 F080E0101010E00005
-035   65EF                 db 060h, 080h, 0E0h, 090h, 090h, 090h, 060h, 000h, 5 ; 33
-035   65EF 6080E0909090600005
-036   65F8                 db 0F0h, 010h, 020h, 020h, 040h, 040h, 040h, 000h, 5 ; 34
-036   65F8 F01020204040400005
-037   6601                 db 060h, 090h, 090h, 060h, 090h, 090h, 060h, 000h, 5 ; 35
-037   6601 609090609090600005
-038   660A                 db 060h, 090h, 090h, 070h, 010h, 010h, 060h, 000h, 5 ; 36
-038   660A 609090701010600005
-039   6613                 db 000h, 000h, 040h, 000h, 000h, 040h, 000h, 000h, 4 ; 37
-039   6613 000040000040000004
-040   661C                 db 000h, 000h, 040h, 000h, 000h, 040h, 040h, 000h, 4 ; 38
-040   661C 000040000040400004
-041   6625                 db 010h, 020h, 040h, 080h, 040h, 020h, 010h, 000h, 5 ; 39
-041   6625 102040804020100005
-042   662E                 db 000h, 000h, 0F8h, 000h, 0F8h, 000h, 000h, 000h, 6 ; 40
-042   662E 0000F800F800000006
-043   6637                 db 040h, 020h, 010h, 008h, 010h, 020h, 040h, 000h, 7 ; 41
-043   6637 402010081020400007
-044   6640                 db 060h, 090h, 010h, 020h, 020h, 000h, 020h, 000h, 5 ; 42
-044   6640 609010202000200005
-045   6649                 db 000h, 040h, 060h, 070h, 060h, 040h, 000h, 000h, 6 ; 43
-045   6649 004060706040000006
-046   6652                 db 020h, 050h, 088h, 088h, 0F8h, 088h, 088h, 000h, 6 ; 44
-046   6652 20508888F888880006
-047   665B                 db 0F0h, 088h, 088h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 45
-047   665B F08888F08888F00006
-048   6664                 db 070h, 088h, 080h, 080h, 080h, 088h, 070h, 000h, 6 ; 46
-048   6664 708880808088700006
-049   666D                 db 0F0h, 088h, 088h, 088h, 088h, 088h, 0F0h, 000h, 6 ; 47
-049   666D F08888888888F00006
-050   6676                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 0F8h, 000h, 6 ; 48
-050   6676 F88080F08080F80006
-051   667F                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 080h, 000h, 6 ; 49
-051   667F F88080F08080800006
-052   6688                 db 078h, 080h, 080h, 080h, 098h, 088h, 078h, 000h, 6 ; 50
-052   6688 788080809888780006
-053   6691                 db 088h, 088h, 088h, 0F8h, 088h, 088h, 088h, 000h, 6 ; 51
-053   6691 888888F88888880006
-054   669A                 db 070h, 020h, 020h, 020h, 020h, 020h, 070h, 000h, 6 ; 52
-054   669A 702020202020700006
-055   66A3                 db 008h, 008h, 008h, 008h, 008h, 088h, 070h, 000h, 6 ; 53
-055   66A3 080808080888700006
-056   66AC                 db 088h, 090h, 0A0h, 0C0h, 0A0h, 090h, 088h, 000h, 6 ; 54
-056   66AC 8890A0C0A090880006
-057   66B5                 db 080h, 080h, 080h, 080h, 080h, 080h, 0F8h, 000h, 6 ; 55
-057   66B5 808080808080F80006
-058   66BE                 db 088h, 0D8h, 0A8h, 0A8h, 088h, 088h, 088h, 000h, 6 ; 56
-058   66BE 88D8A8A88888880006
-059   66C7                 db 088h, 088h, 0C8h, 0A8h, 098h, 088h, 088h, 000h, 6 ; 57
-059   66C7 8888C8A89888880006
-060   66D0                 db 070h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 58
-060   66D0 708888888888700006
-061   66D9                 db 0F0h, 088h, 088h, 0F0h, 080h, 080h, 080h, 000h, 6 ; 59
-061   66D9 F08888F08080800006
-062   66E2                 db 070h, 088h, 088h, 088h, 0A8h, 090h, 068h, 000h, 6 ; 60
-062   66E2 70888888A890680006
-063   66EB                 db 0F0h, 088h, 088h, 0F0h, 0A0h, 090h, 088h, 000h, 6 ; 61
-063   66EB F08888F0A090880006
-064   66F4                 db 070h, 088h, 080h, 070h, 008h, 088h, 070h, 000h, 6 ; 62
-064   66F4 708880700888700006
-065   66FD                 db 0F8h, 020h, 020h, 020h, 020h, 020h, 020h, 000h, 6 ; 63
-065   66FD F82020202020200006
-066   6706                 db 088h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 64
-066   6706 888888888888700006
-067   670F                 db 088h, 088h, 088h, 088h, 088h, 050h, 020h, 000h, 6 ; 65
-067   670F 888888888850200006
-068   6718                 db 088h, 088h, 088h, 0A8h, 0A8h, 0D8h, 088h, 000h, 6 ; 66
-068   6718 888888A8A8D8880006
-069   6721                 db 088h, 088h, 050h, 020h, 050h, 088h, 088h, 000h, 6 ; 67
-069   6721 888850205088880006
-070   672A                 db 088h, 088h, 050h, 020h, 020h, 020h, 020h, 000h, 6 ; 68
-070   672A 888850202020200006
-071   6733                 db 0F8h, 008h, 010h, 020h, 040h, 080h, 0F8h, 000h, 6 ; 69
-071   6733 F80810204080F80006
-072   673C                 db 078h, 040h, 040h, 040h, 040h, 040h, 078h, 000h, 7 ; 70
-072   673C 784040404040780007
-073   6745                 db 000h, 080h, 040h, 020h, 010h, 008h, 000h, 000h, 6 ; 71
-073   6745 008040201008000006
-074   674E                 db 0F0h, 010h, 010h, 010h, 010h, 010h, 0F0h, 000h, 5 ; 72
-074   674E F01010101010F00005
-075   6757                 db 000h, 020h, 050h, 088h, 000h, 000h, 000h, 000h, 6 ; 73
-075   6757 002050880000000006
-076   6760                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 0FCh, 7 ; 74
-076   6760 00000000000000FC07
-077   6769                 db 040h, 020h, 010h, 000h, 000h, 000h, 000h, 000h, 6 ; 75
-077   6769 402010000000000006
-078   6772                 db 000h, 000h, 060h, 010h, 070h, 090h, 070h, 000h, 5 ; 76
-078   6772 000060107090700005
-079   677B                 db 080h, 080h, 0E0h, 090h, 090h, 090h, 0E0h, 000h, 5 ; 77
-079   677B 8080E0909090E00005
-080   6784                 db 000h, 000h, 070h, 080h, 080h, 080h, 070h, 000h, 5 ; 78
-080   6784 000070808080700005
-081   678D                 db 010h, 010h, 070h, 090h, 090h, 090h, 070h, 000h, 5 ; 79
-081   678D 101070909090700005
-082   6796                 db 000h, 000h, 060h, 090h, 0F0h, 080h, 060h, 000h, 5 ; 80
-082   6796 00006090F080600005
-083   679F                 db 030h, 048h, 040h, 0F0h, 040h, 040h, 040h, 000h, 6 ; 81
-083   679F 304840F04040400006
-084   67A8                 db 000h, 000h, 070h, 090h, 090h, 070h, 010h, 060h, 5 ; 82
-084   67A8 000070909070106005
-085   67B1                 db 080h, 080h, 0E0h, 090h, 090h, 090h, 090h, 000h, 5 ; 83
-085   67B1 8080E0909090900005
-086   67BA                 db 080h, 000h, 080h, 080h, 080h, 080h, 080h, 000h, 2 ; 84
-086   67BA 800080808080800002
-087   67C3                 db 010h, 000h, 030h, 010h, 010h, 010h, 090h, 060h, 5 ; 85
-087   67C3 100030101010906005
-088   67CC                 db 080h, 080h, 090h, 0A0h, 0C0h, 0A0h, 090h, 000h, 5 ; 86
-088   67CC 808090A0C0A0900005
-089   67D5                 db 080h, 080h, 080h, 080h, 080h, 080h, 080h, 000h, 2 ; 87
-089   67D5 808080808080800002
-090   67DE                 db 000h, 000h, 0D8h, 0A8h, 0A8h, 0A8h, 0A8h, 000h, 6 ; 88
-090   67DE 0000D8A8A8A8A80006
-091   67E7                 db 000h, 000h, 0A0h, 0D0h, 090h, 090h, 090h, 000h, 5 ; 89
-091   67E7 0000A0D09090900005
-092   67F0                 db 000h, 000h, 060h, 090h, 090h, 090h, 060h, 000h, 5 ; 90
-092   67F0 000060909090600005
-093   67F9                 db 000h, 000h, 0E0h, 090h, 090h, 0E0h, 080h, 080h, 5 ; 91
-093   67F9 0000E09090E0808005
-094   6802                 db 000h, 000h, 070h, 090h, 090h, 070h, 010h, 010h, 5 ; 92
-094   6802 000070909070101005
-095   680B                 db 000h, 000h, 0B0h, 0C0h, 080h, 080h, 080h, 000h, 5 ; 93
-095   680B 0000B0C08080800005
-096   6814                 db 000h, 000h, 060h, 080h, 060h, 010h, 060h, 000h, 5 ; 94
-096   6814 000060806010600005
-097   681D                 db 040h, 040h, 0E0h, 040h, 040h, 040h, 030h, 000h, 5 ; 95
-097   681D 4040E0404040300005
-098   6826                 db 000h, 000h, 090h, 090h, 090h, 0B0h, 050h, 000h, 5 ; 96
-098   6826 0000909090B0500005
-099   682F                 db 000h, 000h, 088h, 088h, 050h, 050h, 020h, 000h, 6 ; 97
-099   682F 000088885050200006
-100   6838                 db 000h, 000h, 088h, 088h, 0A8h, 0A8h, 050h, 000h, 6 ; 98
-100   6838 00008888A8A8500006
-101   6841                 db 000h, 000h, 088h, 050h, 020h, 050h, 088h, 000h, 6 ; 99
-101   6841 000088502050880006
-102   684A                 db 000h, 000h, 090h, 090h, 090h, 070h, 010h, 060h, 5 ; 100
-102   684A 000090909070106005
-103   6853                 db 000h, 000h, 0F0h, 020h, 040h, 080h, 0F0h, 000h, 5 ; 101
-103   6853 0000F0204080F00005
-104   685C                 db 000h, 000h, 048h, 090h, 048h, 000h, 000h, 000h, 6 ; 102
-104   685C 000048904800000006
-105   6865                 db 078h, 084h, 0B4h, 0A4h, 0B4h, 084h, 078h, 000h, 7 ; 103
-105   6865 7884B4A4B484780007
-106   686E                 db 000h, 000h, 090h, 048h, 090h, 000h, 000h, 000h, 6 ; 104
-106   686E 000090489000000006
-107   6877                 db 0FCh, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 7 ; 105
-107   6877 FC0000000000000007
-108   6880                 db 050h, 000h, 070h, 088h, 0F8h, 080h, 078h, 000h, 6 ; 106
-108   6880 50007088F880780006
-109   6889                 db 070h, 088h, 088h, 088h, 0F8h, 088h, 088h, 000h, 6 ; 107
-109   6889 70888888F888880006
-110   6892                 db 0F8h, 080h, 080h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 108
-110   6892 F88080F08888F00006
-111   689B                 db 0F0h, 088h, 088h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 109
-111   689B F08888F08888F00006
-112   68A4                 db 0F8h, 080h, 080h, 080h, 080h, 080h, 080h, 000h, 6 ; 110
-112   68A4 F88080808080800006
-113   68AD                 db 038h, 048h, 048h, 048h, 048h, 048h, 0FCh, 084h, 7 ; 111
-113   68AD 384848484848FC8407
-114   68B6                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 0F8h, 000h, 6 ; 112
-114   68B6 F88080F08080F80006
-115   68BF                 db 0A8h, 0A8h, 0A8h, 070h, 0A8h, 0A8h, 0A8h, 000h, 6 ; 113
-115   68BF A8A8A870A8A8A80006
-116   68C8                 db 070h, 088h, 008h, 030h, 008h, 088h, 070h, 000h, 6 ; 114
-116   68C8 708808300888700006
-117   68D1                 db 088h, 088h, 098h, 0A8h, 0C8h, 088h, 088h, 000h, 6 ; 115
-117   68D1 888898A8C888880006
-118   68DA                 db 088h, 088h, 098h, 0A8h, 0C8h, 088h, 088h, 000h, 6 ; 116
-118   68DA 888898A8C888880006
-119   68E3                 db 088h, 090h, 0A0h, 0C0h, 0A0h, 090h, 088h, 000h, 6 ; 117
-119   68E3 8890A0C0A090880006
-120   68EC                 db 018h, 028h, 048h, 088h, 088h, 088h, 088h, 000h, 6 ; 118
-120   68EC 182848888888880006
-121   68F5                 db 088h, 0D8h, 0A8h, 088h, 088h, 088h, 088h, 000h, 6 ; 119
-121   68F5 88D8A8888888880006
-122   68FE                 db 088h, 088h, 088h, 0F8h, 088h, 088h, 088h, 000h, 6 ; 120
-122   68FE 888888F88888880006
-123   6907                 db 070h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 121
-123   6907 708888888888700006
-124   6910                 db 0F8h, 088h, 088h, 088h, 088h, 088h, 088h, 000h, 6 ; 122
-124   6910 F88888888888880006
-125   6919                 db 0F0h, 088h, 088h, 088h, 0F0h, 080h, 080h, 000h, 6 ; 123
-125   6919 F0888888F080800006
-126   6922                 db 070h, 088h, 080h, 080h, 080h, 088h, 070h, 000h, 6 ; 124
-126   6922 708880808088700006
-127   692B                 db 0F8h, 020h, 020h, 020h, 020h, 020h, 020h, 000h, 6 ; 125
-127   692B F82020202020200006
-128   6934                 db 088h, 088h, 088h, 078h, 008h, 088h, 070h, 000h, 6 ; 126
-128   6934 888888780888700006
-129   693D                 db 020h, 070h, 0A8h, 0A8h, 0A8h, 070h, 020h, 000h, 6 ; 127
-129   693D 2070A8A8A870200006
-130   6946                 db 088h, 088h, 050h, 020h, 050h, 088h, 088h, 000h, 6 ; 128
-130   6946 888850205088880006
-131   694F                 db 090h, 090h, 090h, 090h, 090h, 090h, 0F8h, 008h, 6 ; 129
-131   694F 909090909090F80806
-132   6958                 db 088h, 088h, 088h, 078h, 008h, 008h, 008h, 000h, 6 ; 130
-132   6958 888888780808080006
-133   6961                 db 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0F8h, 000h, 6 ; 131
-133   6961 A8A8A8A8A8A8F80006
-134   696A                 db 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0FCh, 004h, 7 ; 132
-134   696A A8A8A8A8A8A8FC0407
-135   6973                 db 0C0h, 040h, 070h, 048h, 048h, 048h, 070h, 000h, 6 ; 133
-135   6973 C04070484848700006
-136   697C                 db 084h, 084h, 0E4h, 094h, 094h, 094h, 0E4h, 000h, 7 ; 134
-136   697C 8484E4949494E40007
-137   6985                 db 080h, 080h, 0F0h, 088h, 088h, 088h, 0F0h, 000h, 6 ; 135
-137   6985 8080F0888888F00006
-138   698E                 db 070h, 088h, 008h, 078h, 008h, 088h, 070h, 000h, 6 ; 136
-138   698E 708808780888700006
-139   6997                 db 090h, 0A8h, 0A8h, 0E8h, 0A8h, 0A8h, 090h, 000h, 6 ; 137
-139   6997 90A8A8E8A8A8900006
-140   69A0                 db 078h, 088h, 088h, 088h, 078h, 048h, 088h, 000h, 6 ; 138
-140   69A0 788888887848880006
-141   69A9                 db 000h, 000h, 060h, 010h, 070h, 090h, 070h, 000h, 5 ; 139
-141   69A9 000060107090700005
-142   69B2                 db 000h, 000h, 0E0h, 080h, 0E0h, 090h, 0E0h, 000h, 5 ; 140
-142   69B2 0000E080E090E00005
-143   69BB                 db 000h, 000h, 0E0h, 090h, 0E0h, 090h, 0E0h, 000h, 5 ; 141
-143   69BB 0000E090E090E00005
-144   69C4                 db 000h, 000h, 0E0h, 080h, 080h, 080h, 080h, 000h, 4 ; 142
-144   69C4 0000E0808080800004
-145   69CD                 db 000h, 000h, 030h, 050h, 050h, 050h, 0F8h, 088h, 6 ; 143
-145   69CD 000030505050F88806
-146   69D6                 db 000h, 000h, 060h, 090h, 0F0h, 080h, 060h, 000h, 5 ; 144
-146   69D6 00006090F080600005
-147   69DF                 db 000h, 000h, 0A8h, 0A8h, 070h, 0A8h, 0A8h, 000h, 6 ; 145
-147   69DF 0000A8A870A8A80006
-148   69E8                 db 000h, 000h, 060h, 090h, 020h, 090h, 060h, 000h, 5 ; 146
-148   69E8 000060902090600005
-149   69F1                 db 000h, 000h, 090h, 090h, 0B0h, 0D0h, 090h, 000h, 5 ; 147
-149   69F1 00009090B0D0900005
-150   69FA                 db 060h, 000h, 090h, 090h, 0B0h, 0D0h, 090h, 000h, 5 ; 148
-150   69FA 60009090B0D0900005
-151   6A03                 db 000h, 000h, 090h, 0A0h, 0C0h, 0A0h, 090h, 000h, 5 ; 149
-151   6A03 000090A0C0A0900005
-152   6A0C                 db 000h, 000h, 030h, 050h, 090h, 090h, 090h, 000h, 5 ; 150
-152   6A0C 000030509090900005
-153   6A15                 db 000h, 000h, 088h, 0D8h, 0A8h, 088h, 088h, 000h, 6 ; 151
-153   6A15 000088D8A888880006
-154   6A1E                 db 000h, 000h, 090h, 090h, 0F0h, 090h, 090h, 000h, 5 ; 152
-154   6A1E 00009090F090900005
-155   6A27                 db 000h, 000h, 060h, 090h, 090h, 090h, 060h, 000h, 5 ; 153
-155   6A27 000060909090600005
-156   6A30                 db 000h, 000h, 0F0h, 090h, 090h, 090h, 090h, 000h, 5 ; 154
-156   6A30 0000F0909090900005
-157   6A39                 db 000h, 000h, 0E0h, 090h, 090h, 0E0h, 080h, 000h, 5 ; 155
-157   6A39 0000E09090E0800005
-158   6A42                 db 000h, 000h, 060h, 090h, 080h, 090h, 060h, 000h, 5 ; 156
-158   6A42 000060908090600005
-159   6A4B                 db 000h, 000h, 0E0h, 040h, 040h, 040h, 040h, 000h, 4 ; 157
-159   6A4B 0000E0404040400004
-160   6A54                 db 000h, 000h, 090h, 090h, 070h, 010h, 060h, 000h, 5 ; 158
-160   6A54 000090907010600005
-161   6A5D                 db 000h, 020h, 070h, 0A8h, 0A8h, 0A8h, 070h, 020h, 6 ; 159
-161   6A5D 002070A8A8A8702006
-162   6A66                 db 000h, 000h, 090h, 090h, 060h, 090h, 090h, 000h, 5 ; 160
-162   6A66 000090906090900005
-163   6A6F                 db 000h, 000h, 090h, 090h, 090h, 090h, 0F8h, 008h, 6 ; 161
-163   6A6F 000090909090F80806
-164   6A78                 db 000h, 000h, 090h, 090h, 070h, 010h, 010h, 000h, 5 ; 162
-164   6A78 000090907010100005
-165   6A81                 db 000h, 000h, 0A8h, 0A8h, 0A8h, 0A8h, 0F8h, 000h, 6 ; 163
-165   6A81 0000A8A8A8A8F80006
-166   6A8A                 db 000h, 000h, 0A8h, 0A8h, 0A8h, 0A8h, 0FCh, 004h, 7 ; 164
-166   6A8A 0000A8A8A8A8FC0407
-167   6A93                 db 000h, 000h, 0C0h, 070h, 048h, 048h, 070h, 000h, 6 ; 165
-167   6A93 0000C0704848700006
-168   6A9C                 db 000h, 000h, 084h, 0E4h, 094h, 094h, 0E4h, 000h, 7 ; 166
-168   6A9C 000084E49494E40007
-169   6AA5                 db 000h, 000h, 080h, 0E0h, 090h, 090h, 0E0h, 000h, 5 ; 167
-169   6AA5 000080E09090E00005
-170   6AAE                 db 000h, 000h, 0E0h, 010h, 070h, 010h, 0E0h, 000h, 5 ; 168
-170   6AAE 0000E0107010E00005
-171   6AB7                 db 000h, 000h, 098h, 0A4h, 0E4h, 0A4h, 098h, 000h, 7 ; 169
-171   6AB7 000098A4E4A4980007
-172   6AC0                 db 000h, 000h, 070h, 090h, 090h, 070h, 090h, 000h, 5 ; 170
-172   6AC0 000070909070900005
-173   6AC9             
-001   6AC9                 ; 3 void fillRect(hl, bc)
-002   6AC9             fillRect: 
-003   6AC9                 ; 4 {
-004   6AC9                 ; 5 ixl = b;
-005   6AC9 DD 68           ld   ixl, b
-006   6ACB                 ; 6 do
-007   6ACB             l3000: 
-008   6ACB                 ; 7 {
-009   6ACB                 ; 8 a ^= a;
-010   6ACB AF              xor  a
-011   6ACC                 ; 9 d = h; e = l;
-012   6ACC 54              ld   d, h
-013   6ACD 5D              ld   e, l
-014   6ACE                 ; 10 b = c;
-015   6ACE 41              ld   b, c
-016   6ACF                 ; 11 do
-017   6ACF             l3002: 
-018   6ACF                 ; 12 {
-019   6ACF                 ; 13 *hl = a; h++;
-020   6ACF 77              ld   (hl), a
-021   6AD0 24              inc  h
-022   6AD1                 ; 14 *hl = a; h++;
-023   6AD1 77              ld   (hl), a
-024   6AD2 24              inc  h
-025   6AD3                 ; 15 *hl = a; h++;
-026   6AD3 77              ld   (hl), a
-027   6AD4 24              inc  h
-028   6AD5                 ; 16 *hl = a; h++;
-029   6AD5 77              ld   (hl), a
-030   6AD6 24              inc  h
-031   6AD7                 ; 17 *hl = a; h++;
-032   6AD7 77              ld   (hl), a
-033   6AD8 24              inc  h
-034   6AD9                 ; 18 *hl = a; h++;
-035   6AD9 77              ld   (hl), a
-036   6ADA 24              inc  h
-037   6ADB                 ; 19 *hl = a; h++;
-038   6ADB 77              ld   (hl), a
-039   6ADC 24              inc  h
-040   6ADD                 ; 20 *hl = a; h = d;
-041   6ADD 77              ld   (hl), a
-042   6ADE 62              ld   h, d
-043   6ADF                 ; 21 l++;
-044   6ADF 2C              inc  l
-045   6AE0                 ; 22 } while(--b);
-046   6AE0 10 ED           djnz l3002
-047   6AE2             l3003: 
-048   6AE2                 ; 24 // Адрес следующей строки
-049   6AE2                 ; 25 l = ((a = e) += 32);
-050   6AE2 7B              ld   a, e
-051   6AE3 C6 20           add  32
-052   6AE5 6F              ld   l, a
-053   6AE6                 ; 26 if (flag_c) h = ((a = h) += 8);
-054   6AE6 D2 ED 6A        jp   nc, l3004
-055   6AE9 7C              ld   a, h
-056   6AEA C6 08           add  8
-057   6AEC 67              ld   h, a
-058   6AED                 ; 27 } while(flag_nz --ixl);
-059   6AED             l3004: 
-060   6AED DD 2D           dec  ixl
-061   6AEF C2 CB 6A        jp   nz, l3000
-062   6AF2             l3001: 
-063   6AF2                 ; 28 }
-064   6AF2 C9              ret
-065   6AF3             
-001   6AF3                 ; 3 void numberToString16(hl, de)
-002   6AF3             numberToString16: 
-003   6AF3                 ; 4 {
-004   6AF3                 ; 5 *[&uint16_to_str_addr + 1] = hl;
-005   6AF3 22 09 6B        ld   ((uint16_to_str_addr) + (1)), hl
-006   6AF6                 ; 7 // Терминатор
-007   6AF6                 ; 8 a ^= a;
-008   6AF6 AF              xor  a
-009   6AF7                 ; 9 push(a);
-010   6AF7 F5              push af
-011   6AF8                 ; 11 // Разделение числа на цифры
-012   6AF8                 ; 12 ex(hl, de);
-013   6AF8 EB              ex de, hl
-014   6AF9                 ; 13 do
-015   6AF9             l7000: 
-016   6AF9                 ; 14 {
-017   6AF9                 ; 15 div16(hl, de = 10);
-018   6AF9 11 0A 00        ld   de, 10
-019   6AFC CD 16 6B        call div16
-020   6AFF                 ; 16 (a = e) += '0';
-021   6AFF 7B              ld   a, e
-022   6B00 C6 30           add  48
-023   6B02                 ; 17 push(a);
-024   6B02 F5              push af
-025   6B03                 ; 18 } while (flag_nz (a = h) |= l);
-026   6B03 7C              ld   a, h
-027   6B04 B5              or   l
-028   6B05 C2 F9 6A        jp   nz, l7000
-029   6B08             l7001: 
-030   6B08                 ; 20 // Вывод в строку
-031   6B08                 ; 21 uint16_to_str_addr:
-032   6B08             uint16_to_str_addr: 
-033   6B08                 ; 22 de = 0;
-034   6B08 11 00 00        ld   de, 0
-035   6B0B                 ; 23 do
-036   6B0B             l7002: 
-037   6B0B                 ; 24 {
-038   6B0B                 ; 25 pop(a);
-039   6B0B F1              pop  af
-040   6B0C                 ; 26 *de = a; de++;
-041   6B0C 12              ld   (de), a
-042   6B0D 13              inc  de
-043   6B0E                 ; 27 } while(flag_nz a |= a);
-044   6B0E B7              or   a
-045   6B0F C2 0B 6B        jp   nz, l7002
-046   6B12             l7003: 
-047   6B12                 ; 28 de--;
-048   6B12 1B              dec  de
-049   6B13                 ; 29 hl = de;
-050   6B13 62              ld   h, d
-051   6B14 6B              ld   l, e
-052   6B15                 ; 30 }
-053   6B15 C9              ret
-054   6B16                 ; 32 void div16()
-055   6B16             div16: 
-056   6B16                 ; 33 {
-057   6B16                 ; 34 ex(hl, de);
-058   6B16 EB              ex de, hl
-059   6B17                 ; 35 if (flag_z (a = h) |= l) return; // Деление на ноль
-060   6B17 7C              ld   a, h
-061   6B18 B5              or   l
-062   6B19 C8              ret  z
-063   6B1A                 ; 36 bc = 0;
-064   6B1A 01 00 00        ld   bc, 0
-065   6B1D                 ; 37 push(bc);
-066   6B1D C5              push bc
-067   6B1E                 ; 38 do
-068   6B1E             l7004: 
-069   6B1E                 ; 39 {
-070   6B1E                 ; 40 (a = e) -= l;
-071   6B1E 7B              ld   a, e
-072   6B1F 95              sub  l
-073   6B20                 ; 41 (a = d) -@= h;
-074   6B20 7A              ld   a, d
-075   6B21 9C              sbc  h
-076   6B22                 ; 42 if (flag_c) break;
-077   6B22 DA 2A 6B        jp   c, l7005
-078   6B25                 ; 43 push(hl);
-079   6B25 E5              push hl
-080   6B26                 ; 44 hl += hl;
-081   6B26 29              add  hl, hl
-082   6B27                 ; 45 } while(flag_nc);
-083   6B27 D2 1E 6B        jp   nc, l7004
-084   6B2A             l7005: 
-085   6B2A                 ; 46 hl = 0;
-086   6B2A 21 00 00        ld   hl, 0
-087   6B2D                 ; 47 while()
-088   6B2D             l7006: 
-089   6B2D                 ; 48 {
-090   6B2D                 ; 49 pop(bc);
-091   6B2D C1              pop  bc
-092   6B2E                 ; 50 (a = b) |= c;
-093   6B2E 78              ld   a, b
-094   6B2F B1              or   c
-095   6B30                 ; 51 if (flag_z) return;
-096   6B30 C8              ret  z
-097   6B31                 ; 52 hl += hl;
-098   6B31 29              add  hl, hl
-099   6B32                 ; 53 push(de);
-100   6B32 D5              push de
-101   6B33                 ; 54 e = ((a = e) -= c);
-102   6B33 7B              ld   a, e
-103   6B34 91              sub  c
-104   6B35 5F              ld   e, a
-105   6B36                 ; 55 d = ((a = d) -@= b);
-106   6B36 7A              ld   a, d
-107   6B37 98              sbc  b
-108   6B38 57              ld   d, a
-109   6B39                 ; 56 if (flag_c)
-110   6B39                 ; 57 {
-111   6B39 D2 40 6B        jp   nc, l7008
-112   6B3C                 ; 58 pop(de);
-113   6B3C D1              pop  de
-114   6B3D                 ; 59 continue;
-115   6B3D C3 2D 6B        jp l7006
-116   6B40                 ; 60 }
-117   6B40                 ; 61 hl++;
-118   6B40             l7008: 
-119   6B40 23              inc  hl
-120   6B41                 ; 62 pop(bc);
-121   6B41 C1              pop  bc
-122   6B42                 ; 63 }
-123   6B42 C3 2D 6B        jp   l7006
-124   6B45             l7007: 
-125   6B45                 ; 64 }
-126   6B45 C9              ret
-127   6B46             
-001   6B46                 savebin "base/base.bin", begin, $ - begin
-002   6B46             
+013   6063 C3 24 63    iDrawText:        jp drawText
+014   6066 C3 DB 62    iDrawTextCenter:  jp drawTextCenter
+015   6069 C3 1B 63    iDrawTextEx:      jp drawTextEx
+016   606C C3 52 64    iClearScreen:     jp clearScreen
+017   606F C3 F4 61    iDrawImage:       jp drawImage
+018   6072 C3 90 62    iMeasureText:     jp measureText
+019   6075 C3 EF 62    iCalcCoords:      jp calcCoords
+020   6078 C3 F2 63    iDrawCharSub:     jp drawCharSub
+021   607B C3 1B 61    iExec:            jp exec
+022   607E C3 63 61    iLoadFile:        jp loadFile
+023   6081 C3 C0 61    iFarCall         jp farCall
+024   6084 C3 EC 60    iIrqHandler:      jp irqHandler
+025   6087 C3 C9 64    iDrawPanel:       jp drawPanel
+026   608A C3 8A 64    iBeginDraw:       jp beginDraw
+027   608D C3 A1 64    iEndDraw:         jp endDraw
+028   6090 C3 AC 64    iCopyVideoPage:   jp copyVideoPage
+029   6093 C3 DF 64    iPanelRedraw:     jp panelRedraw
+030   6096 C3 9D 65    iCopyPanel:       jp copyPanel
+031   6099 00          iStringBuffer:    ds gStringBufferSize
+032   60B9             
+033   60B9 00          iFrame:             db 0
+034   60BA 00          iVideoPage:         db 0
+035   60BB 00          iSystemPage:        db 0
+036   60BC 00          iKeyTrigger:        db 0
+037   60BD 00          iKeyPressed:        db 0
+038   60BE 00          iPlayerMoney:       db 0
+039   60BF 00          iPlayerLut:         ds playerLutMax * 2
+040   60D7 00          iPlayerLutCount:    db 0
+041   60D8 00          iPlayerItems:       ds playerItemsMax
+042   60DD 00          iPlayerItemsCount:  db 0
+043   60DE             
+044   60DE             ;-------------------------------------------------------------------------------
+045   60DE             
+046   60DE                 org gEnd
+047   60EC             
+048   60EC             irqHandler: 
+049   60EC F5              PUSH  AF
+050   60ED C5              PUSH  BC
+051   60EE E5              PUSH  HL
+052   60EF             
+053   60EF                 ; Переключение видеостраницы
+054   60EF 3A BA 60        LD    A, (gVideoPage)
+055   60F2 CB 47           BIT   0, A
+056   60F4 CA 0B 61        JP    Z, irqHandler_1
+057   60F7 E6 FE           AND   ~1
+058   60F9 32 BA 60        LD    (gVideoPage), A
+059   60FC 47              LD    B, A
+060   60FD 3A BB 60        LD    A, (gSystemPage)
+061   6100 E6 F7           AND   ~8
+062   6102 B0              OR    B
+063   6103 32 BB 60        LD    (gSystemPage), A
+064   6106 01 FD 7F        LD    BC, 7FFDh
+065   6109 ED 79           OUT   (C), A
+066   610B             irqHandler_1: 
+067   610B             
+068   610B 3A B9 60        LD    A, (gFrame)
+069   610E 3C              INC   A
+070   610F 32 B9 60        LD    (gFrame), A
+071   6112             
+072   6112 CD 3F 62        call  readKey
+073   6115             
+074   6115 E1              POP   HL
+075   6116 C1              POP   BC
+076   6117 F1              POP   AF
+077   6118 FB              EI
+078   6119 ED 4D           RETI
+079   611B             
+080   611B             ;-------------------------------------------------------------------------------
+081   611B             
+082   611B             exec: 
+083   611B 31 5F 60        LD    SP, stackEndAddr
+084   611E             
+085   611E E5              PUSH  HL
+086   611F                 ; Установка черной рамки
+087   611F 3E 00           LD    A, 0
+088   6121 D3 FE           OUT   (-2), A
+089   6123                 ; Очистка всех экранов
+090   6123 3E 42           LD    A, 42h
+091   6125 CD 52 64        CALL  clearScreen
+092   6128 E1              POP   HL
+093   6129             
+094   6129 11 00 70        LD    DE, moduleLoadAddr
+095   612C CD 63 61        CALL  loadFile
+096   612F C3 00 70        JP    moduleLoadAddr
+097   6132             
+098   6132             ;-------------------------------------------------------------------------------
+099   6132             
+100   6132             fileNotFound: 
+101   6132 21 00 00        ld   hl, 0
+102   6135 11 45 61        ld   de, aFileNotFound
+103   6138 CD 1B 63        call drawTextEx
+104   613B 21 00 0A        ld   hl, 10 << 8
+105   613E D1              pop  de
+106   613F CD 1B 63        call drawTextEx
+107   6142             
+108   6142 C3 42 61        jp $
+109   6145             
+110   6145             ;-------------------------------------------------------------------------------
+111   6145             
+112   6145             aFileNotFound db "Не найден файл ", 0
+112   6145 D09DD0B520D0BDD0B0D0B9D0B4D0B5D0BD20D184D0B0D0B9D0BB2000
+113   6161             aSpace = $ - 2
+114   6161 43 00       aExt db "C",0
+115   6163             
+116   6163             ;-------------------------------------------------------------------------------
+117   6163             
+118   6163             loadFile: 
+119   6163                 ; Сохраняем адрес загрузки
+120   6163 D5              push de
+121   6164             
+122   6164                 ; Преобразование имени файла
+123   6164 01 08 08        ld   bc, 808h
+124   6167             loadFile_0: 
+125   6167 7E              ld   a, (hl)
+126   6168 B7              or   a
+127   6169 C2 6F 61        jp   nz, loadFile_1
+128   616C 21 5F 61        ld   hl, aSpace
+129   616F             loadFile_1: 
+130   616F ED A0           ldi
+131   6171 10 F4           djnz loadFile_0
+132   6173 21 61 61        ld   hl, aExt
+133   6176 ED A0           ldi
+134   6178 ED A0           ldi
+135   617A E1              pop  hl
+136   617B             
+137   617B                 ; Установка прерываний по умолчанию
+138   617B F3              di
+139   617C ED 57           ld   a, i
+140   617E F5              push af
+141   617F ED 56           im   1
+142   6181             
+143   6181                 ; Передача имени файла
+144   6181 E5              push hl
+145   6182 0E 13           ld   c, 13h
+146   6184 CD 13 3D        call 3D13h
+147   6187             
+148   6187                 ; Поиск файла
+149   6187 0E 0A           ld   c, 0Ah
+150   6189 CD 13 3D        call 3D13h
+151   618C 79              ld   a, c
+152   618D FE FF           cp   0FFh
+153   618F CA 32 61        jp   z, fileNotFound ; Файл не найден
+154   6192             
+155   6192                 ; Загрузка заголовка
+156   6192 0E 08           ld   c, 8
+157   6194 CD 13 3D        call 3D13h
+158   6197             
+159   6197                 ; На всякий случай
+160   6197 3A BB 60        LD   A, (gSystemPage)
+161   619A 32 5C 5B        LD   (23388),A
+162   619D             
+163   619D                 ; Загрузка файла
+164   619D AF              xor  a
+165   619E 32 F9 5C        ld   (5CF9h), a
+166   61A1 ED 5B EB 5C     ld   de, (5CEBh)
+167   61A5 3A EA 5C        ld   a, (5CEAh)
+168   61A8 47              ld   b, a
+169   61A9 E1              pop  hl
+170   61AA 3E FF           ld   a, 0FFh
+171   61AC 0E 05           ld   c, 5
+172   61AE CD 13 3D        call 3D13h
+173   61B1             
+174   61B1                 ; Восстановление страницы
+175   61B1 3A BB 60        LD    A, (gSystemPage)
+176   61B4 01 FD 7F        LD    BC, 7FFDh
+177   61B7 ED 79           OUT   (C), A
+178   61B9             
+179   61B9                 ; Восстановление прерываний
+180   61B9 F1              pop  af
+181   61BA ED 47           LD   i, a
+182   61BC ED 5E           im   2
+183   61BE FB              ei
+184   61BF             
+185   61BF C9              ret
+186   61C0             
+187   61C0             ;-------------------------------------------------------------------------------
+188   61C0             
+189   61C0             ; IYL - Страница, IX - Функция, A` - Портит, BC` - Портит.
+190   61C0             
+191   61C0             farCall: 
+192   61C0                 ; Выбор страницы с сохранением выбранной видеостраницы
+193   61C0 D9              EXX
+194   61C1 08              EX AF, AF
+195   61C2 F3              DI
+196   61C3 3A BB 60        LD    A, (gSystemPage)
+197   61C6 F5              PUSH  AF
+198   61C7 E6 F8           AND   ~7
+199   61C9 FD B5           OR    IYL
+200   61CB 32 BB 60        LD    (gSystemPage), A
+201   61CE 01 FD 7F        LD    BC, 7FFDh
+202   61D1 ED 79           OUT   (C), A
+203   61D3 FB              EI
+204   61D4 08              EX AF, AF
+205   61D5 D9              EXX
+206   61D6             
+207   61D6                 ; Вызов
+208   61D6 CD F2 61        CALL  farJump2
+209   61D9             
+210   61D9                 ; Восстановление  с сохранением выбранной видеостраницы
+211   61D9 D9              EXX
+212   61DA 08              EX AF, AF
+213   61DB F1              POP   AF
+214   61DC E6 07           AND   7
+215   61DE 47              LD    B, A
+216   61DF F3              DI
+217   61E0 3A BB 60        LD    A, (gSystemPage)
+218   61E3 E6 F8           AND   ~7
+219   61E5 B0              OR    B
+220   61E6 32 BB 60        LD    (gSystemPage), A
+221   61E9 01 FD 7F        LD    BC, 7FFDh
+222   61EC ED 79           OUT   (C), A
+223   61EE FB              EI
+224   61EF 08              EX AF, AF
+225   61F0 D9              EXX
+226   61F1 C9              RET
+227   61F2             
+228   61F2             farJump2: 
+229   61F2 DD E9           JP    IX
+230   61F4             
+231   61F4             ;-------------------------------------------------------------------------------
+232   61F4             
+001   61F4             ; ZX Spectrum test (c) 30-10-2019 Alemorf aleksey.f.morozov@gmail.com
+002   61F4             
+003   61F4             ;-------------------------------------------------------------------------------
+004   61F4             ; Вывести изображение
+005   61F4             ; HL - адрес изображения
+006   61F4             ; DE - адрес в видеопамяти (5800 - 5CFFh)
+007   61F4             
+008   61F4             drawImage: 
+009   61F4                     ; Преобразование адреса в DE из формата X + Y * 32 в формат YY000 YYYXXXXX
+010   61F4 D5                  PUSH   DE
+011   61F5 7A                  LD     A, D
+012   61F6 E6 80               AND    80h
+013   61F8 47                  LD     B, A
+014   61F9 7A                  LD     A, D
+015   61FA 87                  ADD    A
+016   61FB 87                  ADD    A
+017   61FC 87                  ADD    A
+018   61FD C6 80               ADD    40h - 0C0h
+019   61FF B0                  OR     B
+020   6200 57                  LD     D, A
+021   6201             
+022   6201                     ; Чтение высоты и ширины. Сохранение  её в стеке
+023   6201 4E                  LD     C, (HL)
+024   6202 23                  INC    HL
+025   6203 46                  LD     B, (HL)
+026   6204 23                  INC    HL
+027   6205 C5                  PUSH   BC
+028   6206             
+029   6206                     ; Вывод чернобелой графики
+030   6206             drawImage_1: 
+031   6206 C5                  PUSH   BC
+032   6207             
+033   6207                     ; Копирование строки
+034   6207 3E 08               LD     A, 8
+035   6209             drawImage_3: 
+036   6209 C5                  PUSH   BC
+037   620A D5                  PUSH   DE
+038   620B 06 00               LD     B, 0
+039   620D ED B0               LDIR
+040   620F D1                  POP    DE
+041   6210 C1                  POP    BC
+042   6211 14                  INC    D
+043   6212 3D                  DEC    A
+044   6213 C2 09 62            JP     NZ, drawImage_3
+045   6216             
+046   6216                     ; Адрес следующей строки
+047   6216 01 20 F8            LD     BC, 0x20 - 0x800
+048   6219 EB                  EX     DE, HL
+049   621A 09                  ADD    HL, BC
+050   621B EB                  EX     DE, HL
+051   621C 7A                  LD     A, D
+052   621D E6 07               AND    7
+053   621F C4 38 62            CALL   NZ, drawImage_4
+054   6222             
+055   6222                     ; Следующая строка
+056   6222 C1                  POP    BC
+057   6223 10 E1               DJNZ   drawImage_1
+058   6225             
+059   6225                     ; Восстановление координат вывода и размера
+060   6225 C1                  POP    BC
+061   6226 D1                  POP    DE
+062   6227             
+063   6227                     ; Цикл для каждой строки
+064   6227             drawImage_2: 
+065   6227 C5                  PUSH   BC
+066   6228             
+067   6228                     ; Копирование строки
+068   6228 D5                  PUSH   DE
+069   6229 06 00               LD     B, 0
+070   622B ED B0               LDIR
+071   622D D1                  POP    DE
+072   622E             
+073   622E                     ; Адрес следующей строки
+074   622E EB                  EX     DE, HL
+075   622F 01 20 00            LD     BC, 32
+076   6232 09                  ADD    HL, BC
+077   6233 EB                  EX     DE, HL
+078   6234             
+079   6234                     ; Следующая строка
+080   6234 C1                  POP    BC
+081   6235 10 F0               DJNZ   drawImage_2
+082   6237             
+083   6237 C9                  RET
+084   6238             
+085   6238             ;-------------------------------------------------------------------------------
+086   6238             
+087   6238             drawImage_4: 
+088   6238 01 00 07            LD     BC, 0x800 - 0x100
+089   623B EB                  EX     DE, HL
+090   623C 09                  ADD    HL, BC
+091   623D EB                  EX     DE, HL
+092   623E C9                  RET
+093   623F             
+001   623F                 ; base/keyboard.c:2 
+002   623F                 ; base/keyboard.c:3 #include "common.h"
+003   623F                 ; base/keyboard.c:4 
+004   623F                 ; common.h:2 const int itemsCount = 8;
+005   623F                 ; common.h:3 
+006   623F                 ; common.h:4 // Размер глобального строкового буфера
+007   623F                 ; common.h:5 const int gStringBufferSize = 32;
+008   623F                 ; common.h:6 
+009   623F                 ; common.h:7 // Флаги для переменных gPanelChangedA, gPanelChangedB
+010   623F                 ; common.h:8 const int gPanelChangedMoney = 0x01;
+011   623F                 ; common.h:9 const int gPanelChangedPlace = 0x02;
+012   623F                 ; common.h:10 //const int gPanelChangedImages = 0x04;
+013   623F                 ; common.h:11 const int gPanelChanedSecondWeaponCount = 0x08;
+014   623F                 ; common.h:12 const int gPanelChanedArmorCount = 0x10;
+015   623F                 ; common.h:13 
+016   623F                 ; common.h:14 // Максимальное кол-во символов (не учитывая терминатор строки), которое возращает функция numberToString16
+017   623F                 ; common.h:15 const int numberToString16max = 5;
+018   623F                 ; common.h:16 
+019   623F                 ; common.h:17 // Максимальное кол-во предметов у игрока
+020   623F                 ; common.h:18 const int playerItemsMax = 5;
+021   623F                 ; common.h:19 
+022   623F                 ; common.h:20 // Максимальное кол-во типов лута у игрока (кол-во отображаемых строк в инвентаре)
+023   623F                 ; common.h:21 const int playerLutMax = 12;
+024   623F                 ; common.h:22 
+025   623F                 ; common.h:23 // Максимальное кол-во лута у игрока (сумма)
+026   623F                 ; common.h:24 const int playerLutMaxCountInLine = 99;
+027   623F                 ; common.h:25 
+028   623F                 ; common.h:26 const int secondWeaponMax = 9;
+029   623F                 ; common.h:27 
+030   623F                 ; common.h:28 // Флаги клавиш для переменные gKeyPressed, gKeyTrigger
+031   623F                 ; common.h:29 const int KEY_UP = 1;
+032   623F                 ; common.h:30 const int KEY_DOWN = 2;
+033   623F                 ; common.h:31 const int KEY_LEFT = 4;
+034   623F                 ; common.h:32 const int KEY_RIGHT = 8;
+035   623F                 ; common.h:33 const int KEY_FIRE = 16;
+036   623F                 ; common.h:34 const int KEY_MENU = 32;
+037   623F                 ; common.h:35 
+038   623F                 ; common.h:36 // Стандартные адреса ZX Spectrum
+039   623F                 ; common.h:37 const int screenBw0 = 0x4000;
+040   623F                 ; common.h:38 const int screenAttr0 = 0x5800;
+041   623F                 ; common.h:39 
+042   623F                 ; common.h:40 // Размеры экрана
+043   623F                 ; common.h:41 const int screenWidthTails = 32;
+044   623F                 ; common.h:42 const int panelHeightTails = 4;
+045   623F                 ; common.h:43 const int tailHeight = 8;
+046   623F                 ; common.h:44 const int tailWidth = 8;
+047   623F                 ; common.h:45 const int playfieldHeightTails = 20;
+048   623F                 ; common.h:46 
+049   623F                 ; common.h:47 // Используется при упаковке координат X, Y в регистровую пару
+050   623F                 ; common.h:48 const int bpl = 256;
+051   623F                 ; common.h:49 
+052   623F                 ; common.h:50 // Точки входа
+053   623F                 ; common.h:51 const int gPanelRedrawImagesPage = 6;
+054   623F                 ; common.h:52 const int gPanelRedrawImages = 0xC006;
+055   623F                 ; common.h:53 const int gInventPage = 6;
+056   623F                 ; common.h:54 const int gInvent = 0xC000;
+057   623F                 ; common.h:55 
+058   623F                 ; common.h:56 // Параметр для drawText
+059   623F                 ; common.h:57 const int smallFontFlag = 0x80;
+060   623F                 ; common.h:58 
+061   623F                 ; base/keyboard.c:5 // Использует A, BC, HL
+062   623F                 ; base/keyboard.c:6 void readKey()
+063   623F             readKey: 
+064   623F                 ; base/keyboard.c:7 {
+065   623F                 ; base/keyboard.c:8 c = in(bc = 0xEFFE);
+066   623F 01 FE EF        ld   bc, 61438
+067   6242 ED 48           in   c, (c)
+068   6244                 ; base/keyboard.c:9 a ^= a;
+069   6244 AF              xor  a
+070   6245                 ; base/keyboard.c:10 if (c & 0x04) a |= KEY_RIGHT;
+071   6245 CB 51           bit  2, c
+072   6247 CA 4C 62        jp   z, l1000
+073   624A F6 08           or   8
+074   624C                 ; base/keyboard.c:11 if (c & 0x08) a |= KEY_UP;
+075   624C             l1000: 
+076   624C CB 59           bit  3, c
+077   624E CA 53 62        jp   z, l1001
+078   6251 F6 01           or   1
+079   6253                 ; base/keyboard.c:12 if (c & 0x10) a |= KEY_DOWN;
+080   6253             l1001: 
+081   6253 CB 61           bit  4, c
+082   6255 CA 5A 62        jp   z, l1002
+083   6258 F6 02           or   2
+084   625A                 ; base/keyboard.c:13 c = in(bc = 0xF7FE);
+085   625A             l1002: 
+086   625A 01 FE F7        ld   bc, 63486
+087   625D ED 48           in   c, (c)
+088   625F                 ; base/keyboard.c:14 if (c & 0x10) a |= KEY_LEFT;
+089   625F CB 61           bit  4, c
+090   6261 CA 66 62        jp   z, l1003
+091   6264 F6 04           or   4
+092   6266                 ; base/keyboard.c:15 c = in(bc = 0x7FFE);
+093   6266             l1003: 
+094   6266 01 FE 7F        ld   bc, 32766
+095   6269 ED 48           in   c, (c)
+096   626B                 ; base/keyboard.c:16 if (c & 0x01) a |= KEY_FIRE;
+097   626B CB 41           bit  0, c
+098   626D CA 72 62        jp   z, l1004
+099   6270 F6 10           or   16
+100   6272                 ; base/keyboard.c:17 c = in(bc = 0xBFFE);
+101   6272             l1004: 
+102   6272 01 FE BF        ld   bc, 49150
+103   6275 ED 48           in   c, (c)
+104   6277                 ; base/keyboard.c:18 if (c & 0x01) a |= KEY_MENU;
+105   6277 CB 41           bit  0, c
+106   6279 CA 7E 62        jp   z, l1005
+107   627C F6 20           or   32
+108   627E                 ; base/keyboard.c:19 a ^= 0xFF;
+109   627E             l1005: 
+110   627E EE FF           xor  255
+111   6280                 ; base/keyboard.c:20 
+112   6280                 ; base/keyboard.c:21 // Чтение прошлого значения и сохранение нового
+113   6280                 ; base/keyboard.c:22 b = a;
+114   6280 47              ld   b, a
+115   6281                 ; base/keyboard.c:23 hl = &gKeyPressed;
+116   6281 21 BD 60        ld   hl, gKeyPressed
+117   6284                 ; base/keyboard.c:24 a = *hl;
+118   6284 7E              ld   a, (hl)
+119   6285                 ; base/keyboard.c:25 *hl = b;
+120   6285 70              ld   (hl), b
+121   6286                 ; base/keyboard.c:26 
+122   6286                 ; base/keyboard.c:27 // Выделение события нажатия
+123   6286                 ; base/keyboard.c:28 a ^= 0xFF;
+124   6286 EE FF           xor  255
+125   6288                 ; base/keyboard.c:29 a &= b;
+126   6288 A0              and  b
+127   6289                 ; base/keyboard.c:30 hl = &gKeyTrigger;
+128   6289 21 BC 60        ld   hl, gKeyTrigger
+129   628C                 ; base/keyboard.c:31 a |= *hl;
+130   628C B6              or   (hl)
+131   628D                 ; base/keyboard.c:32 *hl = a;
+132   628D 77              ld   (hl), a
+133   628E                 ; base/keyboard.c:33 
+134   628E                 ; base/keyboard.c:34 return;
+135   628E C9              ret
+136   628F                 ; base/keyboard.c:35 }
+137   628F C9              ret
+138   6290                 ; base/keyboard.c:36 
+139   6290             
+001   6290                 ; base/drawtext2.c:2 
+002   6290                 ; base/drawtext2.c:3 // Вычисление ширины текста в пикселях
+003   6290                 ; base/drawtext2.c:4 // Вход: DE - текст
+004   6290                 ; base/drawtext2.c:5 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
+005   6290                 ; base/drawtext2.c:6 // Портит: HL
+006   6290                 ; base/drawtext2.c:7 
+007   6290                 ; base/drawtext2.c:8 const int firstChar = ' ';
+008   6290                 ; base/drawtext2.c:9 
+009   6290                 ; base/drawtext2.c:10 void measureText()
+010   6290             measureText: 
+011   6290                 ; base/drawtext2.c:11 {
+012   6290                 ; base/drawtext2.c:12 c = 0;
+013   6290 0E 00           ld   c, 0
+014   6292                 ; base/drawtext2.c:13 while()
+015   6292             l10000: 
+016   6292                 ; base/drawtext2.c:14 {
+017   6292                 ; base/drawtext2.c:15 a = *de; de++;
+018   6292 1A              ld   a, (de)
+019   6293 13              inc  de
+020   6294                 ; base/drawtext2.c:16 if (a < firstChar) return;
+021   6294 FE 20           cp   32
+022   6296 D8              ret  c
+023   6297                 ; base/drawtext2.c:17 
+024   6297                 ; base/drawtext2.c:18 // Вычисление адреса символа (de = image_font + a * 9)
+025   6297                 ; base/drawtext2.c:19 push(de)
+026   6297                 ; base/drawtext2.c:20 {
+027   6297 D5              push de
+028   6298                 ; base/drawtext2.c:21 calcCharAddr(); //  HL - адрес символа в знакогенераторе, DE - мусор
+029   6298 CD A7 62        call calcCharAddr
+030   629B                 ; base/drawtext2.c:22 hl += (de = 8);
+031   629B 11 08 00        ld   de, 8
+032   629E 19              add  hl, de
+033   629F                 ; base/drawtext2.c:23 a = *hl;
+034   629F 7E              ld   a, (hl)
+035   62A0                 ; base/drawtext2.c:24 c = (a += c);
+036   62A0 81              add  c
+037   62A1 4F              ld   c, a
+038   62A2                 ; base/drawtext2.c:25 }
+039   62A2 D1              pop  de
+040   62A3                 ; base/drawtext2.c:26 }
+041   62A3 C3 92 62        jp   l10000
+042   62A6             l10001: 
+043   62A6                 ; base/drawtext2.c:27 }
+044   62A6 C9              ret
+045   62A7                 ; base/drawtext2.c:28 
+046   62A7                 ; base/drawtext2.c:29 // Вычисление адреса символа
+047   62A7                 ; base/drawtext2.c:30 // Вход: A - символ
+048   62A7                 ; base/drawtext2.c:31 // Выход: HL - адрес символа в знакогенераторе
+049   62A7                 ; base/drawtext2.c:32 // Портит: DE
+050   62A7                 ; base/drawtext2.c:33 
+051   62A7                 ; base/drawtext2.c:34 void calcCharAddr()
+052   62A7             calcCharAddr: 
+053   62A7                 ; base/drawtext2.c:35 {    
+054   62A7                 ; base/drawtext2.c:36 calcCharAddrPoly:
+055   62A7             calcCharAddrPoly: 
+056   62A7                 ; base/drawtext2.c:37 goto calcCharAddrBig;
+057   62A7 C3 C4 62        jp   calcCharAddrBig
+058   62AA                 ; base/drawtext2.c:38 
+059   62AA                 ; base/drawtext2.c:39 calcCharAddrSmall: // 32, 48-57, 192-223
+060   62AA             calcCharAddrSmall: 
+061   62AA                 ; base/drawtext2.c:40 a -= [192 - 12];
+062   62AA D6 B4           sub  180
+063   62AC                 ; base/drawtext2.c:41 if (flag_c)
+064   62AC                 ; base/drawtext2.c:42 {
+065   62AC D2 B7 62        jp   nc, l10002
+066   62AF                 ; base/drawtext2.c:43 a += [(192 - 12) - 46];
+067   62AF C6 86           add  134
+068   62B1                 ; base/drawtext2.c:44 if (a >= 12) a ^= a;
+069   62B1 FE 0C           cp   12
+070   62B3 DA B7 62        jp   c, l10003
+071   62B6 AF              xor  a
+072   62B7                 ; base/drawtext2.c:45 }
+073   62B7             l10003: 
+074   62B7                 ; base/drawtext2.c:46 h = 0; l = a;
+075   62B7             l10002: 
+076   62B7 26 00           ld   h, 0
+077   62B9 6F              ld   l, a
+078   62BA                 ; base/drawtext2.c:47 hl += hl;
+079   62BA 29              add  hl, hl
+080   62BB                 ; base/drawtext2.c:48 d = h; e = l;
+081   62BB 54              ld   d, h
+082   62BC 5D              ld   e, l
+083   62BD                 ; base/drawtext2.c:49 (hl += hl) += de;
+084   62BD 29              add  hl, hl
+085   62BE 19              add  hl, de
+086   62BF                 ; base/drawtext2.c:50 hl += (de = &image_smallfont);
+087   62BF 11 67 6B        ld   de, image_smallfont
+088   62C2 19              add  hl, de
+089   62C3                 ; base/drawtext2.c:51 return;
+090   62C3 C9              ret
+091   62C4                 ; base/drawtext2.c:52 
+092   62C4                 ; base/drawtext2.c:53 calcCharAddrBig: // 32-96, 192-255
+093   62C4             calcCharAddrBig: 
+094   62C4                 ; base/drawtext2.c:54 a -= 32;
+095   62C4 D6 20           sub  32
+096   62C6                 ; base/drawtext2.c:55 if (a >= 96) a -= 64;
+097   62C6 FE 60           cp   96
+098   62C8 DA CD 62        jp   c, l10004
+099   62CB D6 40           sub  64
+100   62CD                 ; base/drawtext2.c:56 h = 0; l = a;
+101   62CD             l10004: 
+102   62CD 26 00           ld   h, 0
+103   62CF 6F              ld   l, a
+104   62D0                 ; base/drawtext2.c:57 d = h; e = l;
+105   62D0 54              ld   d, h
+106   62D1 5D              ld   e, l
+107   62D2                 ; base/drawtext2.c:58 (((hl += hl) += hl) += hl) += de;
+108   62D2 29              add  hl, hl
+109   62D3 29              add  hl, hl
+110   62D4 29              add  hl, hl
+111   62D5 19              add  hl, de
+112   62D6                 ; base/drawtext2.c:59 hl += (de = &image_font);
+113   62D6 11 C7 65        ld   de, image_font
+114   62D9 19              add  hl, de
+115   62DA                 ; base/drawtext2.c:60 }
+116   62DA C9              ret
+117   62DB                 ; base/drawtext2.c:61 
+118   62DB                 ; base/drawtext2.c:62 // Вывод текста по центру экрана
+119   62DB                 ; base/drawtext2.c:63 // Вход: DE - текст, H - строка
+120   62DB                 ; base/drawtext2.c:64 
+121   62DB                 ; base/drawtext2.c:65 void drawTextCenter()
+122   62DB             drawTextCenter: 
+123   62DB                 ; base/drawtext2.c:66 {
+124   62DB                 ; base/drawtext2.c:67 ex(a, a);
+125   62DB 08              ex   af, af
+126   62DC                 ; base/drawtext2.c:68 push(hl, de)
+127   62DC                 ; base/drawtext2.c:69 {
+128   62DC E5              push hl
+129   62DD D5              push de
+130   62DE                 ; base/drawtext2.c:70 measureText();
+131   62DE CD 90 62        call measureText
+132   62E1                 ; base/drawtext2.c:71 a = (((a = 256) -= c) >>= 1);
+133   62E1 3E 00           ld   a, 256
+134   62E3 91              sub  c
+135   62E4 CB 3F           srl  a
+136   62E6 7F              ld   a, a
+137   62E7                 ; base/drawtext2.c:72 }
+138   62E7 D1              pop  de
+139   62E8 E1              pop  hl
+140   62E9                 ; base/drawtext2.c:73 l = a;
+141   62E9 6F              ld   l, a
+142   62EA                 ; base/drawtext2.c:74 ex(a, a);
+143   62EA 08              ex   af, af
+144   62EB                 ; base/drawtext2.c:75 drawTextEx();
+145   62EB CD 1B 63        call drawTextEx
+146   62EE                 ; base/drawtext2.c:76 }
+147   62EE C9              ret
+148   62EF                 ; base/drawtext2.c:77 
+149   62EF                 ; base/drawtext2.c:78 // Вычисление адреса в видеопамяти и смещения в битах.
+150   62EF                 ; base/drawtext2.c:79 // Вход: H - коодината y, L - коодината x
+151   62EF                 ; base/drawtext2.c:80 // Выход: HL - адрес, C - смещение в битах
+152   62EF                 ; base/drawtext2.c:81 // Портит: A, B
+153   62EF                 ; base/drawtext2.c:82 
+154   62EF                 ; base/drawtext2.c:83 void calcCoords()
+155   62EF             calcCoords: 
+156   62EF                 ; base/drawtext2.c:84 {
+157   62EF                 ; base/drawtext2.c:85 // Необходимо разместить Y в регистре HL следующим образом
+158   62EF                 ; base/drawtext2.c:86 // ...76210 543.....
+159   62EF                 ; base/drawtext2.c:87 
+160   62EF                 ; base/drawtext2.c:88 c = ((a = l) &= 7); // Из координаты X получаем смещение в битах
+161   62EF 7D              ld   a, l
+162   62F0 E6 07           and  7
+163   62F2 4F              ld   c, a
+164   62F3                 ; base/drawtext2.c:89 l >>= 3; //  Из координаты X смещение в байтах
+165   62F3 CB 3D           srl  l
+166   62F5 CB 3D           srl  l
+167   62F7 CB 3D           srl  l
+168   62F9                 ; base/drawtext2.c:90 l = ((((a = h) <<= 2) &= 0xE0) |= l);
+169   62F9 7C              ld   a, h
+170   62FA CB 27           sla  a
+171   62FC CB 27           sla  a
+172   62FE E6 E0           and  224
+173   6300 B5              or   l
+174   6301 6F              ld   l, a
+175   6302                 ; base/drawtext2.c:91 b = (((a = h) >>= 3) &= 0x18);
+176   6302 7C              ld   a, h
+177   6303 CB 3F           srl  a
+178   6305 CB 3F           srl  a
+179   6307 CB 3F           srl  a
+180   6309 E6 18           and  24
+181   630B 47              ld   b, a
+182   630C                 ; base/drawtext2.c:92 h = ((((a = h) &= 7) |= 0x40) |= b);
+183   630C 7C              ld   a, h
+184   630D E6 07           and  7
+185   630F F6 40           or   64
+186   6311 B0              or   b
+187   6312 67              ld   h, a
+188   6313                 ; base/drawtext2.c:93 h = (((a = gVideoPage) &= 0x80) |= h);
+189   6313 3A BA 60        ld   a, (gVideoPage)
+190   6316 E6 80           and  128
+191   6318 B4              or   h
+192   6319 67              ld   h, a
+193   631A                 ; base/drawtext2.c:94 }
+194   631A C9              ret
+195   631B                 ; base/drawtext2.c:95 
+196   631B                 ; base/drawtext2.c:96 void drawTextEx()
+197   631B             drawTextEx: 
+198   631B                 ; base/drawtext2.c:97 {
+199   631B                 ; base/drawtext2.c:98 ex(a, a);
+200   631B 08              ex   af, af
+201   631C                 ; base/drawtext2.c:99 calcCoords();
+202   631C CD EF 62        call calcCoords
+203   631F                 ; base/drawtext2.c:100 ex(a, a);
+204   631F 08              ex   af, af
+205   6320                 ; base/drawtext2.c:101 return drawTextSub();
+206   6320 C3 26 63        jp   drawTextSub
+207   6323                 ; base/drawtext2.c:102 }
+208   6323 C9              ret
+209   6324                 ; base/drawtext2.c:103 
+210   6324                 ; base/drawtext2.c:104 void drawText()
+211   6324             drawText: 
+212   6324                 ; base/drawtext2.c:105 {
+213   6324                 ; base/drawtext2.c:106 c = 0;
+214   6324 0E 00           ld   c, 0
+215   6326                 ; base/drawtext2.c:107 drawTextSub:
+216   6326             drawTextSub: 
+217   6326                 ; base/drawtext2.c:108 
+218   6326                 ; base/drawtext2.c:109 // Выбор шрифта
+219   6326                 ; base/drawtext2.c:110 push(hl)
+220   6326                 ; base/drawtext2.c:111 {
+221   6326 E5              push hl
+222   6327                 ; base/drawtext2.c:112 a <<r= 1;
+223   6327 07              rlca
+224   6328                 ; base/drawtext2.c:113 if (flag_c)
+225   6328                 ; base/drawtext2.c:114 {
+226   6328 D2 3B 63        jp   nc, l10005
+227   632B                 ; base/drawtext2.c:115 a >>= 1;
+228   632B CB 3F           srl  a
+229   632D                 ; base/drawtext2.c:116 *(hl = [&drawTextPolyHeight + 1]) = 5;
+230   632D 21 16 64        ld   hl, (drawTextPolyHeight) + (1)
+231   6330 36 05           ld   (hl), 5
+232   6332                 ; base/drawtext2.c:117 *[&calcCharAddrPoly + 1] = hl = &calcCharAddrSmall;
+233   6332 21 AA 62        ld   hl, calcCharAddrSmall
+234   6335 22 A8 62        ld   ((calcCharAddrPoly) + (1)), hl
+235   6338                 ; base/drawtext2.c:118 }
+236   6338                 ; base/drawtext2.c:119 else
+237   6338 C3 48 63        jp   l10006
+238   633B             l10005: 
+239   633B                 ; base/drawtext2.c:120 {
+240   633B                 ; base/drawtext2.c:121 a >>= 1;
+241   633B CB 3F           srl  a
+242   633D                 ; base/drawtext2.c:122 *(hl = [&drawTextPolyHeight + 1]) = 8;
+243   633D 21 16 64        ld   hl, (drawTextPolyHeight) + (1)
+244   6340 36 08           ld   (hl), 8
+245   6342                 ; base/drawtext2.c:123 *[&calcCharAddrPoly + 1] = hl = &calcCharAddrBig;
+246   6342 21 C4 62        ld   hl, calcCharAddrBig
+247   6345 22 A8 62        ld   ((calcCharAddrPoly) + (1)), hl
+248   6348                 ; base/drawtext2.c:124 }
+249   6348             l10006: 
+250   6348                 ; base/drawtext2.c:125 }
+251   6348 E1              pop  hl
+252   6349                 ; base/drawtext2.c:126 
+253   6349                 ; base/drawtext2.c:127 //
+254   6349                 ; base/drawtext2.c:128 ex(a, a);
+255   6349 08              ex   af, af
+256   634A                 ; base/drawtext2.c:129 h = (((a = gVideoPage) &= 0x80) |= h);
+257   634A 3A BA 60        ld   a, (gVideoPage)
+258   634D E6 80           and  128
+259   634F B4              or   h
+260   6350 67              ld   h, a
+261   6351                 ; base/drawtext2.c:130 *[&drawTextS + 1] = hl;
+262   6351 22 67 63        ld   ((drawTextS) + (1)), hl
+263   6354                 ; base/drawtext2.c:131 while ()
+264   6354             l10007: 
+265   6354                 ; base/drawtext2.c:132 {
+266   6354                 ; base/drawtext2.c:133 a = *de; de++;
+267   6354 1A              ld   a, (de)
+268   6355 13              inc  de
+269   6356                 ; base/drawtext2.c:134 if (a < firstChar) break;
+270   6356 FE 20           cp   32
+271   6358 DA 61 63        jp   c, l10008
+272   635B                 ; base/drawtext2.c:135 drawCharSub();
+273   635B CD F2 63        call drawCharSub
+274   635E                 ; base/drawtext2.c:136 }
+275   635E C3 54 63        jp   l10007
+276   6361             l10008: 
+277   6361                 ; base/drawtext2.c:137 
+278   6361                 ; base/drawtext2.c:138 // Раскраска
+279   6361                 ; base/drawtext2.c:139 push(a, bc, de, hl)
+280   6361                 ; base/drawtext2.c:140 {
+281   6361 F5              push af
+282   6362 C5              push bc
+283   6363 D5              push de
+284   6364 E5              push hl
+285   6365                 ; base/drawtext2.c:141 ex(hl, de);
+286   6365 EB              ex de, hl
+287   6366                 ; base/drawtext2.c:142 drawTextS:
+288   6366             drawTextS: 
+289   6366                 ; base/drawtext2.c:143 hl = 0;
+290   6366 21 00 00        ld   hl, 0
+291   6369                 ; base/drawtext2.c:144 
+292   6369                 ; base/drawtext2.c:145 // Если символ пересекает границу в 8 пикселей, то раскрашиываем две строки.
+293   6369                 ; base/drawtext2.c:146 b = ((a = h) &= 7);
+294   6369 7C              ld   a, h
+295   636A E6 07           and  7
+296   636C 47              ld   b, a
+297   636D                 ; base/drawtext2.c:147 a = *[&drawTextPolyHeight + 1];
+298   636D 3A 16 64        ld   a, ((drawTextPolyHeight) + (1))
+299   6370                 ; base/drawtext2.c:148 a--;
+300   6370 3D              dec  a
+301   6371                 ; base/drawtext2.c:149 b = (a += b);
+302   6371 80              add  b
+303   6372 47              ld   b, a
+304   6373                 ; base/drawtext2.c:150 
+305   6373                 ; base/drawtext2.c:151 // Преобразование адреса из чб в цвет
+306   6373                 ; base/drawtext2.c:152 d = (((a = h) >>= 3) &= 3);
+307   6373 7C              ld   a, h
+308   6374 CB 3F           srl  a
+309   6376 CB 3F           srl  a
+310   6378 CB 3F           srl  a
+311   637A E6 03           and  3
+312   637C 57              ld   d, a
+313   637D                 ; base/drawtext2.c:153 h = ((((a = h) &= 0xC0) |= 0x18) |= d);
+314   637D 7C              ld   a, h
+315   637E E6 C0           and  192
+316   6380 F6 18           or   24
+317   6382 B2              or   d
+318   6383 67              ld   h, a
+319   6384                 ; base/drawtext2.c:154 
+320   6384                 ; base/drawtext2.c:155 // Ширина
+321   6384                 ; base/drawtext2.c:156 (((a = e) -= l) &= 31);
+322   6384 7B              ld   a, e
+323   6385 95              sub  l
+324   6386 E6 1F           and  31
+325   6388                 ; base/drawtext2.c:157 c++; if (flag_nz c--) a++;
+326   6388 0C              inc  c
+327   6389 0D              dec  c
+328   638A CA 8E 63        jp   z, l10009
+329   638D 3C              inc  a
+330   638E                 ; base/drawtext2.c:158 if (flag_nz a |= a)
+331   638E             l10009: 
+332   638E B7              or   a
+333   638F                 ; base/drawtext2.c:159 {
+334   638F CA AD 63        jp   z, l10010
+335   6392                 ; base/drawtext2.c:160 c = a;
+336   6392 4F              ld   c, a
+337   6393                 ; base/drawtext2.c:161 
+338   6393                 ; base/drawtext2.c:162 // Цвет
+339   6393                 ; base/drawtext2.c:163 ex(a, a);
+340   6393 08              ex   af, af
+341   6394                 ; base/drawtext2.c:164 
+342   6394                 ; base/drawtext2.c:165 // Первая строка
+343   6394                 ; base/drawtext2.c:166 push (bc, hl)
+344   6394                 ; base/drawtext2.c:167 {
+345   6394 C5              push bc
+346   6395 E5              push hl
+347   6396                 ; base/drawtext2.c:168 do
+348   6396             l10011: 
+349   6396                 ; base/drawtext2.c:169 {
+350   6396                 ; base/drawtext2.c:170 *hl = a;
+351   6396 77              ld   (hl), a
+352   6397                 ; base/drawtext2.c:171 hl++;
+353   6397 23              inc  hl
+354   6398                 ; base/drawtext2.c:172 } while(flag_nz --c);
+355   6398 0D              dec  c
+356   6399 C2 96 63        jp   nz, l10011
+357   639C             l10012: 
+358   639C                 ; base/drawtext2.c:173 }
+359   639C E1              pop  hl
+360   639D C1              pop  bc
+361   639E                 ; base/drawtext2.c:174 
+362   639E                 ; base/drawtext2.c:175 // Вторая строка
+363   639E                 ; base/drawtext2.c:176 if (flag_nz b & 8)
+364   639E CB 58           bit  3, b
+365   63A0                 ; base/drawtext2.c:177 {
+366   63A0 CA AD 63        jp   z, l10013
+367   63A3                 ; base/drawtext2.c:178 hl += (de = 32);
+368   63A3 11 20 00        ld   de, 32
+369   63A6 19              add  hl, de
+370   63A7                 ; base/drawtext2.c:179 do
+371   63A7             l10014: 
+372   63A7                 ; base/drawtext2.c:180 {
+373   63A7                 ; base/drawtext2.c:181 *hl = a;
+374   63A7 77              ld   (hl), a
+375   63A8                 ; base/drawtext2.c:182 hl++;
+376   63A8 23              inc  hl
+377   63A9                 ; base/drawtext2.c:183 } while(flag_nz --c);
+378   63A9 0D              dec  c
+379   63AA C2 A7 63        jp   nz, l10014
+380   63AD             l10015: 
+381   63AD                 ; base/drawtext2.c:184 }
+382   63AD                 ; base/drawtext2.c:185 }
+383   63AD             l10013: 
+384   63AD                 ; base/drawtext2.c:186 }
+385   63AD             l10010: 
+386   63AD E1              pop  hl
+387   63AE D1              pop  de
+388   63AF C1              pop  bc
+389   63B0 F1              pop  af
+390   63B1                 ; base/drawtext2.c:187 }
+391   63B1 C9              ret
+392   63B2                 ; base/drawtext2.c:188 
+393   63B2                 ; base/drawtext2.c:189 uint16_t drawTextTbl[] =
+394   63B2                 ; base/drawtext2.c:190 {
+395   63B2                 ; base/drawtext2.c:191 0x0000, 0x0000, 0xE64F, 0x00FF,
+396   63B2                 ; base/drawtext2.c:192 0x0F00, 0x0000, 0xE64F, 0x807F,
+397   63B2                 ; base/drawtext2.c:193 0x0F0F, 0x0000, 0xE64F, 0xC03F,
+398   63B2                 ; base/drawtext2.c:194 0x0F0F, 0x000F, 0xE64F, 0xE01F,
+399   63B2                 ; base/drawtext2.c:195 0x0F0F, 0x0F0F, 0xE64F, 0xF00F,
+400   63B2                 ; base/drawtext2.c:196 0x0707, 0x0700, 0xE64F, 0xF807,
+401   63B2                 ; base/drawtext2.c:197 0x0707, 0x0000, 0xE64F, 0xFC03,
+402   63B2                 ; base/drawtext2.c:198 0x0700, 0x0000, 0xE64F, 0xFE07
+403   63B2                 ; base/drawtext2.c:199 };
+404   63B2             drawTextTbl: 
+405   63B2 00 00           dw 0
+406   63B4 00 00           dw 0
+407   63B6 4F E6           dw 58959
+408   63B8 FF 00           dw 255
+409   63BA 00 0F           dw 3840
+410   63BC 00 00           dw 0
+411   63BE 4F E6           dw 58959
+412   63C0 7F 80           dw 32895
+413   63C2 0F 0F           dw 3855
+414   63C4 00 00           dw 0
+415   63C6 4F E6           dw 58959
+416   63C8 3F C0           dw 49215
+417   63CA 0F 0F           dw 3855
+418   63CC 0F 00           dw 15
+419   63CE 4F E6           dw 58959
+420   63D0 1F E0           dw 57375
+421   63D2 0F 0F           dw 3855
+422   63D4 0F 0F           dw 3855
+423   63D6 4F E6           dw 58959
+424   63D8 0F F0           dw 61455
+425   63DA 07 07           dw 1799
+426   63DC 00 07           dw 1792
+427   63DE 4F E6           dw 58959
+428   63E0 07 F8           dw 63495
+429   63E2 07 07           dw 1799
+430   63E4 00 00           dw 0
+431   63E6 4F E6           dw 58959
+432   63E8 03 FC           dw 64515
+433   63EA 00 07           dw 1792
+434   63EC 00 00           dw 0
+435   63EE 4F E6           dw 58959
+436   63F0 07 FE           dw 65031
+437   63F2                 ; base/drawtext2.c:200 
+438   63F2                 ; base/drawtext2.c:201 void drawCharSub()
+439   63F2             drawCharSub: 
+440   63F2                 ; base/drawtext2.c:202 {
+441   63F2                 ; base/drawtext2.c:203 // Функция сохраняет DE
+442   63F2                 ; base/drawtext2.c:204 push(de);
+443   63F2 D5              push de
+444   63F3                 ; base/drawtext2.c:205 
+445   63F3                 ; base/drawtext2.c:206 // Вычисление адреса символа
+446   63F3                 ; base/drawtext2.c:207 push(hl)
+447   63F3                 ; base/drawtext2.c:208 {
+448   63F3 E5              push hl
+449   63F4                 ; base/drawtext2.c:209 calcCharAddr(); // Вход A, выход HL, портит DE
+450   63F4 CD A7 62        call calcCharAddr
+451   63F7                 ; base/drawtext2.c:210 ex(hl, de);
+452   63F7 EB              ex de, hl
+453   63F8                 ; base/drawtext2.c:211 }
+454   63F8 E1              pop  hl
+455   63F9                 ; base/drawtext2.c:212 
+456   63F9                 ; base/drawtext2.c:213 push(hl, bc)
+457   63F9                 ; base/drawtext2.c:214 {
+458   63F9 E5              push hl
+459   63FA C5              push bc
+460   63FB                 ; base/drawtext2.c:215 // Выбор одной из 8 подпрограмм рисования символа
+461   63FB                 ; base/drawtext2.c:216 a = c;
+462   63FB 79              ld   a, c
+463   63FC                 ; base/drawtext2.c:217 ex(bc, de, hl);
+464   63FC D9              exx
+465   63FD                 ; base/drawtext2.c:218 l = ((((a += a) += a) += a) += &drawTextTbl);
+466   63FD 87              add  a
+467   63FE 87              add  a
+468   63FF 87              add  a
+469   6400 C6 B2           add  drawTextTbl
+470   6402 6F              ld   l, a
+471   6403                 ; base/drawtext2.c:219 h = ((a +@= [&drawTextTbl >> 8]) -= l);
+472   6403 CE 63           adc  (drawTextTbl) >> (8)
+473   6405 95              sub  l
+474   6406 67              ld   h, a
+475   6407                 ; base/drawtext2.c:220 de = &C1;
+476   6407 11 18 64        ld   de, C1
+477   640A                 ; base/drawtext2.c:221 bc = 7;
+478   640A 01 07 00        ld   bc, 7
+479   640D                 ; base/drawtext2.c:222 ldir();
+480   640D ED B0           ldir
+481   640F                 ; base/drawtext2.c:223 de++; de++; de++;
+482   640F 13              inc  de
+483   6410 13              inc  de
+484   6411 13              inc  de
+485   6412                 ; base/drawtext2.c:224 ldi();
+486   6412 ED A0           ldi
+487   6414                 ; base/drawtext2.c:225 ex(bc, de, hl);
+488   6414 D9              exx
+489   6415                 ; base/drawtext2.c:226 
+490   6415                 ; base/drawtext2.c:227 drawTextPolyHeight:
+491   6415             drawTextPolyHeight: 
+492   6415                 ; base/drawtext2.c:228 b = 8;
+493   6415 06 08           ld   b, 8
+494   6417                 ; base/drawtext2.c:229 do
+495   6417             l10016: 
+496   6417                 ; base/drawtext2.c:230 {
+497   6417                 ; base/drawtext2.c:231 a = *de; // Половинка
+498   6417 1A              ld   a, (de)
+499   6418                 ; base/drawtext2.c:232 C1:         nop(); nop(); nop(); nop();
+500   6418             C1: 
+501   6418 00              nop
+502   6419 00              nop
+503   641A 00              nop
+504   641B 00              nop
+505   641C                 ; base/drawtext2.c:233 c = a;
+506   641C 4F              ld   c, a
+507   641D                 ; base/drawtext2.c:234 a &= 0;
+508   641D E6 00           and  0
+509   641F                 ; base/drawtext2.c:235 *hl = (a ^= *hl);
+510   641F AE              xor  (hl)
+511   6420 77              ld   (hl), a
+512   6421                 ; base/drawtext2.c:236 a = 0; // Половинка
+513   6421 3E 00           ld   a, 0
+514   6423                 ; base/drawtext2.c:237 a &= c;
+515   6423 A1              and  c
+516   6424                 ; base/drawtext2.c:238 l++; // влево
+517   6424 2C              inc  l
+518   6425                 ; base/drawtext2.c:239 *hl = (a ^= *hl);
+519   6425 AE              xor  (hl)
+520   6426 77              ld   (hl), a
+521   6427                 ; base/drawtext2.c:240 l--; // вправо
+522   6427 2D              dec  l
+523   6428                 ; base/drawtext2.c:241 h++; // Цикл
+524   6428 24              inc  h
+525   6429                 ; base/drawtext2.c:242 (a = h) &= 7;
+526   6429 7C              ld   a, h
+527   642A E6 07           and  7
+528   642C                 ; base/drawtext2.c:243 if (flag_z) drawCharNextLine();
+529   642C CC 41 64        call z, drawCharNextLine
+530   642F                 ; base/drawtext2.c:244 de++;
+531   642F 13              inc  de
+532   6430                 ; base/drawtext2.c:245 } while(--b);
+533   6430 10 E5           djnz l10016
+534   6432             l10017: 
+535   6432                 ; base/drawtext2.c:246 }
+536   6432 C1              pop  bc
+537   6433 E1              pop  hl
+538   6434                 ; base/drawtext2.c:247 
+539   6434                 ; base/drawtext2.c:248 // Адрес вывода следующего символа на экране
+540   6434                 ; base/drawtext2.c:249 a = *de; // Ширина символа
+541   6434 1A              ld   a, (de)
+542   6435                 ; base/drawtext2.c:250 a += c; // Смещение в пикселях
+543   6435 81              add  c
+544   6436                 ; base/drawtext2.c:251 if (a >= 8) { a &= 7; l++; }
+545   6436 FE 08           cp   8
+546   6438 DA 3E 64        jp   c, l10018
+547   643B E6 07           and  7
+548   643D 2C              inc  l
+549   643E                 ; base/drawtext2.c:252 c = a;
+550   643E             l10018: 
+551   643E 4F              ld   c, a
+552   643F                 ; base/drawtext2.c:253 
+553   643F                 ; base/drawtext2.c:254 // Функция сохраняет DE
+554   643F                 ; base/drawtext2.c:255 pop(de);
+555   643F D1              pop  de
+556   6440                 ; base/drawtext2.c:256 }
+557   6440 C9              ret
+558   6441                 ; base/drawtext2.c:257 
+559   6441                 ; base/drawtext2.c:258 void drawCharNextLine()
+560   6441             drawCharNextLine: 
+561   6441                 ; base/drawtext2.c:259 {
+562   6441                 ; base/drawtext2.c:260 push(de)
+563   6441                 ; base/drawtext2.c:261 {
+564   6441 D5              push de
+565   6442                 ; base/drawtext2.c:262 hl += (de = [0x20 - 0x800]);
+566   6442 11 20 F8        ld   de, -2016
+567   6445 19              add  hl, de
+568   6446                 ; base/drawtext2.c:263 }
+569   6446 D1              pop  de
+570   6447                 ; base/drawtext2.c:264 (a = h) &= 7;
+571   6447 7C              ld   a, h
+572   6448 E6 07           and  7
+573   644A                 ; base/drawtext2.c:265 if (flag_z) return;
+574   644A C8              ret  z
+575   644B                 ; base/drawtext2.c:266 push(de)
+576   644B                 ; base/drawtext2.c:267 {
+577   644B D5              push de
+578   644C                 ; base/drawtext2.c:268 hl += (de = [0x800 - 0x100]);
+579   644C 11 00 07        ld   de, 1792
+580   644F 19              add  hl, de
+581   6450                 ; base/drawtext2.c:269 }
+582   6450 D1              pop  de
+583   6451                 ; base/drawtext2.c:270 }
+584   6451 C9              ret
+585   6452                 ; base/drawtext2.c:271 
+586   6452             
+001   6452                 ; base/graphfunctions.c:2 
+002   6452                 ; base/graphfunctions.c:3 // Очистить оба экрана
+003   6452                 ; base/graphfunctions.c:4 // Вход: A - атрбут
+004   6452                 ; base/graphfunctions.c:5 // Сохраняет: A', BC', DE', HL', IY, IX
+005   6452                 ; base/graphfunctions.c:6 
+006   6452                 ; base/graphfunctions.c:7 void clearScreen()
+007   6452             clearScreen: 
+008   6452                 ; base/graphfunctions.c:8 {
+009   6452                 ; base/graphfunctions.c:9 // В прерывании не выбирать видеостраницу
+010   6452                 ; base/graphfunctions.c:10 gVideoPage = a = 0;
+011   6452 3E 00           ld   a, 0
+012   6454 32 BA 60        ld   (gVideoPage), a
+013   6457                 ; base/graphfunctions.c:11 
+014   6457                 ; base/graphfunctions.c:12 // Выбрать вторую видеостраницу для записи
+015   6457                 ; base/graphfunctions.c:13 a = gSystemPage;
+016   6457 3A BB 60        ld   a, (gSystemPage)
+017   645A                 ; base/graphfunctions.c:14 a |= 7;
+018   645A F6 07           or   7
+019   645C                 ; base/graphfunctions.c:15 gSystemPage = a;
+020   645C 32 BB 60        ld   (gSystemPage), a
+021   645F                 ; base/graphfunctions.c:16 out(bc = 0x7FFD, a);
+022   645F 01 FD 7F        ld   bc, 32765
+023   6462 ED 79           out  (c), a
+024   6464                 ; base/graphfunctions.c:17 
+025   6464                 ; base/graphfunctions.c:18 clearScreen1(hl = [0x5B00 - 1]);
+026   6464 21 FF 5A        ld   hl, 23295
+027   6467 CD 7E 64        call clearScreen1
+028   646A                 ; base/graphfunctions.c:19 clearScreen1(hl = [0xDB00 - 1]);
+029   646A 21 FF DA        ld   hl, 56063
+030   646D CD 7E 64        call clearScreen1
+031   6470                 ; base/graphfunctions.c:20 
+032   6470                 ; base/graphfunctions.c:21 // Выбрать первую видеостраницу для отображения
+033   6470                 ; base/graphfunctions.c:22 a = gSystemPage;
+034   6470 3A BB 60        ld   a, (gSystemPage)
+035   6473                 ; base/graphfunctions.c:23 a &= [~8];
+036   6473 E6 F7           and  ~(8)
+037   6475                 ; base/graphfunctions.c:24 gSystemPage = a;
+038   6475 32 BB 60        ld   (gSystemPage), a
+039   6478                 ; base/graphfunctions.c:25 out(bc = 0x7FFD, a);
+040   6478 01 FD 7F        ld   bc, 32765
+041   647B ED 79           out  (c), a
+042   647D                 ; base/graphfunctions.c:26 }
+043   647D C9              ret
+044   647E                 ; base/graphfunctions.c:27 
+045   647E                 ; base/graphfunctions.c:28 void clearScreen1(hl, a)
+046   647E             clearScreen1: 
+047   647E                 ; base/graphfunctions.c:29 {
+048   647E                 ; base/graphfunctions.c:30 d = h;
+049   647E 54              ld   d, h
+050   647F                 ; base/graphfunctions.c:31 e = l;
+051   647F 5D              ld   e, l
+052   6480                 ; base/graphfunctions.c:32 de--;
+053   6480 1B              dec  de
+054   6481                 ; base/graphfunctions.c:33 a ^= a;
+055   6481 AF              xor  a
+056   6482                 ; base/graphfunctions.c:34 *hl = 0;
+057   6482 36 00           ld   (hl), 0
+058   6484                 ; base/graphfunctions.c:35 lddr(bc = [0x1B00 - 1]);
+059   6484 01 FF 1A        ld   bc, 6911
+060   6487 ED B8           lddr
+061   6489                 ; base/graphfunctions.c:36 }
+062   6489 C9              ret
+063   648A                 ; base/graphfunctions.c:37 
+064   648A                 ; base/graphfunctions.c:38 void beginDraw()
+065   648A             beginDraw: 
+066   648A                 ; base/graphfunctions.c:39 {
+067   648A                 ; base/graphfunctions.c:40 hl = &gVideoPage;
+068   648A 21 BA 60        ld   hl, gVideoPage
+069   648D                 ; base/graphfunctions.c:41 while ((a = *hl) & 1);
+070   648D             l0: 
+071   648D 7E              ld   a, (hl)
+072   648E CB 47           bit  0, a
+073   6490 CA 96 64        jp   z, l1
+074   6493 C3 8D 64        jp   l0
+075   6496             l1: 
+076   6496                 ; base/graphfunctions.c:42 a &= 0x7F;
+077   6496 E6 7F           and  127
+078   6498                 ; base/graphfunctions.c:43 if (flag_z a & 8) a |= 0x80;
+079   6498 CB 5F           bit  3, a
+080   649A C2 9F 64        jp   nz, l2
+081   649D F6 80           or   128
+082   649F                 ; base/graphfunctions.c:44 *hl = a;
+083   649F             l2: 
+084   649F 77              ld   (hl), a
+085   64A0                 ; base/graphfunctions.c:45 }
+086   64A0 C9              ret
+087   64A1                 ; base/graphfunctions.c:46 
+088   64A1                 ; base/graphfunctions.c:47 void endDraw()
+089   64A1             endDraw: 
+090   64A1                 ; base/graphfunctions.c:48 {    
+091   64A1                 ; base/graphfunctions.c:49 gVideoPage = ((a = gVideoPage) ^= 8 |= 1);
+092   64A1 3A BA 60        ld   a, (gVideoPage)
+093   64A4 EE 08           xor  8
+094   64A6 F6 01           or   1
+095   64A8 32 BA 60        ld   (gVideoPage), a
+096   64AB                 ; base/graphfunctions.c:50 }
+097   64AB C9              ret
+098   64AC                 ; base/graphfunctions.c:51 
+099   64AC                 ; base/graphfunctions.c:52 void copyVideoPage()
+100   64AC             copyVideoPage: 
+101   64AC                 ; base/graphfunctions.c:53 {
+102   64AC                 ; base/graphfunctions.c:54 // Переключаемся на 2-ую страницу и обновляем там панель
+103   64AC                 ; base/graphfunctions.c:55 beginDraw();
+104   64AC CD 8A 64        call beginDraw
+105   64AF                 ; base/graphfunctions.c:56 panelRedraw();
+106   64AF CD DF 64        call panelRedraw
+107   64B2                 ; base/graphfunctions.c:57 endDraw();
+108   64B2 CD A1 64        call endDraw
+109   64B5                 ; base/graphfunctions.c:58 
+110   64B5                 ; base/graphfunctions.c:59 // Ждем завершения переключения
+111   64B5                 ; base/graphfunctions.c:60 hl = &gVideoPage;
+112   64B5 21 BA 60        ld   hl, gVideoPage
+113   64B8                 ; base/graphfunctions.c:61 do {} while (flag_nz *hl & 1);
+114   64B8             l3: 
+115   64B8 CB 46           bit  0, (hl)
+116   64BA C2 B8 64        jp   nz, l3
+117   64BD             l4: 
+118   64BD                 ; base/graphfunctions.c:62 
+119   64BD                 ; base/graphfunctions.c:63 // Копируем 2-ую страницу на первую
+120   64BD                 ; base/graphfunctions.c:64 ldir(hl = 0xC000, de = 0x4000, bc = 0x1B00);
+121   64BD 21 00 C0        ld   hl, 49152
+122   64C0 11 00 40        ld   de, 16384
+123   64C3 01 00 1B        ld   bc, 6912
+124   64C6 ED B0           ldir
+125   64C8                 ; base/graphfunctions.c:65 }
+126   64C8 C9              ret
+127   64C9                 ; base/graphfunctions.c:66 
+128   64C9                 ; base/graphfunctions.c:67 void drawPanel()
+129   64C9             drawPanel: 
+130   64C9                 ; base/graphfunctions.c:68 {
+131   64C9                 ; base/graphfunctions.c:69 // Рисуем панель на нулевой видеостранице
+132   64C9                 ; base/graphfunctions.c:70 farCall(iyl = &gPanelgraphPage, ix = &gPanelgraph);
+133   64C9 FD 2E 06        ld   iyl, gPanelgraphPage
+134   64CC DD 21 03 C0     ld   ix, gPanelgraph
+135   64D0 CD C0 61        call farCall
+136   64D3                 ; base/graphfunctions.c:71 // Копируем её на первую видеостраницу. Для ускорения копируем только нижнюю треть ч/б.
+137   64D3                 ; base/graphfunctions.c:72 ldir(hl = 0x5000, de = 0xD000, bc = 0xB00);
+138   64D3 21 00 50        ld   hl, 20480
+139   64D6 11 00 D0        ld   de, 53248
+140   64D9 01 00 0B        ld   bc, 2816
+141   64DC ED B0           ldir
+142   64DE                 ; base/graphfunctions.c:73 }
+143   64DE C9              ret
+144   64DF                 ; base/graphfunctions.c:74 
+145   64DF             
+001   64DF                 ; base/panel.c:2 
+002   64DF                 ; base/panel.c:3 #include "common.h"
+003   64DF                 ; base/panel.c:4 
+004   64DF                 ; common.h:2 const int itemsCount = 8;
+005   64DF                 ; common.h:3 
+006   64DF                 ; common.h:4 // Размер глобального строкового буфера
+007   64DF                 ; common.h:5 const int gStringBufferSize = 32;
+008   64DF                 ; common.h:6 
+009   64DF                 ; common.h:7 // Флаги для переменных gPanelChangedA, gPanelChangedB
+010   64DF                 ; common.h:8 const int gPanelChangedMoney = 0x01;
+011   64DF                 ; common.h:9 const int gPanelChangedPlace = 0x02;
+012   64DF                 ; common.h:10 //const int gPanelChangedImages = 0x04;
+013   64DF                 ; common.h:11 const int gPanelChanedSecondWeaponCount = 0x08;
+014   64DF                 ; common.h:12 const int gPanelChanedArmorCount = 0x10;
+015   64DF                 ; common.h:13 
+016   64DF                 ; common.h:14 // Максимальное кол-во символов (не учитывая терминатор строки), которое возращает функция numberToString16
+017   64DF                 ; common.h:15 const int numberToString16max = 5;
+018   64DF                 ; common.h:16 
+019   64DF                 ; common.h:17 // Максимальное кол-во предметов у игрока
+020   64DF                 ; common.h:18 const int playerItemsMax = 5;
+021   64DF                 ; common.h:19 
+022   64DF                 ; common.h:20 // Максимальное кол-во типов лута у игрока (кол-во отображаемых строк в инвентаре)
+023   64DF                 ; common.h:21 const int playerLutMax = 12;
+024   64DF                 ; common.h:22 
+025   64DF                 ; common.h:23 // Максимальное кол-во лута у игрока (сумма)
+026   64DF                 ; common.h:24 const int playerLutMaxCountInLine = 99;
+027   64DF                 ; common.h:25 
+028   64DF                 ; common.h:26 const int secondWeaponMax = 9;
+029   64DF                 ; common.h:27 
+030   64DF                 ; common.h:28 // Флаги клавиш для переменные gKeyPressed, gKeyTrigger
+031   64DF                 ; common.h:29 const int KEY_UP = 1;
+032   64DF                 ; common.h:30 const int KEY_DOWN = 2;
+033   64DF                 ; common.h:31 const int KEY_LEFT = 4;
+034   64DF                 ; common.h:32 const int KEY_RIGHT = 8;
+035   64DF                 ; common.h:33 const int KEY_FIRE = 16;
+036   64DF                 ; common.h:34 const int KEY_MENU = 32;
+037   64DF                 ; common.h:35 
+038   64DF                 ; common.h:36 // Стандартные адреса ZX Spectrum
+039   64DF                 ; common.h:37 const int screenBw0 = 0x4000;
+040   64DF                 ; common.h:38 const int screenAttr0 = 0x5800;
+041   64DF                 ; common.h:39 
+042   64DF                 ; common.h:40 // Размеры экрана
+043   64DF                 ; common.h:41 const int screenWidthTails = 32;
+044   64DF                 ; common.h:42 const int panelHeightTails = 4;
+045   64DF                 ; common.h:43 const int tailHeight = 8;
+046   64DF                 ; common.h:44 const int tailWidth = 8;
+047   64DF                 ; common.h:45 const int playfieldHeightTails = 20;
+048   64DF                 ; common.h:46 
+049   64DF                 ; common.h:47 // Используется при упаковке координат X, Y в регистровую пару
+050   64DF                 ; common.h:48 const int bpl = 256;
+051   64DF                 ; common.h:49 
+052   64DF                 ; common.h:50 // Точки входа
+053   64DF                 ; common.h:51 const int gPanelRedrawImagesPage = 6;
+054   64DF                 ; common.h:52 const int gPanelRedrawImages = 0xC006;
+055   64DF                 ; common.h:53 const int gInventPage = 6;
+056   64DF                 ; common.h:54 const int gInvent = 0xC000;
+057   64DF                 ; common.h:55 
+058   64DF                 ; common.h:56 // Параметр для drawText
+059   64DF                 ; common.h:57 const int smallFontFlag = 0x80;
+060   64DF                 ; common.h:58 
+061   64DF                 ; base/panel.c:5 const int panelAddrBwA        = 0x5080;
+062   64DF                 ; base/panel.c:6 const int panelAddrBwB        = panelAddrBwA | 0x8000;
+063   64DF                 ; base/panel.c:7 const int panelAddrClA        = 0x5A80;
+064   64DF                 ; base/panel.c:8 const int panelAddrClB        = panelAddrClA | 0x8000;
+065   64DF                 ; base/panel.c:9 
+066   64DF                 ; base/panel.c:10 const int panelPlaceColor     = 0x4E;
+067   64DF                 ; base/panel.c:11 const int panelNumberColor    = 0x4F;
+068   64DF                 ; base/panel.c:12 const int panelMoneyColor     = 0xCE;
+069   64DF                 ; base/panel.c:13 
+070   64DF                 ; base/panel.c:14 const int panelMoneyAddr      = 0x52C4;
+071   64DF                 ; base/panel.c:15 const int panelMoneyWidth16   = 7;
+072   64DF                 ; base/panel.c:16 const int panelArmorCount     = 0x52FC;
+073   64DF                 ; base/panel.c:17 const int panelSuperCountAddr = 0x52F8;
+074   64DF                 ; base/panel.c:18 const int panelPlaceAddr      = 0x5284;
+075   64DF                 ; base/panel.c:19 const int panelPlaceWidth16   = 7;
+076   64DF                 ; base/panel.c:20 
+077   64DF                 ; base/panel.c:21 void panelRedraw()
+078   64DF             panelRedraw: 
+079   64DF                 ; base/panel.c:22 {
+080   64DF                 ; base/panel.c:23 // Нужно ли перерисовать?
+081   64DF                 ; base/panel.c:24 hl = &gPanelChangedA;
+082   64DF 21 DF 60        ld   hl, gPanelChangedA
+083   64E2                 ; base/panel.c:25 if ((a = gVideoPage) & 0x80) hl++;
+084   64E2 3A BA 60        ld   a, (gVideoPage)
+085   64E5 CB 7F           bit  7, a
+086   64E7 CA EB 64        jp   z, l6000
+087   64EA 23              inc  hl
+088   64EB                 ; base/panel.c:26 a = *hl;
+089   64EB             l6000: 
+090   64EB 7E              ld   a, (hl)
+091   64EC                 ; base/panel.c:27 if (a == 0) return;
+092   64EC B7              or   a
+093   64ED C8              ret  z
+094   64EE                 ; base/panel.c:28 *hl = 0;
+095   64EE 36 00           ld   (hl), 0
+096   64F0                 ; base/panel.c:29 
+097   64F0                 ; base/panel.c:30 // Рисование денег
+098   64F0                 ; base/panel.c:31 if (a & gPanelChangedMoney)
+099   64F0 CB 47           bit  0, a
+100   64F2                 ; base/panel.c:32 {
+101   64F2 CA 11 65        jp   z, l6001
+102   64F5                 ; base/panel.c:33 push(a)
+103   64F5                 ; base/panel.c:34 {
+104   64F5 F5              push af
+105   64F6                 ; base/panel.c:35 numberToString16(hl = &gStringBuffer, de = gPlayerMoney);
+106   64F6 21 99 60        ld   hl, gStringBuffer
+107   64F9 ED 5B BE 60     ld   de, (gPlayerMoney)
+108   64FD CD 99 6C        call numberToString16
+109   6500                 ; base/panel.c:36 
+110   6500                 ; base/panel.c:37 // Очистка фона под надписью
+111   6500                 ; base/panel.c:38 clearSmall99(b = panelMoneyWidth16, hl = panelMoneyAddr);
+112   6500 06 07           ld   b, 7
+113   6502 21 C4 52        ld   hl, 21188
+114   6505 CD 7C 65        call clearSmall99
+115   6508                 ; base/panel.c:39 
+116   6508                 ; base/panel.c:40 // Рисование надписи
+117   6508                 ; base/panel.c:41 gDrawText(hl, de = &gStringBuffer, a = [panelPlaceColor | smallFontFlag]);
+118   6508 11 99 60        ld   de, gStringBuffer
+119   650B 3E CE           ld   a, 206
+120   650D CD 63 60        call gDrawText
+121   6510                 ; base/panel.c:42 }
+122   6510 F1              pop  af
+123   6511                 ; base/panel.c:43 }
+124   6511                 ; base/panel.c:44 
+125   6511                 ; base/panel.c:45 // Рисование названия города
+126   6511                 ; base/panel.c:46 if (a & gPanelChangedPlace)
+127   6511             l6001: 
+128   6511 CB 4F           bit  1, a
+129   6513                 ; base/panel.c:47 {
+130   6513 CA 28 65        jp   z, l6002
+131   6516                 ; base/panel.c:48 push(a)
+132   6516                 ; base/panel.c:49 {
+133   6516 F5              push af
+134   6517                 ; base/panel.c:50 // Очистка фона под надписью
+135   6517                 ; base/panel.c:51 clearSmall99(b = panelPlaceWidth16, hl = panelPlaceAddr);
+136   6517 06 07           ld   b, 7
+137   6519 21 84 52        ld   hl, 21124
+138   651C CD 7C 65        call clearSmall99
+139   651F                 ; base/panel.c:52 // Рисование надписи
+140   651F                 ; base/panel.c:53 gDrawText(hl, de = "УТЕХА", a = [panelPlaceColor | smallFontFlag]); //! В глобальные переменные
+141   651F 11 C1 65        ld   de, s6000
+142   6522 3E CE           ld   a, 206
+143   6524 CD 63 60        call gDrawText
+144   6527                 ; base/panel.c:54 }
+145   6527 F1              pop  af
+146   6528                 ; base/panel.c:55 }
+147   6528                 ; base/panel.c:56 
+148   6528                 ; base/panel.c:57 // Рисование кол-ва второго оружия
+149   6528                 ; base/panel.c:58 if (a & gPanelChanedSecondWeaponCount)
+150   6528             l6002: 
+151   6528 CB 5F           bit  3, a
+152   652A                 ; base/panel.c:59 {
+153   652A CA 41 65        jp   z, l6003
+154   652D                 ; base/panel.c:60 push(a)
+155   652D                 ; base/panel.c:61 {
+156   652D F5              push af
+157   652E                 ; base/panel.c:62 // Кол-во супероружия хранится в массиве
+158   652E                 ; base/panel.c:63 a = gPlayerSecondWeaponSel;
+159   652E 3A EB 60        ld   a, (gPlayerSecondWeaponSel)
+160   6531                 ; base/panel.c:64 getItemOfArray8(hl = &gPlayerSecondWeaponCounters, a);
+161   6531 21 E2 60        ld   hl, gPlayerSecondWeaponCounters
+162   6534 CD EC 6C        call getItemOfArray8
+163   6537                 ; base/panel.c:65 // Рисование
+164   6537                 ; base/panel.c:66 drawNubmer999(hl = panelSuperCountAddr, d = 0, e = a);
+165   6537 21 F8 52        ld   hl, 21240
+166   653A 16 00           ld   d, 0
+167   653C 5F              ld   e, a
+168   653D CD 52 65        call drawNubmer999
+169   6540                 ; base/panel.c:67 }
+170   6540 F1              pop  af
+171   6541                 ; base/panel.c:68 }
+172   6541                 ; base/panel.c:69 
+173   6541                 ; base/panel.c:70 // Рисование числа амулета
+174   6541                 ; base/panel.c:71 if (a & gPanelChanedArmorCount)
+175   6541             l6003: 
+176   6541 CB 67           bit  4, a
+177   6543                 ; base/panel.c:72 {
+178   6543 CA 51 65        jp   z, l6004
+179   6546                 ; base/panel.c:73 push(a)
+180   6546                 ; base/panel.c:74 {
+181   6546 F5              push af
+182   6547                 ; base/panel.c:75 drawNubmer999(hl = panelArmorCount, de = 999);
+183   6547 21 FC 52        ld   hl, 21244
+184   654A 11 E7 03        ld   de, 999
+185   654D CD 52 65        call drawNubmer999
+186   6550                 ; base/panel.c:76 }
+187   6550 F1              pop  af
+188   6551                 ; base/panel.c:77 }
+189   6551                 ; base/panel.c:78 }
+190   6551             l6004: 
+191   6551 C9              ret
+192   6552                 ; base/panel.c:79 
+193   6552                 ; base/panel.c:80 // Рисование числа маленьким шрифтом с центрированием.
+194   6552                 ; base/panel.c:81 
+195   6552                 ; base/panel.c:82 void drawNubmer999(hl, de)
+196   6552             drawNubmer999: 
+197   6552                 ; base/panel.c:83 {
+198   6552                 ; base/panel.c:84 // Преобразование числа в строку
+199   6552                 ; base/panel.c:85 push(hl)
+200   6552                 ; base/panel.c:86 {
+201   6552 E5              push hl
+202   6553                 ; base/panel.c:87 numberToString16(hl = &gStringBuffer); //! Заменить на numberToString8
+203   6553 21 99 60        ld   hl, gStringBuffer
+204   6556 CD 99 6C        call numberToString16
+205   6559                 ; base/panel.c:88 }
+206   6559 E1              pop  hl
+207   655A                 ; base/panel.c:89 
+208   655A                 ; base/panel.c:90 // Очистка фона под цифрой
+209   655A                 ; base/panel.c:91 clearSmall99(b = 1, hl);
+210   655A 06 01           ld   b, 1
+211   655C CD 7C 65        call clearSmall99
+212   655F                 ; base/panel.c:92 
+213   655F                 ; base/panel.c:93 // Центрирование числа
+214   655F                 ; base/panel.c:94 c = [(16 - (5 + 5 + 4)) / 2]; // Смещение для 3-х цифр
+215   655F 0E 01           ld   c, 1
+216   6561                 ; base/panel.c:95 if ((a = *[&gStringBuffer + 2]) == 0) c = [(16 - (5 + 4)) / 2]; // Смещение для 2-х цифр
+217   6561 3A 9B 60        ld   a, ((gStringBuffer) + (2))
+218   6564 B7              or   a
+219   6565 C2 6A 65        jp   nz, l6005
+220   6568 0E 03           ld   c, 3
+221   656A                 ; base/panel.c:96 if ((a = *[&gStringBuffer + 1]) == 0) c = [(16 - 4) / 2]; // Смещение для одной цифры
+222   656A             l6005: 
+223   656A 3A 9A 60        ld   a, ((gStringBuffer) + (1))
+224   656D B7              or   a
+225   656E C2 73 65        jp   nz, l6006
+226   6571 0E 06           ld   c, 6
+227   6573                 ; base/panel.c:97 
+228   6573                 ; base/panel.c:98 // Рисование текста
+229   6573                 ; base/panel.c:99 drawTextSub(c, hl, de = &gStringBuffer, a = [panelNumberColor | smallFontFlag]);
+230   6573             l6006: 
+231   6573 11 99 60        ld   de, gStringBuffer
+232   6576 3E CF           ld   a, 207
+233   6578 CD 26 63        call drawTextSub
+234   657B                 ; base/panel.c:100 }
+235   657B C9              ret
+236   657C                 ; base/panel.c:101 
+237   657C                 ; base/panel.c:102 // Очистить прямоугольник ширинй b * 16 и высотой 5 пикселей.
+238   657C                 ; base/panel.c:103 // Пересение знакоместа (координатой Y) не допускается.
+239   657C                 ; base/panel.c:104 // Вход:
+240   657C                 ; base/panel.c:105 //     b - ширина / 16 в пикселях
+241   657C                 ; base/panel.c:106 //     hl - адрес верхнего левого угла прямоугольника в чб видеопамяти.
+242   657C                 ; base/panel.c:107 
+243   657C                 ; base/panel.c:108 void clearSmall99(b, hl)
+244   657C             clearSmall99: 
+245   657C                 ; base/panel.c:109 {
+246   657C                 ; base/panel.c:110 // Адрес активной видеостраницы
+247   657C                 ; base/panel.c:111 h = (((a = gVideoPage) &= 0x80) |= h);    
+248   657C 3A BA 60        ld   a, (gVideoPage)
+249   657F E6 80           and  128
+250   6581 B4              or   h
+251   6582 67              ld   h, a
+252   6583                 ; base/panel.c:112 push(hl)
+253   6583                 ; base/panel.c:113 {
+254   6583 E5              push hl
+255   6584                 ; base/panel.c:114 a ^= a;
+256   6584 AF              xor  a
+257   6585                 ; base/panel.c:115 do
+258   6585             l6007: 
+259   6585                 ; base/panel.c:116 {
+260   6585                 ; base/panel.c:117 *hl = a; h++;
+261   6585 77              ld   (hl), a
+262   6586 24              inc  h
+263   6587                 ; base/panel.c:118 *hl = a; h++;
+264   6587 77              ld   (hl), a
+265   6588 24              inc  h
+266   6589                 ; base/panel.c:119 *hl = a; h++;
+267   6589 77              ld   (hl), a
+268   658A 24              inc  h
+269   658B                 ; base/panel.c:120 *hl = a; h++;
+270   658B 77              ld   (hl), a
+271   658C 24              inc  h
+272   658D                 ; base/panel.c:121 *hl = a; l++;
+273   658D 77              ld   (hl), a
+274   658E 2C              inc  l
+275   658F                 ; base/panel.c:122 *hl = a; h--;
+276   658F 77              ld   (hl), a
+277   6590 25              dec  h
+278   6591                 ; base/panel.c:123 *hl = a; h--;
+279   6591 77              ld   (hl), a
+280   6592 25              dec  h
+281   6593                 ; base/panel.c:124 *hl = a; h--;
+282   6593 77              ld   (hl), a
+283   6594 25              dec  h
+284   6595                 ; base/panel.c:125 *hl = a; h--;
+285   6595 77              ld   (hl), a
+286   6596 25              dec  h
+287   6597                 ; base/panel.c:126 *hl = a; l++;
+288   6597 77              ld   (hl), a
+289   6598 2C              inc  l
+290   6599                 ; base/panel.c:127 } while(--b);
+291   6599 10 EA           djnz l6007
+292   659B             l6008: 
+293   659B                 ; base/panel.c:128 }
+294   659B E1              pop  hl
+295   659C                 ; base/panel.c:129 }
+296   659C C9              ret
+297   659D                 ; base/panel.c:130 
+298   659D                 ; base/panel.c:131 // Скопировать панель с видеостраницы A на видеостраницу B.
+299   659D                 ; base/panel.c:132 // Используется при обновлении панели из модуля расположенного в расширенной памяти.
+300   659D                 ; base/panel.c:133 // Такой модуль не имеет возможности изменять видеостраницу B.
+301   659D                 ; base/panel.c:134 
+302   659D                 ; base/panel.c:135 // Ограничение: панель не должна быть расположена на пересечении третей экрана.
+303   659D                 ; base/panel.c:136 // Ограничение: панель должна быть шириной во весь экран
+304   659D                 ; base/panel.c:137 
+305   659D                 ; base/panel.c:138 void copyPanel()
+306   659D             copyPanel: 
+307   659D                 ; base/panel.c:139 {
+308   659D                 ; base/panel.c:140 h = [panelAddrBwA >> 8]; // Старшая часть адреса видеостраницы A
+309   659D 26 50           ld   h, 80
+310   659F                 ; base/panel.c:141 d = [panelAddrBwB >> 8]; // Старшая часть адреса видеостраницы B
+311   659F 16 D0           ld   d, 208
+312   65A1                 ; base/panel.c:142 a = tailHeight;
+313   65A1 3E 08           ld   a, 8
+314   65A3                 ; base/panel.c:143 do
+315   65A3             l6009: 
+316   65A3                 ; base/panel.c:144 {
+317   65A3                 ; base/panel.c:145 push(de, hl)
+318   65A3                 ; base/panel.c:146 {
+319   65A3 D5              push de
+320   65A4 E5              push hl
+321   65A5                 ; base/panel.c:147 l = e = panelAddrBwA; // Младная часть адреса обоих видеостраниц. Должна совпадать.
+322   65A5 1E 80           ld   e, 20608
+323   65A7 6B              ld   l, e
+324   65A8                 ; base/panel.c:148 ldir(hl, de, bc = [screenWidthTails * panelHeightTails]);
+325   65A8 01 80 00        ld   bc, 128
+326   65AB ED B0           ldir
+327   65AD                 ; base/panel.c:149 }
+328   65AD E1              pop  hl
+329   65AE D1              pop  de
+330   65AF                 ; base/panel.c:150 d++; h++;
+331   65AF 14              inc  d
+332   65B0 24              inc  h
+333   65B1                 ; base/panel.c:151 } while(flag_nz --a);
+334   65B1 3D              dec  a
+335   65B2 C2 A3 65        jp   nz, l6009
+336   65B5             l6010: 
+337   65B5                 ; base/panel.c:152 
+338   65B5                 ; base/panel.c:153 // Копируем цветную видеопамять
+339   65B5                 ; base/panel.c:154 ldir(hl = panelAddrClA, de = panelAddrClB, bc = [screenWidthTails * panelHeightTails]);
+340   65B5 21 80 5A        ld   hl, 23168
+341   65B8 11 80 DA        ld   de, 55936
+342   65BB 01 80 00        ld   bc, 128
+343   65BE ED B0           ldir
+344   65C0                 ; base/panel.c:155 }
+345   65C0 C9              ret
+346   65C1                 ; base/panel.c:156 
+347   65C1                 ; strings
+348   65C1             s6000 db "�����",0
+348   65C1 D3D2C5D5C000
+349   65C7             
+001   65C7             image_font: 
+002   65C7                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 4 ; 0
+002   65C7 000000000000000004
+003   65D0                 db 020h, 020h, 020h, 020h, 020h, 000h, 020h, 000h, 6 ; 1
+003   65D0 202020202000200006
+004   65D9                 db 050h, 050h, 050h, 000h, 000h, 000h, 000h, 000h, 6 ; 2
+004   65D9 505050000000000006
+005   65E2                 db 050h, 050h, 0F8h, 050h, 0F8h, 050h, 050h, 000h, 6 ; 3
+005   65E2 5050F850F850500006
+006   65EB                 db 088h, 070h, 088h, 088h, 088h, 070h, 088h, 000h, 6 ; 4
+006   65EB 887088888870880006
+007   65F4                 db 0C0h, 0C8h, 010h, 020h, 040h, 098h, 018h, 000h, 6 ; 5
+007   65F4 C0C810204098180006
+008   65FD                 db 040h, 0A0h, 0A0h, 040h, 0A8h, 090h, 068h, 000h, 6 ; 6
+008   65FD 40A0A040A890680006
+009   6606                 db 020h, 020h, 020h, 000h, 000h, 000h, 000h, 000h, 6 ; 7
+009   6606 202020000000000006
+010   660F                 db 020h, 040h, 080h, 080h, 080h, 040h, 020h, 000h, 4 ; 8
+010   660F 204080808040200004
+011   6618                 db 080h, 040h, 020h, 020h, 020h, 040h, 080h, 000h, 4 ; 9
+011   6618 804020202040800004
+012   6621                 db 000h, 000h, 000h, 050h, 020h, 050h, 000h, 000h, 6 ; 10
+012   6621 000000502050000006
+013   662A                 db 000h, 020h, 020h, 0F8h, 020h, 020h, 000h, 000h, 6 ; 11
+013   662A 002020F82020000006
+014   6633                 db 000h, 000h, 000h, 000h, 000h, 000h, 040h, 080h, 3 ; 12
+014   6633 000000000000408003
+015   663C                 db 000h, 000h, 000h, 0F0h, 000h, 000h, 000h, 000h, 5 ; 13
+015   663C 000000F00000000005
+016   6645                 db 000h, 000h, 000h, 000h, 000h, 000h, 040h, 000h, 4 ; 14
+016   6645 000000000000400004
+017   664E                 db 000h, 008h, 010h, 020h, 040h, 080h, 000h, 000h, 6 ; 15
+017   664E 000810204080000006
+018   6657                 db 060h, 090h, 090h, 090h, 090h, 090h, 060h, 000h, 5 ; 16
+018   6657 609090909090600005
+019   6660                 db 040h, 0C0h, 040h, 040h, 040h, 040h, 0E0h, 000h, 4 ; 17
+019   6660 40C040404040E00004
+020   6669                 db 060h, 090h, 010h, 020h, 040h, 080h, 0F0h, 000h, 5 ; 18
+020   6669 609010204080F00005
+021   6672                 db 060h, 090h, 010h, 020h, 010h, 090h, 060h, 000h, 5 ; 19
+021   6672 609010201090600005
+022   667B                 db 010h, 030h, 050h, 090h, 0F0h, 010h, 010h, 000h, 5 ; 20
+022   667B 10305090F010100005
+023   6684                 db 0F0h, 080h, 0E0h, 010h, 010h, 010h, 0E0h, 000h, 5 ; 21
+023   6684 F080E0101010E00005
+024   668D                 db 060h, 080h, 0E0h, 090h, 090h, 090h, 060h, 000h, 5 ; 22
+024   668D 6080E0909090600005
+025   6696                 db 0F0h, 010h, 020h, 020h, 040h, 040h, 040h, 000h, 5 ; 23
+025   6696 F01020204040400005
+026   669F                 db 060h, 090h, 090h, 060h, 090h, 090h, 060h, 000h, 5 ; 24
+026   669F 609090609090600005
+027   66A8                 db 060h, 090h, 090h, 070h, 010h, 010h, 060h, 000h, 5 ; 25
+027   66A8 609090701010600005
+028   66B1                 db 000h, 000h, 040h, 000h, 000h, 040h, 000h, 000h, 4 ; 26
+028   66B1 000040000040000004
+029   66BA                 db 000h, 000h, 040h, 000h, 000h, 040h, 040h, 000h, 4 ; 27
+029   66BA 000040000040400004
+030   66C3                 db 010h, 020h, 040h, 080h, 040h, 020h, 010h, 000h, 5 ; 28
+030   66C3 102040804020100005
+031   66CC                 db 000h, 000h, 0F8h, 000h, 0F8h, 000h, 000h, 000h, 6 ; 29
+031   66CC 0000F800F800000006
+032   66D5                 db 040h, 020h, 010h, 008h, 010h, 020h, 040h, 000h, 7 ; 30
+032   66D5 402010081020400007
+033   66DE                 db 060h, 090h, 010h, 020h, 020h, 000h, 020h, 000h, 5 ; 31
+033   66DE 609010202000200005
+034   66E7                 db 000h, 040h, 060h, 070h, 060h, 040h, 000h, 000h, 6 ; 32
+034   66E7 004060706040000006
+035   66F0                 db 020h, 050h, 088h, 088h, 0F8h, 088h, 088h, 000h, 6 ; 33
+035   66F0 20508888F888880006
+036   66F9                 db 0F0h, 088h, 088h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 34
+036   66F9 F08888F08888F00006
+037   6702                 db 070h, 088h, 080h, 080h, 080h, 088h, 070h, 000h, 6 ; 35
+037   6702 708880808088700006
+038   670B                 db 0F0h, 088h, 088h, 088h, 088h, 088h, 0F0h, 000h, 6 ; 36
+038   670B F08888888888F00006
+039   6714                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 0F8h, 000h, 6 ; 37
+039   6714 F88080F08080F80006
+040   671D                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 080h, 000h, 6 ; 38
+040   671D F88080F08080800006
+041   6726                 db 078h, 080h, 080h, 080h, 098h, 088h, 078h, 000h, 6 ; 39
+041   6726 788080809888780006
+042   672F                 db 088h, 088h, 088h, 0F8h, 088h, 088h, 088h, 000h, 6 ; 40
+042   672F 888888F88888880006
+043   6738                 db 070h, 020h, 020h, 020h, 020h, 020h, 070h, 000h, 6 ; 41
+043   6738 702020202020700006
+044   6741                 db 008h, 008h, 008h, 008h, 008h, 088h, 070h, 000h, 6 ; 42
+044   6741 080808080888700006
+045   674A                 db 088h, 090h, 0A0h, 0C0h, 0A0h, 090h, 088h, 000h, 6 ; 43
+045   674A 8890A0C0A090880006
+046   6753                 db 080h, 080h, 080h, 080h, 080h, 080h, 0F8h, 000h, 6 ; 44
+046   6753 808080808080F80006
+047   675C                 db 088h, 0D8h, 0A8h, 0A8h, 088h, 088h, 088h, 000h, 6 ; 45
+047   675C 88D8A8A88888880006
+048   6765                 db 088h, 088h, 0C8h, 0A8h, 098h, 088h, 088h, 000h, 6 ; 46
+048   6765 8888C8A89888880006
+049   676E                 db 070h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 47
+049   676E 708888888888700006
+050   6777                 db 0F0h, 088h, 088h, 0F0h, 080h, 080h, 080h, 000h, 6 ; 48
+050   6777 F08888F08080800006
+051   6780                 db 070h, 088h, 088h, 088h, 0A8h, 090h, 068h, 000h, 6 ; 49
+051   6780 70888888A890680006
+052   6789                 db 0F0h, 088h, 088h, 0F0h, 0A0h, 090h, 088h, 000h, 6 ; 50
+052   6789 F08888F0A090880006
+053   6792                 db 070h, 088h, 080h, 070h, 008h, 088h, 070h, 000h, 6 ; 51
+053   6792 708880700888700006
+054   679B                 db 0F8h, 020h, 020h, 020h, 020h, 020h, 020h, 000h, 6 ; 52
+054   679B F82020202020200006
+055   67A4                 db 088h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 53
+055   67A4 888888888888700006
+056   67AD                 db 088h, 088h, 088h, 088h, 088h, 050h, 020h, 000h, 6 ; 54
+056   67AD 888888888850200006
+057   67B6                 db 088h, 088h, 088h, 0A8h, 0A8h, 0D8h, 088h, 000h, 6 ; 55
+057   67B6 888888A8A8D8880006
+058   67BF                 db 088h, 088h, 050h, 020h, 050h, 088h, 088h, 000h, 6 ; 56
+058   67BF 888850205088880006
+059   67C8                 db 088h, 088h, 050h, 020h, 020h, 020h, 020h, 000h, 6 ; 57
+059   67C8 888850202020200006
+060   67D1                 db 0F8h, 008h, 010h, 020h, 040h, 080h, 0F8h, 000h, 6 ; 58
+060   67D1 F80810204080F80006
+061   67DA                 db 078h, 040h, 040h, 040h, 040h, 040h, 078h, 000h, 7 ; 59
+061   67DA 784040404040780007
+062   67E3                 db 000h, 080h, 040h, 020h, 010h, 008h, 000h, 000h, 6 ; 60
+062   67E3 008040201008000006
+063   67EC                 db 0F0h, 010h, 010h, 010h, 010h, 010h, 0F0h, 000h, 5 ; 61
+063   67EC F01010101010F00005
+064   67F5                 db 000h, 020h, 050h, 088h, 000h, 000h, 000h, 000h, 6 ; 62
+064   67F5 002050880000000006
+065   67FE                 db 000h, 000h, 000h, 000h, 000h, 000h, 000h, 0FCh, 7 ; 63
+065   67FE 00000000000000FC07
+066   6807                 db 040h, 020h, 010h, 000h, 000h, 000h, 000h, 000h, 6 ; 64
+066   6807 402010000000000006
+067   6810                 db 000h, 000h, 060h, 010h, 070h, 090h, 070h, 000h, 5 ; 65
+067   6810 000060107090700005
+068   6819                 db 080h, 080h, 0E0h, 090h, 090h, 090h, 0E0h, 000h, 5 ; 66
+068   6819 8080E0909090E00005
+069   6822                 db 000h, 000h, 070h, 080h, 080h, 080h, 070h, 000h, 5 ; 67
+069   6822 000070808080700005
+070   682B                 db 010h, 010h, 070h, 090h, 090h, 090h, 070h, 000h, 5 ; 68
+070   682B 101070909090700005
+071   6834                 db 000h, 000h, 060h, 090h, 0F0h, 080h, 060h, 000h, 5 ; 69
+071   6834 00006090F080600005
+072   683D                 db 030h, 048h, 040h, 0F0h, 040h, 040h, 040h, 000h, 6 ; 70
+072   683D 304840F04040400006
+073   6846                 db 000h, 000h, 070h, 090h, 090h, 070h, 010h, 060h, 5 ; 71
+073   6846 000070909070106005
+074   684F                 db 080h, 080h, 0E0h, 090h, 090h, 090h, 090h, 000h, 5 ; 72
+074   684F 8080E0909090900005
+075   6858                 db 080h, 000h, 080h, 080h, 080h, 080h, 080h, 000h, 2 ; 73
+075   6858 800080808080800002
+076   6861                 db 010h, 000h, 030h, 010h, 010h, 010h, 090h, 060h, 5 ; 74
+076   6861 100030101010906005
+077   686A                 db 080h, 080h, 090h, 0A0h, 0C0h, 0A0h, 090h, 000h, 5 ; 75
+077   686A 808090A0C0A0900005
+078   6873                 db 080h, 080h, 080h, 080h, 080h, 080h, 080h, 000h, 2 ; 76
+078   6873 808080808080800002
+079   687C                 db 000h, 000h, 0D8h, 0A8h, 0A8h, 0A8h, 0A8h, 000h, 6 ; 77
+079   687C 0000D8A8A8A8A80006
+080   6885                 db 000h, 000h, 0A0h, 0D0h, 090h, 090h, 090h, 000h, 5 ; 78
+080   6885 0000A0D09090900005
+081   688E                 db 000h, 000h, 060h, 090h, 090h, 090h, 060h, 000h, 5 ; 79
+081   688E 000060909090600005
+082   6897                 db 000h, 000h, 0E0h, 090h, 090h, 0E0h, 080h, 080h, 5 ; 80
+082   6897 0000E09090E0808005
+083   68A0                 db 000h, 000h, 070h, 090h, 090h, 070h, 010h, 010h, 5 ; 81
+083   68A0 000070909070101005
+084   68A9                 db 000h, 000h, 0B0h, 0C0h, 080h, 080h, 080h, 000h, 5 ; 82
+084   68A9 0000B0C08080800005
+085   68B2                 db 000h, 000h, 060h, 080h, 060h, 010h, 060h, 000h, 5 ; 83
+085   68B2 000060806010600005
+086   68BB                 db 040h, 040h, 0E0h, 040h, 040h, 040h, 030h, 000h, 5 ; 84
+086   68BB 4040E0404040300005
+087   68C4                 db 000h, 000h, 090h, 090h, 090h, 0B0h, 050h, 000h, 5 ; 85
+087   68C4 0000909090B0500005
+088   68CD                 db 000h, 000h, 088h, 088h, 050h, 050h, 020h, 000h, 6 ; 86
+088   68CD 000088885050200006
+089   68D6                 db 000h, 000h, 088h, 088h, 0A8h, 0A8h, 050h, 000h, 6 ; 87
+089   68D6 00008888A8A8500006
+090   68DF                 db 000h, 000h, 088h, 050h, 020h, 050h, 088h, 000h, 6 ; 88
+090   68DF 000088502050880006
+091   68E8                 db 000h, 000h, 090h, 090h, 090h, 070h, 010h, 060h, 5 ; 89
+091   68E8 000090909070106005
+092   68F1                 db 000h, 000h, 0F0h, 020h, 040h, 080h, 0F0h, 000h, 5 ; 90
+092   68F1 0000F0204080F00005
+093   68FA                 db 000h, 000h, 048h, 090h, 048h, 000h, 000h, 000h, 6 ; 91
+093   68FA 000048904800000006
+094   6903                 db 078h, 084h, 0B4h, 0A4h, 0B4h, 084h, 078h, 000h, 7 ; 92
+094   6903 7884B4A4B484780007
+095   690C                 db 000h, 000h, 090h, 048h, 090h, 000h, 000h, 000h, 6 ; 93
+095   690C 000090489000000006
+096   6915                 db 0FCh, 000h, 000h, 000h, 000h, 000h, 000h, 000h, 7 ; 94
+096   6915 FC0000000000000007
+097   691E                 db 050h, 000h, 070h, 088h, 0F8h, 080h, 078h, 000h, 6 ; 95
+097   691E 50007088F880780006
+098   6927                 db 070h, 088h, 088h, 088h, 0F8h, 088h, 088h, 000h, 6 ; 96
+098   6927 70888888F888880006
+099   6930                 db 0F8h, 080h, 080h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 97
+099   6930 F88080F08888F00006
+100   6939                 db 0F0h, 088h, 088h, 0F0h, 088h, 088h, 0F0h, 000h, 6 ; 98
+100   6939 F08888F08888F00006
+101   6942                 db 0F8h, 080h, 080h, 080h, 080h, 080h, 080h, 000h, 6 ; 99
+101   6942 F88080808080800006
+102   694B                 db 038h, 048h, 048h, 048h, 048h, 048h, 0FCh, 084h, 7 ; 100
+102   694B 384848484848FC8407
+103   6954                 db 0F8h, 080h, 080h, 0F0h, 080h, 080h, 0F8h, 000h, 6 ; 101
+103   6954 F88080F08080F80006
+104   695D                 db 0A8h, 0A8h, 0A8h, 070h, 0A8h, 0A8h, 0A8h, 000h, 6 ; 102
+104   695D A8A8A870A8A8A80006
+105   6966                 db 070h, 088h, 008h, 030h, 008h, 088h, 070h, 000h, 6 ; 103
+105   6966 708808300888700006
+106   696F                 db 088h, 088h, 098h, 0A8h, 0C8h, 088h, 088h, 000h, 6 ; 104
+106   696F 888898A8C888880006
+107   6978                 db 088h, 088h, 098h, 0A8h, 0C8h, 088h, 088h, 000h, 6 ; 105
+107   6978 888898A8C888880006
+108   6981                 db 088h, 090h, 0A0h, 0C0h, 0A0h, 090h, 088h, 000h, 6 ; 106
+108   6981 8890A0C0A090880006
+109   698A                 db 018h, 028h, 028h, 048h, 048h, 088h, 088h, 000h, 6 ; 107
+109   698A 182828484888880006
+110   6993                 db 088h, 0D8h, 0A8h, 088h, 088h, 088h, 088h, 000h, 6 ; 108
+110   6993 88D8A8888888880006
+111   699C                 db 088h, 088h, 088h, 0F8h, 088h, 088h, 088h, 000h, 6 ; 109
+111   699C 888888F88888880006
+112   69A5                 db 070h, 088h, 088h, 088h, 088h, 088h, 070h, 000h, 6 ; 110
+112   69A5 708888888888700006
+113   69AE                 db 0F8h, 088h, 088h, 088h, 088h, 088h, 088h, 000h, 6 ; 111
+113   69AE F88888888888880006
+114   69B7                 db 0F0h, 088h, 088h, 088h, 0F0h, 080h, 080h, 000h, 6 ; 112
+114   69B7 F0888888F080800006
+115   69C0                 db 070h, 088h, 080h, 080h, 080h, 088h, 070h, 000h, 6 ; 113
+115   69C0 708880808088700006
+116   69C9                 db 0F8h, 020h, 020h, 020h, 020h, 020h, 020h, 000h, 6 ; 114
+116   69C9 F82020202020200006
+117   69D2                 db 088h, 088h, 088h, 078h, 008h, 088h, 070h, 000h, 6 ; 115
+117   69D2 888888780888700006
+118   69DB                 db 020h, 070h, 0A8h, 0A8h, 0A8h, 070h, 020h, 000h, 6 ; 116
+118   69DB 2070A8A8A870200006
+119   69E4                 db 088h, 088h, 050h, 020h, 050h, 088h, 088h, 000h, 6 ; 117
+119   69E4 888850205088880006
+120   69ED                 db 090h, 090h, 090h, 090h, 090h, 090h, 0F8h, 008h, 6 ; 118
+120   69ED 909090909090F80806
+121   69F6                 db 088h, 088h, 088h, 078h, 008h, 008h, 008h, 000h, 6 ; 119
+121   69F6 888888780808080006
+122   69FF                 db 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0F8h, 000h, 6 ; 120
+122   69FF A8A8A8A8A8A8F80006
+123   6A08                 db 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0A8h, 0FCh, 004h, 7 ; 121
+123   6A08 A8A8A8A8A8A8FC0407
+124   6A11                 db 0C0h, 040h, 070h, 048h, 048h, 048h, 070h, 000h, 6 ; 122
+124   6A11 C04070484848700006
+125   6A1A                 db 084h, 084h, 0E4h, 094h, 094h, 094h, 0E4h, 000h, 7 ; 123
+125   6A1A 8484E4949494E40007
+126   6A23                 db 080h, 080h, 0F0h, 088h, 088h, 088h, 0F0h, 000h, 6 ; 124
+126   6A23 8080F0888888F00006
+127   6A2C                 db 070h, 088h, 008h, 078h, 008h, 088h, 070h, 000h, 6 ; 125
+127   6A2C 708808780888700006
+128   6A35                 db 090h, 0A8h, 0A8h, 0E8h, 0A8h, 0A8h, 090h, 000h, 6 ; 126
+128   6A35 90A8A8E8A8A8900006
+129   6A3E                 db 078h, 088h, 088h, 088h, 078h, 048h, 088h, 000h, 6 ; 127
+129   6A3E 788888887848880006
+130   6A47                 db 000h, 000h, 060h, 010h, 070h, 090h, 070h, 000h, 5 ; 128
+130   6A47 000060107090700005
+131   6A50                 db 000h, 000h, 0E0h, 080h, 0E0h, 090h, 0E0h, 000h, 5 ; 129
+131   6A50 0000E080E090E00005
+132   6A59                 db 000h, 000h, 0E0h, 090h, 0E0h, 090h, 0E0h, 000h, 5 ; 130
+132   6A59 0000E090E090E00005
+133   6A62                 db 000h, 000h, 0E0h, 080h, 080h, 080h, 080h, 000h, 4 ; 131
+133   6A62 0000E0808080800004
+134   6A6B                 db 000h, 000h, 030h, 050h, 050h, 050h, 0F8h, 088h, 6 ; 132
+134   6A6B 000030505050F88806
+135   6A74                 db 000h, 000h, 060h, 090h, 0F0h, 080h, 060h, 000h, 5 ; 133
+135   6A74 00006090F080600005
+136   6A7D                 db 000h, 000h, 0A8h, 0A8h, 070h, 0A8h, 0A8h, 000h, 6 ; 134
+136   6A7D 0000A8A870A8A80006
+137   6A86                 db 000h, 000h, 060h, 090h, 020h, 090h, 060h, 000h, 5 ; 135
+137   6A86 000060902090600005
+138   6A8F                 db 000h, 000h, 090h, 090h, 0B0h, 0D0h, 090h, 000h, 5 ; 136
+138   6A8F 00009090B0D0900005
+139   6A98                 db 060h, 000h, 090h, 090h, 0B0h, 0D0h, 090h, 000h, 5 ; 137
+139   6A98 60009090B0D0900005
+140   6AA1                 db 000h, 000h, 090h, 0A0h, 0C0h, 0A0h, 090h, 000h, 5 ; 138
+140   6AA1 000090A0C0A0900005
+141   6AAA                 db 000h, 000h, 030h, 050h, 050h, 090h, 090h, 000h, 5 ; 139
+141   6AAA 000030505090900005
+142   6AB3                 db 000h, 000h, 088h, 0D8h, 0A8h, 088h, 088h, 000h, 6 ; 140
+142   6AB3 000088D8A888880006
+143   6ABC                 db 000h, 000h, 090h, 090h, 0F0h, 090h, 090h, 000h, 5 ; 141
+143   6ABC 00009090F090900005
+144   6AC5                 db 000h, 000h, 060h, 090h, 090h, 090h, 060h, 000h, 5 ; 142
+144   6AC5 000060909090600005
+145   6ACE                 db 000h, 000h, 0F0h, 090h, 090h, 090h, 090h, 000h, 5 ; 143
+145   6ACE 0000F0909090900005
+146   6AD7                 db 000h, 000h, 0E0h, 090h, 090h, 0E0h, 080h, 000h, 5 ; 144
+146   6AD7 0000E09090E0800005
+147   6AE0                 db 000h, 000h, 060h, 090h, 080h, 090h, 060h, 000h, 5 ; 145
+147   6AE0 000060908090600005
+148   6AE9                 db 000h, 000h, 0E0h, 040h, 040h, 040h, 040h, 000h, 4 ; 146
+148   6AE9 0000E0404040400004
+149   6AF2                 db 000h, 000h, 090h, 090h, 070h, 010h, 060h, 000h, 5 ; 147
+149   6AF2 000090907010600005
+150   6AFB                 db 000h, 020h, 070h, 0A8h, 0A8h, 0A8h, 070h, 020h, 6 ; 148
+150   6AFB 002070A8A8A8702006
+151   6B04                 db 000h, 000h, 090h, 090h, 060h, 090h, 090h, 000h, 5 ; 149
+151   6B04 000090906090900005
+152   6B0D                 db 000h, 000h, 090h, 090h, 090h, 090h, 0F8h, 008h, 6 ; 150
+152   6B0D 000090909090F80806
+153   6B16                 db 000h, 000h, 090h, 090h, 070h, 010h, 010h, 000h, 5 ; 151
+153   6B16 000090907010100005
+154   6B1F                 db 000h, 000h, 0A8h, 0A8h, 0A8h, 0A8h, 0F8h, 000h, 6 ; 152
+154   6B1F 0000A8A8A8A8F80006
+155   6B28                 db 000h, 000h, 0A8h, 0A8h, 0A8h, 0A8h, 0FCh, 004h, 7 ; 153
+155   6B28 0000A8A8A8A8FC0407
+156   6B31                 db 000h, 000h, 0C0h, 070h, 048h, 048h, 070h, 000h, 6 ; 154
+156   6B31 0000C0704848700006
+157   6B3A                 db 000h, 000h, 084h, 0E4h, 094h, 094h, 0E4h, 000h, 7 ; 155
+157   6B3A 000084E49494E40007
+158   6B43                 db 000h, 000h, 080h, 0E0h, 090h, 090h, 0E0h, 000h, 5 ; 156
+158   6B43 000080E09090E00005
+159   6B4C                 db 000h, 000h, 0E0h, 010h, 070h, 010h, 0E0h, 000h, 5 ; 157
+159   6B4C 0000E0107010E00005
+160   6B55                 db 000h, 000h, 098h, 0A4h, 0E4h, 0A4h, 098h, 000h, 7 ; 158
+160   6B55 000098A4E4A4980007
+161   6B5E                 db 000h, 000h, 070h, 090h, 090h, 070h, 090h, 000h, 5 ; 159
+161   6B5E 000070909070900005
+162   6B67             
+001   6B67             image_smallfont: 
+002   6B67                 db 000h, 000h, 000h, 000h, 000h, 4 ; 0
+002   6B67 000000000004
+003   6B6D                 db 008h, 010h, 020h, 040h, 080h, 6 ; 1
+003   6B6D 081020408006
+004   6B73                 db 060h, 090h, 090h, 090h, 060h, 5 ; 2
+004   6B73 609090906005
+005   6B79                 db 040h, 0C0h, 040h, 040h, 0E0h, 4 ; 3
+005   6B79 40C04040E004
+006   6B7F                 db 060h, 090h, 020h, 040h, 0F0h, 5 ; 4
+006   6B7F 60902040F005
+007   6B85                 db 060h, 090h, 020h, 090h, 060h, 5 ; 5
+007   6B85 609020906005
+008   6B8B                 db 090h, 090h, 0F0h, 010h, 010h, 5 ; 6
+008   6B8B 9090F0101005
+009   6B91                 db 0F0h, 080h, 0E0h, 010h, 0E0h, 5 ; 7
+009   6B91 F080E010E005
+010   6B97                 db 060h, 080h, 0E0h, 090h, 060h, 5 ; 8
+010   6B97 6080E0906005
+011   6B9D                 db 0F0h, 010h, 020h, 040h, 040h, 5 ; 9
+011   6B9D F01020404005
+012   6BA3                 db 060h, 090h, 060h, 090h, 060h, 5 ; 10
+012   6BA3 609060906005
+013   6BA9                 db 060h, 090h, 070h, 010h, 060h, 5 ; 11
+013   6BA9 609070106005
+014   6BAF                 db 060h, 090h, 0F0h, 090h, 090h, 5 ; 12
+014   6BAF 6090F0909005
+015   6BB5                 db 0E0h, 080h, 0E0h, 090h, 0E0h, 5 ; 13
+015   6BB5 E080E090E005
+016   6BBB                 db 0E0h, 090h, 0E0h, 090h, 0E0h, 5 ; 14
+016   6BBB E090E090E005
+017   6BC1                 db 0E0h, 080h, 080h, 080h, 080h, 4 ; 15
+017   6BC1 E08080808004
+018   6BC7                 db 030h, 050h, 050h, 050h, 0F8h, 6 ; 16
+018   6BC7 30505050F806
+019   6BCD                 db 060h, 090h, 0F0h, 080h, 060h, 5 ; 17
+019   6BCD 6090F0806005
+020   6BD3                 db 0A8h, 0A8h, 070h, 0A8h, 0A8h, 6 ; 18
+020   6BD3 A8A870A8A806
+021   6BD9                 db 060h, 090h, 020h, 090h, 060h, 5 ; 19
+021   6BD9 609020906005
+022   6BDF                 db 090h, 090h, 0B0h, 0D0h, 090h, 5 ; 20
+022   6BDF 9090B0D09005
+023   6BE5                 db 090h, 090h, 0B0h, 0D0h, 090h, 5 ; 21
+023   6BE5 9090B0D09005
+024   6BEB                 db 090h, 0A0h, 0C0h, 0A0h, 090h, 5 ; 22
+024   6BEB 90A0C0A09005
+025   6BF1                 db 030h, 050h, 050h, 090h, 090h, 5 ; 23
+025   6BF1 305050909005
+026   6BF7                 db 088h, 0D8h, 0A8h, 088h, 088h, 6 ; 24
+026   6BF7 88D8A8888806
+027   6BFD                 db 090h, 090h, 0F0h, 090h, 090h, 5 ; 25
+027   6BFD 9090F0909005
+028   6C03                 db 060h, 090h, 090h, 090h, 060h, 5 ; 26
+028   6C03 609090906005
+029   6C09                 db 0F0h, 090h, 090h, 090h, 090h, 5 ; 27
+029   6C09 F09090909005
+030   6C0F                 db 0E0h, 090h, 090h, 0E0h, 080h, 5 ; 28
+030   6C0F E09090E08005
+031   6C15                 db 060h, 090h, 080h, 090h, 060h, 5 ; 29
+031   6C15 609080906005
+032   6C1B                 db 0E0h, 040h, 040h, 040h, 040h, 4 ; 30
+032   6C1B E04040404004
+033   6C21                 db 090h, 090h, 070h, 010h, 060h, 5 ; 31
+033   6C21 909070106005
+034   6C27                 db 070h, 0A8h, 0A8h, 070h, 020h, 6 ; 32
+034   6C27 70A8A8702006
+035   6C2D                 db 090h, 090h, 060h, 090h, 090h, 5 ; 33
+035   6C2D 909060909005
+036   6C33                 db 090h, 090h, 090h, 090h, 0F8h, 6 ; 34
+036   6C33 90909090F806
+037   6C39                 db 090h, 090h, 070h, 010h, 010h, 5 ; 35
+037   6C39 909070101005
+038   6C3F                 db 0A8h, 0A8h, 0A8h, 0A8h, 0F8h, 6 ; 36
+038   6C3F A8A8A8A8F806
+039   6C45                 db 0A8h, 0A8h, 0A8h, 0A8h, 0FCh, 7 ; 37
+039   6C45 A8A8A8A8FC07
+040   6C4B                 db 0C0h, 070h, 048h, 048h, 070h, 6 ; 38
+040   6C4B C07048487006
+041   6C51                 db 084h, 0E4h, 094h, 094h, 0E4h, 7 ; 39
+041   6C51 84E49494E407
+042   6C57                 db 080h, 0E0h, 090h, 090h, 0E0h, 5 ; 40
+042   6C57 80E09090E005
+043   6C5D                 db 0E0h, 010h, 070h, 010h, 0E0h, 5 ; 41
+043   6C5D E0107010E005
+044   6C63                 db 098h, 0A4h, 0E4h, 0A4h, 098h, 7 ; 42
+044   6C63 98A4E4A49807
+045   6C69                 db 070h, 090h, 090h, 070h, 090h, 5 ; 43
+045   6C69 709090709005
+046   6C6F             
+001   6C6F                 ; base/fillrect.c:2 
+002   6C6F                 ; base/fillrect.c:3 void fillRect(hl, bc)
+003   6C6F             fillRect: 
+004   6C6F                 ; base/fillrect.c:4 {
+005   6C6F                 ; base/fillrect.c:5 ixl = b;
+006   6C6F DD 68           ld   ixl, b
+007   6C71                 ; base/fillrect.c:6 do
+008   6C71             l3000: 
+009   6C71                 ; base/fillrect.c:7 {
+010   6C71                 ; base/fillrect.c:8 a ^= a;
+011   6C71 AF              xor  a
+012   6C72                 ; base/fillrect.c:9 d = h; e = l;
+013   6C72 54              ld   d, h
+014   6C73 5D              ld   e, l
+015   6C74                 ; base/fillrect.c:10 b = c;
+016   6C74 41              ld   b, c
+017   6C75                 ; base/fillrect.c:11 do
+018   6C75             l3002: 
+019   6C75                 ; base/fillrect.c:12 {
+020   6C75                 ; base/fillrect.c:13 *hl = a; h++;
+021   6C75 77              ld   (hl), a
+022   6C76 24              inc  h
+023   6C77                 ; base/fillrect.c:14 *hl = a; h++;
+024   6C77 77              ld   (hl), a
+025   6C78 24              inc  h
+026   6C79                 ; base/fillrect.c:15 *hl = a; h++;
+027   6C79 77              ld   (hl), a
+028   6C7A 24              inc  h
+029   6C7B                 ; base/fillrect.c:16 *hl = a; h++;
+030   6C7B 77              ld   (hl), a
+031   6C7C 24              inc  h
+032   6C7D                 ; base/fillrect.c:17 *hl = a; h++;
+033   6C7D 77              ld   (hl), a
+034   6C7E 24              inc  h
+035   6C7F                 ; base/fillrect.c:18 *hl = a; h++;
+036   6C7F 77              ld   (hl), a
+037   6C80 24              inc  h
+038   6C81                 ; base/fillrect.c:19 *hl = a; h++;
+039   6C81 77              ld   (hl), a
+040   6C82 24              inc  h
+041   6C83                 ; base/fillrect.c:20 *hl = a; h = d;
+042   6C83 77              ld   (hl), a
+043   6C84 62              ld   h, d
+044   6C85                 ; base/fillrect.c:21 l++;
+045   6C85 2C              inc  l
+046   6C86                 ; base/fillrect.c:22 } while(--b);
+047   6C86 10 ED           djnz l3002
+048   6C88             l3003: 
+049   6C88                 ; base/fillrect.c:23 
+050   6C88                 ; base/fillrect.c:24 // Адрес следующей строки
+051   6C88                 ; base/fillrect.c:25 l = ((a = e) += 32);
+052   6C88 7B              ld   a, e
+053   6C89 C6 20           add  32
+054   6C8B 6F              ld   l, a
+055   6C8C                 ; base/fillrect.c:26 if (flag_c) h = ((a = h) += 8);
+056   6C8C D2 93 6C        jp   nc, l3004
+057   6C8F 7C              ld   a, h
+058   6C90 C6 08           add  8
+059   6C92 67              ld   h, a
+060   6C93                 ; base/fillrect.c:27 } while(flag_nz --ixl);
+061   6C93             l3004: 
+062   6C93 DD 2D           dec  ixl
+063   6C95 C2 71 6C        jp   nz, l3000
+064   6C98             l3001: 
+065   6C98                 ; base/fillrect.c:28 }
+066   6C98 C9              ret
+067   6C99                 ; base/fillrect.c:29 
+068   6C99             
+001   6C99                 ; base/tools.c:2 
+002   6C99                 ; base/tools.c:3 void numberToString16(hl, de)
+003   6C99             numberToString16: 
+004   6C99                 ; base/tools.c:4 {
+005   6C99                 ; base/tools.c:5 *[&uint16_to_str_addr + 1] = hl;
+006   6C99 22 AF 6C        ld   ((uint16_to_str_addr) + (1)), hl
+007   6C9C                 ; base/tools.c:6 
+008   6C9C                 ; base/tools.c:7 // Терминатор
+009   6C9C                 ; base/tools.c:8 a ^= a;
+010   6C9C AF              xor  a
+011   6C9D                 ; base/tools.c:9 push(a);
+012   6C9D F5              push af
+013   6C9E                 ; base/tools.c:10 
+014   6C9E                 ; base/tools.c:11 // Разделение числа на цифры
+015   6C9E                 ; base/tools.c:12 ex(hl, de);
+016   6C9E EB              ex de, hl
+017   6C9F                 ; base/tools.c:13 do
+018   6C9F             l7000: 
+019   6C9F                 ; base/tools.c:14 {
+020   6C9F                 ; base/tools.c:15 div16(hl, de = 10);
+021   6C9F 11 0A 00        ld   de, 10
+022   6CA2 CD BC 6C        call div16
+023   6CA5                 ; base/tools.c:16 (a = e) += '0';
+024   6CA5 7B              ld   a, e
+025   6CA6 C6 30           add  48
+026   6CA8                 ; base/tools.c:17 push(a);
+027   6CA8 F5              push af
+028   6CA9                 ; base/tools.c:18 } while (flag_nz (a = h) |= l);
+029   6CA9 7C              ld   a, h
+030   6CAA B5              or   l
+031   6CAB C2 9F 6C        jp   nz, l7000
+032   6CAE             l7001: 
+033   6CAE                 ; base/tools.c:19 
+034   6CAE                 ; base/tools.c:20 // Вывод в строку
+035   6CAE                 ; base/tools.c:21 uint16_to_str_addr:
+036   6CAE             uint16_to_str_addr: 
+037   6CAE                 ; base/tools.c:22 de = 0;
+038   6CAE 11 00 00        ld   de, 0
+039   6CB1                 ; base/tools.c:23 do
+040   6CB1             l7002: 
+041   6CB1                 ; base/tools.c:24 {
+042   6CB1                 ; base/tools.c:25 pop(a);
+043   6CB1 F1              pop  af
+044   6CB2                 ; base/tools.c:26 *de = a; de++;
+045   6CB2 12              ld   (de), a
+046   6CB3 13              inc  de
+047   6CB4                 ; base/tools.c:27 } while(flag_nz a |= a);
+048   6CB4 B7              or   a
+049   6CB5 C2 B1 6C        jp   nz, l7002
+050   6CB8             l7003: 
+051   6CB8                 ; base/tools.c:28 de--;
+052   6CB8 1B              dec  de
+053   6CB9                 ; base/tools.c:29 hl = de;
+054   6CB9 62              ld   h, d
+055   6CBA 6B              ld   l, e
+056   6CBB                 ; base/tools.c:30 }
+057   6CBB C9              ret
+058   6CBC                 ; base/tools.c:31 
+059   6CBC                 ; base/tools.c:32 void div16()
+060   6CBC             div16: 
+061   6CBC                 ; base/tools.c:33 {
+062   6CBC                 ; base/tools.c:34 ex(hl, de);
+063   6CBC EB              ex de, hl
+064   6CBD                 ; base/tools.c:35 if (flag_z (a = h) |= l) return; // Деление на ноль
+065   6CBD 7C              ld   a, h
+066   6CBE B5              or   l
+067   6CBF C8              ret  z
+068   6CC0                 ; base/tools.c:36 bc = 0;
+069   6CC0 01 00 00        ld   bc, 0
+070   6CC3                 ; base/tools.c:37 push(bc);
+071   6CC3 C5              push bc
+072   6CC4                 ; base/tools.c:38 do
+073   6CC4             l7004: 
+074   6CC4                 ; base/tools.c:39 {
+075   6CC4                 ; base/tools.c:40 (a = e) -= l;
+076   6CC4 7B              ld   a, e
+077   6CC5 95              sub  l
+078   6CC6                 ; base/tools.c:41 (a = d) -@= h;
+079   6CC6 7A              ld   a, d
+080   6CC7 9C              sbc  h
+081   6CC8                 ; base/tools.c:42 if (flag_c) break;
+082   6CC8 DA D0 6C        jp   c, l7005
+083   6CCB                 ; base/tools.c:43 push(hl);
+084   6CCB E5              push hl
+085   6CCC                 ; base/tools.c:44 hl += hl;
+086   6CCC 29              add  hl, hl
+087   6CCD                 ; base/tools.c:45 } while(flag_nc);
+088   6CCD D2 C4 6C        jp   nc, l7004
+089   6CD0             l7005: 
+090   6CD0                 ; base/tools.c:46 hl = 0;
+091   6CD0 21 00 00        ld   hl, 0
+092   6CD3                 ; base/tools.c:47 while()
+093   6CD3             l7006: 
+094   6CD3                 ; base/tools.c:48 {
+095   6CD3                 ; base/tools.c:49 pop(bc);
+096   6CD3 C1              pop  bc
+097   6CD4                 ; base/tools.c:50 (a = b) |= c;
+098   6CD4 78              ld   a, b
+099   6CD5 B1              or   c
+100   6CD6                 ; base/tools.c:51 if (flag_z) return;
+101   6CD6 C8              ret  z
+102   6CD7                 ; base/tools.c:52 hl += hl;
+103   6CD7 29              add  hl, hl
+104   6CD8                 ; base/tools.c:53 push(de);
+105   6CD8 D5              push de
+106   6CD9                 ; base/tools.c:54 e = ((a = e) -= c);
+107   6CD9 7B              ld   a, e
+108   6CDA 91              sub  c
+109   6CDB 5F              ld   e, a
+110   6CDC                 ; base/tools.c:55 d = ((a = d) -@= b);
+111   6CDC 7A              ld   a, d
+112   6CDD 98              sbc  b
+113   6CDE 57              ld   d, a
+114   6CDF                 ; base/tools.c:56 if (flag_c)
+115   6CDF                 ; base/tools.c:57 {
+116   6CDF D2 E6 6C        jp   nc, l7008
+117   6CE2                 ; base/tools.c:58 pop(de);
+118   6CE2 D1              pop  de
+119   6CE3                 ; base/tools.c:59 continue;
+120   6CE3 C3 D3 6C        jp l7006
+121   6CE6                 ; base/tools.c:60 }
+122   6CE6                 ; base/tools.c:61 hl++;
+123   6CE6             l7008: 
+124   6CE6 23              inc  hl
+125   6CE7                 ; base/tools.c:62 pop(bc);
+126   6CE7 C1              pop  bc
+127   6CE8                 ; base/tools.c:63 }
+128   6CE8 C3 D3 6C        jp   l7006
+129   6CEB             l7007: 
+130   6CEB                 ; base/tools.c:64 }
+131   6CEB C9              ret
+132   6CEC                 ; base/tools.c:65 
+133   6CEC                 ; base/tools.c:66 void getItemOfArray8()
+134   6CEC             getItemOfArray8: 
+135   6CEC                 ; base/tools.c:67 {
+136   6CEC                 ; base/tools.c:68 l = (a += l);
+137   6CEC 85              add  l
+138   6CED 6F              ld   l, a
+139   6CEE                 ; base/tools.c:69 h = ((a +@= h) -= l);
+140   6CEE 8C              adc  h
+141   6CEF 95              sub  l
+142   6CF0 67              ld   h, a
+143   6CF1                 ; base/tools.c:70 a = *hl;
+144   6CF1 7E              ld   a, (hl)
+145   6CF2                 ; base/tools.c:71 }
+146   6CF2 C9              ret
+147   6CF3                 ; base/tools.c:72 
+148   6CF3             
+001   6CF3                 savebin "base/base.bin", begin, $ - begin
+002   6CF3             

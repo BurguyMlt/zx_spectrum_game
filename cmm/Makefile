@@ -6,8 +6,8 @@ files:
 	@mkdir -p $(b)
 	find . -type f -not -path "./$(b)*" >cmm.files
 
-$(b)cmm: parse.cc main.cpp Parser.h Parser.ih ParserPreinclude.h Scannerbase.h Scanner.h Scanner.ih
-	g++ -g -o$(b)cmm main.cpp parse.cc lex.cc
+$(b)cmm: parse.cc main.cpp Parser.h Parser.ih ParserPreinclude.h Scannerbase.h Scanner.h Scanner.ih utf8tocp1251.cpp utf8tocp1251.h
+	g++ -std=c++14 -g -o$(b)cmm main.cpp parse.cc lex.cc utf8tocp1251.cpp
 
 parse.cc: cmm.l cmm.y
 	flexc++ cmm.l

@@ -5,7 +5,7 @@
 // Выход: С - результат, A - последний символ, DE - адрес символа за последним символом
 // Портит: HL
 
-const int firstChar = [' ' - 11];
+const int firstChar = ' ';
 
 void measureText()
 {
@@ -32,8 +32,26 @@ void measureText()
 // Портит: DE
 
 void calcCharAddr()
-{
-    a -= firstChar;
+{    
+calcCharAddrPoly:
+    goto calcCharAddrBig;
+
+calcCharAddrSmall: // 32, 48-57, 192-223
+    a -= [192 - 12];
+    if (flag_c)
+    {
+        a += [(192 - 12) - 46];
+        if (a >= 12) a ^= a;
+    }
+    h = 0; l = a;
+    hl += hl;
+    d = h; e = l;
+    (hl += hl) += de;
+    hl += (de = &image_smallfont);
+    return;
+
+calcCharAddrBig: // 32-96, 192-255
+    a -= 32;
     if (a >= 96) a -= 64;
     h = 0; l = a;
     d = h; e = l;
@@ -87,7 +105,28 @@ void drawText()
 {
     c = 0;
 drawTextSub:
+
+    // Выбор шрифта
+    push(hl)
+    {
+        a <<r= 1;
+        if (flag_c)
+        {
+            a >>= 1;
+            *(hl = [&drawTextPolyHeight + 1]) = 5;
+            *[&calcCharAddrPoly + 1] = hl = &calcCharAddrSmall;
+        }
+        else
+        {
+            a >>= 1;
+            *(hl = [&drawTextPolyHeight + 1]) = 8;
+            *[&calcCharAddrPoly + 1] = hl = &calcCharAddrBig;
+        }
+    }
+
+    //
     ex(a, a);
+    h = (((a = gVideoPage) &= 0x80) |= h);
     *[&drawTextS + 1] = hl;
     while ()
     {
@@ -95,16 +134,19 @@ drawTextSub:
         if (a < firstChar) break;
         drawCharSub();
     }
+
+    // Раскраска
     push(a, bc, de, hl)
     {
         ex(hl, de);
 drawTextS:
         hl = 0;
 
-        // Две строки?
-        if (a != 2)
-            if (flag_nz (a = h) &= 7) a = 1;
-        b = a;
+        // Если символ пересекает границу в 8 пикселей, то раскрашиываем две строки.
+        b = ((a = h) &= 7);
+        a = *[&drawTextPolyHeight + 1];
+        a--;
+        b = (a += b);
 
         // Преобразование адреса из чб в цвет
         d = (((a = h) >>= 3) &= 3);
@@ -131,7 +173,7 @@ drawTextS:
             }
 
             // Вторая строка
-            if (flag_nz b & 1)
+            if (flag_nz b & 8)
             {
                 hl += (de = 32);
                 do
@@ -182,6 +224,7 @@ void drawCharSub()
         ldi();
         ex(bc, de, hl);
 
+drawTextPolyHeight:
         b = 8;
         do
         {

@@ -21,7 +21,7 @@
 %token IF WHILE DO PUSH POP RETURN CONST ELSE GOTO CONTINUE BREAK
 %token IN OUT NOP EX DAA LDI CPI INI OUTI LDD CPD IND OUTD LDIR CPIR INIR OTIR LDDR CPDR INDR OTDR HALT
 
-%token M_COUNTER M_EOL
+%token M_COUNTER M_INCLUDE M_EOL
 
 %right '=' // стандарт Си
 %left OP_SADD OP_SSUB OP_SOR OP_SAND OP_SXOR OP_SADC OP_SSBC OP_SSHL OP_SSHR OP_SROL OP_SROR OP_SCSHL OP_SCSHR; // Немного не по стандарту.
@@ -54,7 +54,8 @@ startrule:
 ;
 
 preprocessor:
-     M_COUNTER icalc { lc = stringCounter = $2; }
+     M_COUNTER icalc M_EOL { lc = stringCounter = $2; }
+     | M_INCLUDE STRING M_EOL { d_scanner.include($2); }
 ;
 
 init_array:
@@ -100,7 +101,7 @@ decl:
     | type ID '=' const ';' { out << $2 << " " << asmTypeDecl($1) << " " << $4 << "\n"; }
     | CONST INT ID '=' icalc ';' { consts[$3] = $5; }
     | CONST INT ID '=' scalc ';' { consts[$3] = $5; }
-    | '#' { d_scanner.preprocessor = true; } preprocessor M_EOL { d_scanner.preprocessor = false; }
+    | '#' { d_scanner.preprocessor = true; } preprocessor { d_scanner.preprocessor = false; }
 ;
 
 type:

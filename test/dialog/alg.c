@@ -1,10 +1,4 @@
-const int KEY_UP = 1;
-const int KEY_DOWN = 2;
-const int KEY_LEFT = 4;
-const int KEY_RIGHT = 8;
-const int KEY_FIRE = 16;
-
-// 3 - фиолетовый
+#include "common.h"
 
 const int colorCursor = 0x43;
 const int colorText   = 0x47;

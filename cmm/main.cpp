@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "fstools.h"
 
 bool loadFile(std::string& out, const std::string& fileName)
 {
@@ -37,7 +38,7 @@ bool compile(const std::string& outputFile, const std::string& inputFile)
         std::istringstream iss(inputFileBody);
         Scanner s(iss);
         s.setFilename(inputFile);
-        s.setSourceForGetLine(inputFileBody);
+        s.setSourceForGetLine(inputFile, inputFileBody);
         Parser parser(s, *os);
         try {
             int r = parser.parse();

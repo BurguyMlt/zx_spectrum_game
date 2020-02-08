@@ -7,6 +7,7 @@
 begin:
     jp   invent
     jp   panelFullRedraw
+    jp   panelRedrawImages
     jp   shopMain
 
 ;-----------------------------------------------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ void strcpyn(hl, de, b)
     do
     {
         a = *de; de++;
-        if (flag_z a |= a) break;
+        if (a == 0) break;
         *hl = a; hl++;
     } while(--b);
     *hl = 0;
@@ -172,4 +172,17 @@ void drawSpriteXor(de, bc, hl, ixh)
     l++;
     *bc = a = ixh; de++;
     bc++;
+}
+
+void drawTextRight(hl, de, a)
+{
+    push(a)
+    {
+        push(hl, de)
+        {
+            gMeasureText(de); // Вход: de - текст. Выход: de - текст, a - терминатор, c - ширина в пикселях. Портит: b, hl.
+        }
+        l = ((a = l) -= c);
+    }
+    gDrawTextEx(hl, de, a);
 }

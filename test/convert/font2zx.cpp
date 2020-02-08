@@ -17,7 +17,7 @@ static std::string truncFileExt(const char* str)
     return std::string(str, ext - str);
 }
 
-bool font2zx(const char* outputFileName, const char* inputFileName)
+bool font2zx(char bs, const char* outputFileName, const char* inputFileName)
 {
     std::string name = truncFileExt(basename(inputFileName));
 
@@ -30,17 +30,20 @@ bool font2zx(const char* outputFileName, const char* inputFileName)
         std::cerr << "Can't create file " << outputFileName << std::endl;
         return false;
     }
-    
+
+    unsigned charHeight = bs == 'b' ? 9 : 6;
+
     fprintf(fo, "image_%s:\n", name.c_str());
     unsigned n = 0;
-    for (unsigned y = 0; y < 9 * 6; y += 9)
+    unsigned lc = png.getHeight() / charHeight;
+    for (unsigned y = 0; y < charHeight * lc; y += charHeight)
     {
         for (unsigned x = 0; x < 7 * 32; x += 7)
         {
             if (png.getPixel(x, y) == 0x0080FF) continue;
             fprintf(fo, "    db");
             uint8_t total_mask = 0;
-            for (unsigned iy = 1; iy < 9; iy++)
+            for (unsigned iy = 1; iy < charHeight; iy++)
             {
                 uint8_t b = 0;
                 for (unsigned ix = 0; ix < 6; ix++)
@@ -79,11 +82,11 @@ bool font2zx(const char* outputFileName, const char* inputFileName)
 
 int main(int argc, char **argv)
 {    
-    if (argc != 3)
+    if (argc != 4)
     {
         std::cerr << "font2zx (c) 3-10-2019 Alemorf" << std::endl
-                  << "Syntax: " << argv[0] << " output_file.inc input_file.png" << std::endl;;
+                  << "Syntax: " << argv[0] << " b/s output_file.inc input_file.png" << std::endl;;
         return 2;
     }
-    return font2zx(argv[1], argv[2]) ? 0 : 1;
+    return font2zx(argv[1][0], argv[2], argv[3]) ? 0 : 1;
 }

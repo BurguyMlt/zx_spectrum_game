@@ -1,10 +1,6 @@
 #counter 1000
 
-const int KEY_UP = 1;
-const int KEY_DOWN = 2;
-const int KEY_LEFT = 4;
-const int KEY_RIGHT = 8;
-const int KEY_FIRE = 16;
+#include "common.h"
 
 // Использует A, BC, HL
 void readKey()
@@ -18,6 +14,8 @@ void readKey()
     if (c & 0x10) a |= KEY_LEFT;
     c = in(bc = 0x7FFE);
     if (c & 0x01) a |= KEY_FIRE;
+    c = in(bc = 0xBFFE);
+    if (c & 0x01) a |= KEY_MENU;
     a ^= 0xFF;
 
     // Чтение прошлого значения и сохранение нового

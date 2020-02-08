@@ -5,6 +5,7 @@
 // $insert class.h
 #include "Parser.h"
 #include <limits.h>
+#include "utf8tocp1251.h"
 
 Parser::Parser(Scanner& scanner, std::ostream& out) : d_scanner(scanner), out(out)
 {
@@ -32,8 +33,10 @@ void Parser::exceptionHandler(std::exception const &exc)
     throw;              // re-implement to handle exceptions thrown by actions
 }
 
-unsigned Parser::allocString(const std::string& str)
+unsigned Parser::allocString(const std::string& str1)
 {
+    std::string str;
+    if (!cp1251ToUtf8(str, str1)) throw("Unsupported unicode char");
     auto i = stringsMap.find(str);
     if (i != stringsMap.end()) return i->second;
     unsigned id = stringCounter++;
@@ -43,8 +46,9 @@ unsigned Parser::allocString(const std::string& str)
 
 void Parser::nextLine(unsigned lineNr, const std::string& lineText)
 {
+    (void) lineNr;
     if (!lineText.empty())
-        out << "    ; " << lineNr << " " << lineText << "\n";
+        out << "    ; " << lineText << "\n";
 }
 
 void Parser::writeFooter()

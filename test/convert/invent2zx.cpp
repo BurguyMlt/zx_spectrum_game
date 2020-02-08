@@ -156,6 +156,7 @@ bool invent2zx(const char* outputFileName, const char* inputFileName, bool level
     fprintf(fo, "%sWidth=%u\n", name.c_str(), l.mapWidth);
     fprintf(fo, "%sHeight=%u\n", name.c_str(), l.mapHeight);
 
+    fprintf(fo, "   ds (10000h - $) & 3\n\n");
     fprintf(fo, "%sMap: ; size %u x %u", name.c_str(), l.mapWidth, l.mapHeight);
     unsigned m = 0;
     for (unsigned i = 0; i < l.map.size(); i++)

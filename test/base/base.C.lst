@@ -50,44 +50,53 @@
 47+  0000             gEnd = gEnd + 3
 48+  0000             gPanelRedraw      = gEnd
 49+  0000             gEnd = gEnd + 3
-50+  0000             gStringBuffer     = gEnd
-51+  0000             gStringBufferSize = 32
-52+  0000             gEnd = gEnd + gStringBufferSize
-53+  0000             
-54+  0000             ; Переменные
-55+  0000             gFrame            = gEnd
-56+  0000             gEnd = gEnd + 1
-57+  0000             gVideoPage        = gEnd
+50+  0000             gCopyPanel        = gEnd
+51+  0000             gEnd = gEnd + 3
+52+  0000             gStringBuffer     = gEnd
+53+  0000             gStringBufferSize = 32
+54+  0000             gEnd = gEnd + gStringBufferSize
+55+  0000             
+56+  0000             ; Переменные
+57+  0000             gFrame            = gEnd
 58+  0000             gEnd = gEnd + 1
-59+  0000             gSystemPage       = gEnd
+59+  0000             gVideoPage        = gEnd
 60+  0000             gEnd = gEnd + 1
-61+  0000             gKeyTrigger       = gEnd
+61+  0000             gSystemPage       = gEnd
 62+  0000             gEnd = gEnd + 1
-63+  0000             gKeyPressed       = gEnd
+63+  0000             gKeyTrigger       = gEnd
 64+  0000             gEnd = gEnd + 1
-65+  0000             gPlayerMoney      = gEnd
-66+  0000             gEnd = gEnd + 2
-67+  0000             gPlayerLut        = gEnd
-68+  0000             playerLutMax = 12
-69+  0000             gEnd = gEnd + 2 * playerLutMax
-70+  0000             gPlayerLutCount   = gEnd
-71+  0000             gEnd = gEnd + 1
-72+  0000             gPlayerItems      = gEnd
-73+  0000             playerItemsMax = 5
-74+  0000             gEnd = gEnd + playerItemsMax
-75+  0000             gPlayerItemsCount = gEnd
-76+  0000             gEnd = gEnd + 1
-77+  0000             gPanelChangedA    = gEnd
+65+  0000             gKeyPressed       = gEnd
+66+  0000             gEnd = gEnd + 1
+67+  0000             gPlayerMoney      = gEnd
+68+  0000             gEnd = gEnd + 2
+69+  0000             gPlayerLut        = gEnd
+70+  0000             playerLutMax = 12
+71+  0000             gEnd = gEnd + 2 * playerLutMax
+72+  0000             gPlayerLutCount   = gEnd
+73+  0000             gEnd = gEnd + 1
+74+  0000             gPlayerItems      = gEnd
+75+  0000             playerItemsMax = 5
+76+  0000             gEnd = gEnd + playerItemsMax
+77+  0000             gPlayerItemsCount = gEnd
 78+  0000             gEnd = gEnd + 1
-79+  0000             gPanelChangedB    = gEnd
+79+  0000             gPanelChangedA    = gEnd
 80+  0000             gEnd = gEnd + 1
-81+  0000             
-82+  0000             ; Другие модули
-83+  0000             gPanelgraphPage = 6
-84+  0000             gPanelgraph = 0C003h
-85+  0000             gPanelX = 0
-86+  0000             gPanelY = 20
-87+  0000             
+81+  0000             gPanelChangedB    = gEnd
+82+  0000             gEnd = gEnd + 1
+83+  0000             gPlayerSecondWeaponCount = gEnd
+84+  0000             gEnd = gEnd + 1
+85+  0000             gPlayerSecondWeaponCounters = gEnd
+86+  0000             secondWeaponMax = 9
+87+  0000             gEnd = gEnd + secondWeaponMax
+88+  0000             gPlayerSecondWeaponSel = gEnd
+89+  0000             gEnd = gEnd + 1
+90+  0000             
+91+  0000             ; Другие модули
+92+  0000             gPanelgraphPage = 6
+93+  0000             gPanelgraph = 0C003h
+94+  0000             gPanelX = 0
+95+  0000             gPanelY = 20
+96+  0000             
 04   0000             
 05   0000                 org moverAddr
 06   8000             
@@ -98,7 +107,7 @@
 11   8001                 ; Перенос модуля
 12   8001 21 60 80        LD HL, baseCode
 13   8004 11 63 60        LD DE, baseAddr
-14   8007 01 E3 0A        LD BC, baseCodeEnd - baseCode
+14   8007 01 90 0C        LD BC, baseCodeEnd - baseCode
 15   800A ED B0           LDIR
 16   800C             
 17   800C                 ; Инициализация стека
@@ -106,9 +115,9 @@
 19   800F             
 20   800F                 ; Выбор второй видеостраницы
 21   800F AF              XOR   A
-22   8010 32 B7 60        LD    (gVideoPage), A
+22   8010 32 BA 60        LD    (gVideoPage), A
 23   8013 3E 17           LD    A, 17h
-24   8015 32 B8 60        LD    (gSystemPage), A
+24   8015 32 BB 60        LD    (gSystemPage), A
 25   8018 01 FD 7F        LD    BC, 7FFDh
 26   801B ED 79           OUT   (C), A
 27   801D             
@@ -130,7 +139,7 @@
 43   803B                 ; Загрузка файла DIALOG
 44   803B 3E 16           LD    A, 6 | 0x10
 45   803D 01 FD 7F        LD    BC, 7FFDh
-46   8040 32 B8 60        LD    (gSystemPage), A
+46   8040 32 BB 60        LD    (gSystemPage), A
 47   8043 ED 79           OUT   (C), A
 48   8045 21 59 80        LD    HL, aDialog
 49   8048 11 00 C0        LD    DE, 0C000h
@@ -147,7 +156,7 @@
 59   8060             
 60   8060             baseCode: 
 61   8060                 incbin "base.bin"
-62   8B43             baseCodeEnd: 
-63   8B43             
-01   8B43                 savebin "base/base.C", begin, $ - begin
-02   8B43             
+62   8CF0             baseCodeEnd: 
+63   8CF0             
+01   8CF0                 savebin "base/base.C", begin, $ - begin
+02   8CF0             

@@ -27,6 +27,7 @@ iBeginDraw:      jp beginDraw
 iEndDraw:        jp endDraw
 iCopyVideoPage:  jp copyVideoPage
 iPanelRedraw:    jp panelRedraw
+iCopyPanel:      jp copyPanel
 iStringBuffer:   ds gStringBufferSize
 
 iFrame:            db 0

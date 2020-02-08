@@ -62,3 +62,10 @@ void div16()
         pop(bc);
     }
 }
+
+void getItemOfArray8()
+{
+    l = (a += l);
+    h = ((a +@= h) -= l);
+    a = *hl;
+}

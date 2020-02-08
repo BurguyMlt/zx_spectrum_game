@@ -1,12 +1,6 @@
 #counter 2000
 
-const int playerLutMax = 12;
-
-const int KEY_UP = 1;
-const int KEY_DOWN = 2;
-const int KEY_LEFT = 4;
-const int KEY_RIGHT = 8;
-const int KEY_FIRE = 16;
+#include "common.h"
 
 const int PORT_7FFD_SECOND_VIDEO_PAGE = 8;
 
@@ -86,12 +80,23 @@ void newGame()
     *[&gPlayerItems + 1] = a = 1;
 
     gPlayerLutCount = a = 3;
-    *[&gPlayerLut + 0] = a = 0;
+    *[&gPlayerLut + 0] = a = 3;
     *[&gPlayerLut + playerLutMax + 0] = a = 5;
-    *[&gPlayerLut + 1] = a = 1;
+    *[&gPlayerLut + 1] = a = 4;
     *[&gPlayerLut + playerLutMax + 1] = a = 10;
-    *[&gPlayerLut + 2] = a = 2;
+    *[&gPlayerLut + 2] = a = 5;
     *[&gPlayerLut + playerLutMax + 2] = a = 15;
+
+    gPlayerSecondWeaponCount = a = 7;
+    *[&gPlayerSecondWeaponCounters + 0] = a = 10;
+    *[&gPlayerSecondWeaponCounters + 1] = a = 12;
+    *[&gPlayerSecondWeaponCounters + 2] = a = 14;
+    *[&gPlayerSecondWeaponCounters + 3] = a = 16;
+    *[&gPlayerSecondWeaponCounters + 4] = a = 18;
+    *[&gPlayerSecondWeaponCounters + 5] = a = 20;
+    *[&gPlayerSecondWeaponCounters + 6] = a = 22;
+    *[&gPlayerSecondWeaponCounters + 7] = a = 24;
+    *[&gPlayerSecondWeaponCounters + 8] = a = 26;
 }
 
 void main()
@@ -134,7 +139,7 @@ void main()
 
 void cityInvalidate(hl)
 {
-    d = h; e = l; de++;
+    de = hl; e++;
     *hl = unusedTailCode;
     bc = [viewWidth * viewHeight - 1];
     ldir();
@@ -277,7 +282,7 @@ const int sprite_raistlin_right_step = &city1s_4;
 
 void processPlayer()
 {
-    if (*(hl = &gKeyTrigger) & KEY_FIRE)
+    if (*(hl = &gKeyTrigger) & KEY_MENU)
     {
         *hl = 0;
         // На двух видеостраницах должно быть идентичное изображение, причем активной должна быть вторая видеостраница
@@ -293,7 +298,10 @@ void processPlayer()
         }
 
         // Переход к магазину
-        gFarCall(iyl = 6, ix = 0xC000);
+        gFarCall(iyl = gInventPage, ix = gInvent);
+
+        // Копируем панель на вторую страницу
+        gCopyPanel();
 
         // Перерисовать всё
         cityInvalidate(hl = cacheAddr1);

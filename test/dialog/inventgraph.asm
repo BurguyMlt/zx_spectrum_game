@@ -70,6 +70,8 @@ inventgraphTails: ; count 66
 
 inventgraphWidth=32
 inventgraphHeight=20
+   ds (10000h - $) & 3
+
 inventgraphMap: ; size 32 x 20
     db 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 3, 4, 5, 6
     db 7, 8, 6, 9, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 10

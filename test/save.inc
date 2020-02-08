@@ -1,1 +1,1 @@
-    savebin "dialog/dialog.C", begin, $ - begin ; dialog/dialog.asm dialog/div16.asm dialog/alg.asm dialog/shop.asm dialog/tools.asm dialog/dialogrect.asm dialog/panelgraph.asm dialog/inventgraph.asm dialog/invent.asm dialog/panel.asm dialog/magic.asm
+    savebin "dialog/dialog.C", begin, $ - begin ; dialog/dialog.asm dialog/div16.asm dialog/alg.asm dialog/shop.asm dialog/tools.asm dialog/dialogrect.asm dialog/panelgraph.asm dialog/inventgraph.asm dialog/invent.asm dialog/panel.asm dialog/magic.asm dialog/descr.asm

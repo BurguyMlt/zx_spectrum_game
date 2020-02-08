@@ -1,14 +1,6 @@
+#include "common.h"
+
 #counter 4000
-
-const int gStringBufferSize = 32;
-
-const int gPanelChangedMoney = 0x01;
-const int gPanelChangedPlace = 0x02;
-
-const int numberToString16max = 5;
-const int playerItemsMax = 5;
-const int playerLutMaxCountInLine = 99;
-const int playerLutMax = 12;
 
 uint8_t shopSel = 0;
 
@@ -18,7 +10,6 @@ void playerAddItem(a)
 {
     return addElement(de = &gPlayerItems, hl = &gPlayerItemsCount, c = playerItemsMax);
 }
-
 
 void playerRemoveItem(a)
 {
@@ -85,81 +76,6 @@ void setPlayerMoney(hl)
 //panelRedraw:
 //    return gFarCall(iyl = 7, ix = &gPanelRedraw);
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-// Названия всех заклинаний
-
-const int itemsCount = 8;
-
-uint16_t itemNames[itemsCount] = {
-    "Отвар листьев",
-    "Полное исцеление",
-    "Заклинание 1",
-    "Магические силы",
-    "Каменная кожа",
-    "Огонь бездны",
-    "Порча",
-    "Телепортация"
-};
-
-uint16_t lutNames[] = {
-    "Кожа змеи",
-    "Нож хобгоблина",
-    "Ядовитый клык",
-    "Кровь дракона",
-    "Кислота",
-    "Перья",
-    "Слизь",
-    "Копыта",
-    "Кольчуга",
-    "Изумруд",
-    "Золотое руно",
-    "Майоран"
-};
-
-uint16_t lutPrices[] = {
-    1,
-    2,
-    3
-};
-
-uint16_t itemInfo[itemsCount] = {    
-    "*", //"Восстанавливает 10 единиц здоровья\r",
-
-    "*", //"Полностью восстанавливает здоровье\r",
-
-    "*", //"Полностью восстанавливает\n"
-    //"заклинание 1\r",
-
-    "*", //"Полностью восстанавливает\n"
-    //"все заклинания\r",
-
-    "Это заклинание делает вашу\n"
-    "плоть твердой как камень.\n"
-    "Пока заклинание активно,\n"
-    "урон уменьшается вдвое.",
-
-    "*", //"Полностью восстанавливает амулет\r",
-
-    "*", //"Пока заклинание активно,\n"
-    //"каждая ваша атака наноит в\n"
-    //"два раза больше урона врагу.\r",
-
-    "*" //"Это заклинание возращает\n"
-    //"Вас в последний посещенный\n"
-    //"вами город.\r"
-};
-
-uint16_t itemPrices[itemsCount] = {
-    10,
-    20,
-    30,
-    40,
-    50,
-    60,
-    70,
-    80
-};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Сформировать строку во временном буфере с наименованием и ценой.
@@ -613,7 +529,7 @@ void stopTradeLutGetText(a)
             push(bc);
                 hl = &gStringBuffer;
                 strcpyn(hl, b = [gStringBufferSize - 3 - 2 - 1 - numberToString16max - 1], de);
-                strcpyn(hl, b = 3, de = " x ");
+                strcpyn(hl, b = 3, de = " * ");
             pop(de);
             d = 0;
             if ((a = e) < 100) numberToString16(hl, de);

@@ -117,7 +117,11 @@ base/panel.asm: base/panel.c
 
 B += base/font.asm
 base/font.asm: base/font.png convert/font2zx
-	./convert/font2zx $@ $<
+	./convert/font2zx b $@ $<
+
+B += base/smallfont.asm
+base/smallfont.asm: base/smallfont.png convert/font2zx
+	./convert/font2zx s $@ $<
 
 B += base/fillrect.asm
 base/fillrect.asm: base/fillrect.c
@@ -168,6 +172,9 @@ dialog/panel.asm: dialog/panel.c
 D += dialog/magic.asm
 dialog/magic.asm: dialog/magic.png convert/sprites2zx
 	./convert/sprites2zx 2 $@ $<
+
+D += dialog/descr.asm
+dialog/descr.asm: dialog/descr.c
 
 O += D
 

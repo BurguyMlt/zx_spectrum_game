@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 class Compare
 {
 public:

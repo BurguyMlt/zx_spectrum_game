@@ -50,44 +50,53 @@
 47+  0000             gEnd = gEnd + 3
 48+  0000             gPanelRedraw      = gEnd
 49+  0000             gEnd = gEnd + 3
-50+  0000             gStringBuffer     = gEnd
-51+  0000             gStringBufferSize = 32
-52+  0000             gEnd = gEnd + gStringBufferSize
-53+  0000             
-54+  0000             ; Переменные
-55+  0000             gFrame            = gEnd
-56+  0000             gEnd = gEnd + 1
-57+  0000             gVideoPage        = gEnd
+50+  0000             gCopyPanel        = gEnd
+51+  0000             gEnd = gEnd + 3
+52+  0000             gStringBuffer     = gEnd
+53+  0000             gStringBufferSize = 32
+54+  0000             gEnd = gEnd + gStringBufferSize
+55+  0000             
+56+  0000             ; Переменные
+57+  0000             gFrame            = gEnd
 58+  0000             gEnd = gEnd + 1
-59+  0000             gSystemPage       = gEnd
+59+  0000             gVideoPage        = gEnd
 60+  0000             gEnd = gEnd + 1
-61+  0000             gKeyTrigger       = gEnd
+61+  0000             gSystemPage       = gEnd
 62+  0000             gEnd = gEnd + 1
-63+  0000             gKeyPressed       = gEnd
+63+  0000             gKeyTrigger       = gEnd
 64+  0000             gEnd = gEnd + 1
-65+  0000             gPlayerMoney      = gEnd
-66+  0000             gEnd = gEnd + 2
-67+  0000             gPlayerLut        = gEnd
-68+  0000             playerLutMax = 12
-69+  0000             gEnd = gEnd + 2 * playerLutMax
-70+  0000             gPlayerLutCount   = gEnd
-71+  0000             gEnd = gEnd + 1
-72+  0000             gPlayerItems      = gEnd
-73+  0000             playerItemsMax = 5
-74+  0000             gEnd = gEnd + playerItemsMax
-75+  0000             gPlayerItemsCount = gEnd
-76+  0000             gEnd = gEnd + 1
-77+  0000             gPanelChangedA    = gEnd
+65+  0000             gKeyPressed       = gEnd
+66+  0000             gEnd = gEnd + 1
+67+  0000             gPlayerMoney      = gEnd
+68+  0000             gEnd = gEnd + 2
+69+  0000             gPlayerLut        = gEnd
+70+  0000             playerLutMax = 12
+71+  0000             gEnd = gEnd + 2 * playerLutMax
+72+  0000             gPlayerLutCount   = gEnd
+73+  0000             gEnd = gEnd + 1
+74+  0000             gPlayerItems      = gEnd
+75+  0000             playerItemsMax = 5
+76+  0000             gEnd = gEnd + playerItemsMax
+77+  0000             gPlayerItemsCount = gEnd
 78+  0000             gEnd = gEnd + 1
-79+  0000             gPanelChangedB    = gEnd
+79+  0000             gPanelChangedA    = gEnd
 80+  0000             gEnd = gEnd + 1
-81+  0000             
-82+  0000             ; Другие модули
-83+  0000             gPanelgraphPage = 6
-84+  0000             gPanelgraph = 0C003h
-85+  0000             gPanelX = 0
-86+  0000             gPanelY = 20
-87+  0000             
+81+  0000             gPanelChangedB    = gEnd
+82+  0000             gEnd = gEnd + 1
+83+  0000             gPlayerSecondWeaponCount = gEnd
+84+  0000             gEnd = gEnd + 1
+85+  0000             gPlayerSecondWeaponCounters = gEnd
+86+  0000             secondWeaponMax = 9
+87+  0000             gEnd = gEnd + secondWeaponMax
+88+  0000             gPlayerSecondWeaponSel = gEnd
+89+  0000             gEnd = gEnd + 1
+90+  0000             
+91+  0000             ; Другие модули
+92+  0000             gPanelgraphPage = 6
+93+  0000             gPanelgraph = 0C003h
+94+  0000             gPanelX = 0
+95+  0000             gPanelY = 20
+96+  0000             
 04   0000             
 05   0000             DOS=15619
 06   0000             BASE=moverAddr

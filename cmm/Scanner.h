@@ -7,7 +7,9 @@
 #include "Scannerbase.h"
 #include <map>
 #include <functional>
+#include <list>
 #include "const.h"
+#include "fstools.h"
 
 // $insert classHead
 class Scanner: public ScannerBase
@@ -24,8 +26,10 @@ class Scanner: public ScannerBase
         int lex();
         typedef std::function<void(unsigned, const std::string&)> onNextLine_t;
         void setSval(Parser::STYPE__* d_val__, std::map<std::string, Const> *consts, onNextLine_t onNextLine);
-        void setSourceForGetLine(const std::string& getLineSource);
+        void setSourceForGetLine(const std::string& fileName, const std::string& getLineSource);
         void setFilename(std::string const &name) { ScannerBase::setFilename(name); }
+        void include(const std::string& fileName);
+        bool unclude();
 
     private:
         int lex__();
@@ -44,9 +48,16 @@ class Scanner: public ScannerBase
         Parser::STYPE__* d_val = nullptr;
         std::map<std::string, Const>* consts = nullptr;
         onNextLine_t onNextLine;
-        std::string getLineSource;
-        unsigned getLineCacheLine = 1;
-        std::string::size_type getLineCacheOff = 0;
+
+        class GetLine
+        {
+        public:
+            std::string getLineSource;
+            unsigned getLineCacheLine = 1;
+            std::string::size_type getLineCacheOff = 0;
+        };
+
+        std::list<GetLine> getLineStack;
 };
 
 // $insert scannerConstructors
@@ -88,34 +99,62 @@ inline void Scanner::setSval(Parser::STYPE__* d_val__,  std::map<std::string, Co
     d_val = d_val__;
 }
 
-inline void Scanner::setSourceForGetLine(const std::string& _getLineSource)
+inline void Scanner::include(const std::string& inputFile)
 {
-    getLineSource = _getLineSource;
-    getLineCacheLine = 1;
-    getLineCacheOff = 0;
+    // Input file
+    std::string inputFileBody;
+    if (!loadFile(inputFileBody, inputFile))
+        throw "Can't open file " + inputFile;
+
+    setSourceForGetLine(inputFile, inputFileBody);
+
+    // Std
+    pushStream(inputFile);
+}
+
+inline bool Scanner::unclude()
+{
+    if (getLineStack.empty()) return false;
+    getLineStack.pop_back();
+    return popStream();
+}
+
+inline void Scanner::setSourceForGetLine(const std::string& fileName, const std::string& _getLineSource)
+{
+    getLineStack.push_back(GetLine());
+    GetLine& l = getLineStack.back();
+    l.getLineSource = _getLineSource;
+    l.getLineCacheLine = 1;
+    l.getLineCacheOff = 0;
 }
 
 inline std::string Scanner::getLine(unsigned line)
 {
+    if (getLineStack.empty()) return "";
+
+    GetLine& l = getLineStack.back();
+
     std::string::size_type pos = 0;
     unsigned currentLine = 1;
-    if (line >= getLineCacheLine)
+    if (line >= l.getLineCacheLine)
     {
-        currentLine = getLineCacheLine;
-        pos = getLineCacheOff;
+        currentLine = l.getLineCacheLine;
+        pos = l.getLineCacheOff;
     }
     for(; currentLine < line; currentLine++)
     {
-        pos = getLineSource.find('\n', pos);
-        if (pos == getLineSource.npos) return "";
+        pos = l.getLineSource.find('\n', pos);
+        if (pos == l.getLineSource.npos) return "";
         pos++;
     }
-    getLineCacheLine = line;
-    getLineCacheOff = pos;
+    l.getLineCacheLine = line;
+    l.getLineCacheOff = pos;
 
-    while (getLineSource.data()[pos] == ' ') pos++;
-    std::string::size_type pos1 = getLineSource.find('\n', pos);
-    return pos1 == getLineSource.npos ? getLineSource.substr(pos) : getLineSource.substr(pos, pos1 - pos);
+    while (l.getLineSource.data()[pos] == ' ') pos++;
+    std::string::size_type pos1 = l.getLineSource.find('\n', pos);
+
+    return filename() + ":" + std::to_string(line) + " "
+       + (pos1 == l.getLineSource.npos ? l.getLineSource.substr(pos) : l.getLineSource.substr(pos, pos1 - pos));
 }
 
 #endif // Scanner_H_INCLUDED_

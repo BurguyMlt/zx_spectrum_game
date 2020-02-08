@@ -98,6 +98,7 @@
     if (preprocessor)
     {
         if (s == "counter") return Parser::M_COUNTER;
+        if (s == "include") return Parser::M_INCLUDE;
         *d_val = s;
         return Parser::ID;
     }
@@ -293,7 +294,7 @@
     }
 }
 
-<<EOF>> { return 0; }
+<<EOF>> { if(!unclude()) return 0; }
 [ \t]+ {}
 \n {
     onNextLine(lineNr(), getLine(lineNr()));
